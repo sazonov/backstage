@@ -1,0 +1,1 @@
+alter table workflow add column archived timestamp;

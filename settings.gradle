@@ -1,0 +1,8 @@
+rootProject.name = 'components'
+
+include 'app'
+include 'bpm'
+include 'dicts-api'
+include 'dicts'
+include 'dependencies'
+

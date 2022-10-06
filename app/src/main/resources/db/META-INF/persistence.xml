@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="2.0" xmlns="http://java.sun.com/xml/ns/persistence" xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd">
+	<persistence-unit name="app">
+		<class>com.proit.app.conversion.jpa.LocalDateAttributeConverter</class>
+		<class>com.proit.app.conversion.jpa.LocalDateTimeAttributeConverter</class>
+
+		<class>com.proit.app.model.domain.UuidGeneratedEntity</class>
+		<class>com.proit.app.model.domain.InternalUser</class>
+		<class>com.proit.app.model.domain.Attachment</class>
+		<class>com.proit.app.model.domain.AttachmentBinding</class>
+		<class>com.proit.app.model.domain.DocumentTemplate</class>
+		<class>com.proit.app.model.domain.audit.Audit</class>
+
+		<exclude-unlisted-classes>false</exclude-unlisted-classes>
+	</persistence-unit>
+</persistence>

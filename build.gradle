@@ -1,0 +1,54 @@
+buildscript {
+	repositories {
+		maven { url 'https://nexus.proitr.ru/repository/central/' }
+		maven { url 'https://plugins.gradle.org/m2/' }
+	}
+
+	dependencies {
+		classpath "io.spring.gradle:propdeps-plugin:0.0.10.RELEASE"
+		classpath "org.springframework.boot:spring-boot-gradle-plugin:$springBootVersion"
+		classpath "com.proit:gradle-plugins:$proitGradlePluginsVersion"
+	}
+}
+
+plugins {
+	id "org.sonarqube" version "$sonarQubeVersion"
+}
+
+sonarqube {
+	properties {
+		property "sonar.host.url", "http://sonarqube.dnit/"
+		property "sonar.projectKey", "proit.app"
+	}
+}
+
+subprojects {
+	apply plugin: 'java'
+	apply plugin: 'idea'
+
+	group 'com.proit'
+	version "$appVersion"
+
+	repositories {
+		maven { url 'https://nexus.proitr.ru/repository/central/' }
+	}
+
+	wrapper {
+		gradleVersion = '7.5.1'
+		distributionType = Wrapper.DistributionType.BIN
+	}
+
+	idea.module {
+		// FIXME: Idea перестаёт корректно подсвечивать application.properties из-за пользовательского конфига (https://youtrack.jetbrains.com/issue/IDEA-182635).
+		excludeDirs += file('src/main/resources/config')
+	}
+
+	java {
+		toolchain {
+			languageVersion = JavaLanguageVersion.of(sourceJavaVersion)
+		}
+	}
+
+	compileJava.options.encoding = sourceEncoding
+	compileTestJava.options.encoding = sourceEncoding
+}

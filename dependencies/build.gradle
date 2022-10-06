@@ -1,0 +1,46 @@
+plugins {
+	id 'version-catalog'
+	id 'maven-publish'
+}
+
+catalog {
+	versionCatalog {
+		version("lombok", "$lombokVersion")
+		version("sonar", "$sonarQubeVersion")
+		version("proitGradlePlugins", "$proitGradlePluginsVersion")
+
+		version("springBoot", "$springBootVersion")
+		version("springCloud", "$springCloudVersion")
+		version("springSocial", "$springSocialVersion")
+		version("jbpm", "$jbpmVersion")
+		version("groovy", "$groovyVersion")
+		version("nashorn", "$nashornVersion")
+		version("eclipseLink", "$eclipseLinkVersion")
+		version("postgis", "$postgisVersion")
+		version("geolatte", "$geolatteVersion")
+		version("springDoc", "$springDocVersion")
+		version("flyway", "$flywayVersion")
+		version("hazelcast", "$hazelcastVersion")
+		version("guava", "$guavaVersion")
+		version("apachePOI", "$apachePOIVersion")
+		version("jersey", "$jerseyVersion")
+	}
+}
+
+publishing {
+	publications {
+		maven(MavenPublication) {
+			from components.versionCatalog
+		}
+	}
+
+	repositories {
+		maven {
+			url 'https://nexus.proitr.ru/repository/maven-proit/'
+			credentials {
+				username nexusLogin
+				password nexusPassword
+			}
+		}
+	}
+}

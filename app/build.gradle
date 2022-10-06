@@ -1,0 +1,154 @@
+plugins {
+	id 'java-library'
+	id "io.freefair.lombok" version "$lombokVersion"
+}
+
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'maven-publish'
+apply plugin: 'proit-jpa-weaving'
+apply plugin: 'proit-jpa-modelgen'
+
+delombok {
+	enabled = false
+}
+
+jar {
+	enabled = true
+}
+
+bootJar {
+	enabled = false
+}
+
+dependencies {
+	annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
+
+	compileOnly "org.springframework.boot:spring-boot-starter"
+	compileOnly "org.springframework.boot:spring-boot-starter-aop"
+	compileOnly "org.springframework.boot:spring-boot-starter-actuator"
+	compileOnly "org.springframework.boot:spring-boot-starter-web"
+	compileOnly "org.springframework.boot:spring-boot-starter-validation"
+	compileOnly "org.springframework.boot:spring-boot-starter-security"
+	compileOnly "org.springframework.boot:spring-boot-starter-cache"
+	compileOnly "org.springframework.boot:spring-boot-starter-activemq"
+	compileOnly "org.springframework.boot:spring-boot-starter-quartz"
+	compileOnly "org.springframework.boot:spring-boot-starter-data-redis"
+	compileOnly "org.springframework.boot:spring-boot-starter-data-mongodb"
+	compileOnly ("org.springframework.data:spring-data-jpa") {
+		exclude(group: "org.hibernate")
+	}
+	compileOnly "org.springframework.cloud:spring-cloud-starter-netflix-eureka-client:$springCloudVersion"
+
+	compileOnly "org.freemarker:freemarker"
+
+	compileOnly "org.apache.activemq:activemq-kahadb-store"
+	compileOnly "net.sf.ehcache:ehcache"
+	compileOnly "com.hazelcast:hazelcast-spring"
+	compileOnly "com.fasterxml.jackson.core:jackson-annotations"
+	compileOnly "org.flywaydb:flyway-core"
+
+	compileOnly "net.postgis:postgis-jdbc:$postgisVersion"
+	compileOnly "org.geolatte:geolatte-geom:$geolatteVersion"
+
+	compileOnly "org.postgresql:postgresql"
+
+	api "org.eclipse.persistence:eclipselink:$eclipseLinkVersion"
+
+	api "io.minio:minio:$minioVersion"
+
+	api "com.google.guava:guava:$guavaVersion"
+	api "org.apache.commons:commons-lang3"
+	api "commons-io:commons-io:$commonsIOVersion"
+	api "commons-codec:commons-codec:$commonsCodecVersion"
+	api "commons-beanutils:commons-beanutils:$commonsBeanUtilsVersion"
+
+	api "javax.xml.bind:jaxb-api:2.3.1"
+	api "com.sun.xml.bind:jaxb-core:2.3.0.1"
+	api "com.sun.xml.bind:jaxb-impl:2.3.1"
+
+	api "org.springdoc:springdoc-openapi-ui:$springDocVersion"
+
+	// Интеграция с systemd
+	api "com.github.jpmsilva.jsystemd:jsystemd-spring-boot-starter:2.0.1"
+
+	testImplementation "org.springframework.boot:spring-boot-starter-test"
+	testImplementation "org.springframework.boot:spring-boot-starter-cache"
+	testImplementation "org.springframework.boot:spring-boot-starter-aop"
+	testImplementation "org.springframework.boot:spring-boot-starter-actuator"
+	testImplementation "org.springframework.boot:spring-boot-starter-validation"
+	testImplementation "org.springframework.boot:spring-boot-starter-web"
+	testImplementation "org.springframework.boot:spring-boot-starter-quartz"
+	testImplementation "org.springframework.boot:spring-boot-starter-activemq"
+	testImplementation ("org.springframework.data:spring-data-jpa") {
+		exclude(group: "org.hibernate")
+	}
+
+	testImplementation "org.apache.activemq:activemq-client"
+	testImplementation "org.apache.activemq:activemq-broker"
+	testImplementation "org.apache.activemq:activemq-kahadb-store"
+	testImplementation "org.apache.activemq:activemq-pool"
+	testImplementation "org.apache.activemq:activemq-spring"
+
+	testImplementation "org.flywaydb:flyway-core"
+	testImplementation "com.zaxxer:HikariCP"
+	testImplementation "org.postgresql:postgresql"
+	testImplementation "net.sf.ehcache:ehcache"
+
+	testImplementation "org.testcontainers:testcontainers:$testContainersVersion"
+	testImplementation "org.testcontainers:junit-jupiter:$testContainersVersion"
+	testImplementation "org.testcontainers:postgresql:$testContainersVersion"
+
+	api "org.javassist:javassist:3.28.0-GA"
+	api("org.wickedsource.docx-stamper:docx-stamper:1.4.0") {
+		exclude group: 'org.javassist'
+	}
+	api("org.docx4j:docx4j:3.3.0") {
+		exclude group: 'org.slf4j'
+	}
+}
+
+test {
+	useJUnitPlatform()
+}
+
+javadoc {
+	if (JavaVersion.current().isJava9Compatible()) {
+		options.addBooleanOption('html5', true)
+		options.encoding('UTF-8')
+	}
+}
+
+task sourceJar(type: Jar) {
+	classifier 'sources'
+	from sourceSets.main.allJava
+}
+
+task javadocJar(type: Jar) {
+	classifier = 'javadoc'
+	from javadoc
+}
+
+publishing {
+	publications {
+		maven(MavenPublication) {
+			groupId = project.group
+			artifactId = project.name
+			version = project.version
+
+			from components.java
+			artifact sourceJar
+			artifact javadocJar
+		}
+	}
+
+	repositories {
+		maven {
+			url 'https://nexus.proitr.ru/repository/maven-proit/'
+			credentials {
+				username nexusLogin
+				password nexusPassword
+			}
+		}
+	}
+}

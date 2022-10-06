@@ -1,0 +1,120 @@
+{
+	"indebtedness": [
+		{
+			"id": "f234bb1f-c19e-4048-aa99-00409d525b07",
+			"rso": "OEK",
+			"type": "INDEBTEDNESS",
+			"user": {
+				"id": "operator_id1",
+				"type": "NATIVE",
+				"created": "2021-01-20T17:45:53.312",
+				"last_name": "Оператор 5",
+				"first_name": "Иван",
+				"middle_name": "Иванович"
+			},
+			"amount": 111.220,
+			"number": 1000153,
+			"created": "2021-04-20T15:00:55.353296",
+			"fk_user": "operator_id2",
+			"updated": "2021-04-20T15:00:55.353296",
+			"comments": [
+				{
+					"reason": "оплата",
+					"userId": "mrt_operator_id",
+					"comment": "оплата",
+					"created": "2021-08-21T09:07:06.584544"
+				}
+			],
+			"description": "Test",
+			"fk_district": "ec9325f8-96f9-4c9c-acb9-11082ec5f19a",
+			"organization": "ZHIL",
+			"amount_updated": "2021-04-20T15:00:55.353296",
+			"consumption_type": "GAS"
+		},
+		{
+			"id": "3d94e4b6-c0b3-4cbd-bfa7-bac0635be833",
+			"rso": "MOSVODOKANAL",
+			"type": "INDEBTEDNESS",
+			"user": {
+				"id": "shift_supervisor_id",
+				"type": "NATIVE",
+				"created": "2021-01-20T17:45:53.095",
+				"last_name": "Старший смены",
+				"first_name": "Иван",
+				"middle_name": "Иванович"
+			},
+			"amount": 1.000,
+			"number": 1000165,
+			"created": "2021-04-21T12:58:12.379657",
+			"fk_user": "shift_supervisor_id",
+			"updated": "2021-04-22T11:41:23.61292",
+			"comments": [
+				{
+					"reason": "test",
+					"userId": "lead_mrt_operator_id",
+					"comment": "test",
+					"created": "2021-04-22T10:11:02.177495"
+				},
+				{
+					"reason": "1",
+					"userId": "tester_id",
+					"comment": "1",
+					"created": "2021-04-22T11:41:23.668012"
+				}
+			],
+			"description": "1",
+			"fk_district": "ec9325f8-96f9-4c9c-acb9-11082ec5f19a",
+			"organization": "ZHIL",
+			"amount_updated": "2021-04-21T04:59:00.379",
+			"consumption_type": "WATER"
+		},
+		{
+			"id": "6c63c832-e730-4044-8a05-06f70d54739c",
+			"rso": "OEK",
+			"type": "ADJUSTMENT",
+			"user": {
+				"id": "operator_id2",
+				"type": "NATIVE",
+				"created": "2021-01-20T17:45:53.312",
+				"last_name": "Оператор 3",
+				"first_name": "Иван",
+				"middle_name": "Иванович"
+			},
+			"amount": 123.540,
+			"number": 1000156,
+			"created": "2021-04-20T15:15:36.143336",
+			"fk_user": "operator_id",
+			"updated": "2021-04-20T15:15:36.143336",
+			"comments": [],
+			"description": "Описание",
+			"fk_district": "bd712670-7dff-4d62-a012-c687a5625865",
+			"organization": "EVAZHD",
+			"amount_updated": "2021-04-20T15:15:36.143336",
+			"consumption_type": "HEAT"
+		},
+		{
+			"id": "ce0ace62-84f6-4950-8d6a-2f7c24bd9004",
+			"rso": "OEK",
+			"type": "PAYMENT",
+			"user": {
+				"id": "operator_id",
+				"type": "NATIVE",
+				"created": "2021-01-20T17:45:53.312",
+				"last_name": "Оператор 3",
+				"first_name": "Иван",
+				"middle_name": "Иванович"
+			},
+			"amount": 234.000,
+			"number": 1000155,
+			"created": "2021-04-20T15:15:16.994607",
+			"fk_user": "operator_id",
+			"updated": "2021-04-20T15:15:16.994607",
+			"comments": [],
+			"description": "Описание",
+			"fk_district": "fb3283ec-c705-40f3-b58d-0418e19f692c",
+			"organization": "EVAZHD",
+			"amount_updated": "2021-04-20T15:15:16.994607",
+			"consumption_type": "GAS"
+		}
+	]
+}

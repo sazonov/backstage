@@ -1,0 +1,2 @@
+global com.proit.bpm.service.jbpm.script.ScriptFunctions scriptFunctions;
+global com.proit.bpm.service.jbpm.script.DateFunctions dateFunctions;

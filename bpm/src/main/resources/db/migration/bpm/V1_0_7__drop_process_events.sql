@@ -1,0 +1,1 @@
+drop table process_event;

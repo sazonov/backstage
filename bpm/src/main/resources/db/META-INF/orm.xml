@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings xmlns="http://java.sun.com/xml/ns/persistence/orm"
+                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xsi:schemaLocation="http://java.sun.com/xml/ns/persistence/orm orm_2_0.xsd"
+                 version="2.0">
+	<named-query name="ProcessInstancesWaitingForEvent">
+		<query>
+			select
+			processInstanceInfo.processInstanceId
+			from
+			ProcessInstanceInfo processInstanceInfo join processInstanceInfo.eventTypes eventTypes
+			where
+			eventTypes = :type
+		</query>
+	</named-query>
+
+	<named-query name="GetProcessInstanceIdByCorrelation">
+		<query>
+			select
+			keyInfo.processInstanceId
+			from
+			CorrelationKeyInfo keyInfo
+			where
+			keyInfo.name = :ckey
+		</query>
+	</named-query>
+	<named-query name="GetCorrelationKeysByProcessInstanceId">
+		<query>
+			select
+			keyInfo
+			from
+			CorrelationKeyInfo keyInfo
+			where
+			keyInfo.processInstanceId = :pId
+		</query>
+	</named-query>
+
+	<entity class="org.drools.persistence.info.SessionInfo" cacheable="false">
+		<table name="jbpm_sessioninfo" />
+		<sequence-generator name="jbpm_sessionInfoIdSeq" sequence-name="JBPM_SESSIONINFO_ID_SEQ" />
+		<attributes>
+			<id name="id">
+				<generated-value strategy="SEQUENCE" generator="jbpm_sessionInfoIdSeq" />
+			</id>
+			<basic name="startDate">
+				<temporal>TIMESTAMP</temporal>
+			</basic>
+			<basic name="lastModificationDate">
+				<temporal>TIMESTAMP</temporal>
+			</basic>
+		</attributes>
+	</entity>
+
+	<entity class="org.jbpm.persistence.processinstance.ProcessInstanceInfo" cacheable="false">
+		<table name="jbpm_processinstanceinfo" />
+		<sequence-generator name="jbpm_processInstanceInfoIdSeq" sequence-name="JBPM_PINSTANCE_INFO_ID_SEQ" />
+		<attributes>
+			<id name="processInstanceId">
+				<generated-value strategy="SEQUENCE" generator="jbpm_processInstanceInfoIdSeq" />
+			</id>
+			<basic name="startDate" access="FIELD">
+				<temporal>TIMESTAMP</temporal>
+			</basic>
+			<basic name="lastModificationDate" access="FIELD">
+				<temporal>TIMESTAMP</temporal>
+			</basic>
+			<basic name="lastReadDate" access="FIELD">
+				<temporal>TIMESTAMP</temporal>
+			</basic>
+			<basic name="state" access="FIELD" />
+			<basic name="processInstanceByteArray" access="FIELD" >
+				<lob/>
+			</basic>
+			<version name="version" access="FIELD">
+				<column name="OPTLOCK" nullable="true" />
+			</version>
+			<element-collection name="eventTypes">
+				<map-key-column name="InstanceId" />
+				<collection-table name="jbpm_eventtypes">
+					<join-column name = "fk_proc_instance_id"/>
+				</collection-table>
+			</element-collection>
+			<transient name="env" />
+			<transient name="processInstance" />
+		</attributes>
+	</entity>
+
+	<entity class="org.drools.persistence.info.WorkItemInfo" cacheable="false">
+		<table name="jbpm_workiteminfo" />
+		<sequence-generator name="jbpm_workItemInfoIdSeq" sequence-name="JBPM_WORKITEMINFO_ID_SEQ" />
+		<attributes>
+			<id name="workItemId">
+				<generated-value strategy="SEQUENCE" generator="jbpm_workItemInfoIdSeq" />
+			</id>
+			<basic name="creationDate">
+				<temporal>TIMESTAMP</temporal>
+			</basic>
+		</attributes>
+	</entity>
+
+	<entity class="org.jbpm.persistence.correlation.CorrelationKeyInfo" cacheable="false">
+		<table name="jbpm_correlationkeyinfo" />
+		<sequence-generator name="jbpm_correlationKeyInfoIdSeq" sequence-name="JBPM_CORRELATION_KEY_ID_SEQ" />
+		<attributes>
+			<id name="id">
+				<generated-value strategy="SEQUENCE" generator="jbpm_correlationKeyInfoIdSeq" />
+			</id>
+		</attributes>
+	</entity>
+
+	<entity class="org.jbpm.persistence.correlation.CorrelationPropertyInfo" cacheable="false">
+		<table name="jbpm_correlationpropertyinfo" />
+		<sequence-generator name="jbpm_correlationPropertyInfoIdSeq" sequence-name="JBPM_CORRELATION_PROP_ID_SEQ" />
+		<attributes>
+			<id name="id">
+				<generated-value strategy="SEQUENCE" generator="jbpm_correlationPropertyInfoIdSeq" />
+			</id>
+		</attributes>
+	</entity>
+</entity-mappings>
