@@ -36,4 +36,7 @@ public class DeleteDictItemRequest
 
 	@Schema(description = "Флаг удаления")
 	private boolean deleted;
+
+	@Schema(description = "Причина удаления")
+	private String reason;
 }

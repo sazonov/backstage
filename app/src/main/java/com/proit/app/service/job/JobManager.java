@@ -18,12 +18,16 @@ package com.proit.app.service.job;
 
 import com.proit.app.exception.ObjectNotFoundException;
 import com.proit.app.model.other.JobResult;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.core.task.TaskExecutor;
+import org.springframework.scheduling.Trigger;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -32,11 +36,19 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@DependsOn("healthContributor")
 public class JobManager
 {
-	private final TaskExecutor taskExecutor;
+	private final ThreadPoolTaskScheduler taskScheduler;
 
+	@Getter
 	private final Map<String, AbstractJob> jobs;
+
+	@PostConstruct
+	public void scheduledJobs()
+	{
+		jobs.values().forEach(this::scheduleJob);
+	}
 
 	public Map<String, String> getJobList()
 	{
@@ -44,6 +56,14 @@ public class JobManager
 				.map(this::getJobDescription)
 				.sorted(Map.Entry.comparingByKey())
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (o, n) -> n, LinkedHashMap::new));
+	}
+
+	private Map.Entry<String, String> getJobDescription(Map.Entry<String, AbstractJob> entry)
+	{
+		var annotation = AnnotationUtils.findAnnotation(entry.getValue().getClass(), JobDescription.class);
+		var value = Optional.ofNullable(annotation).map(JobDescription::value).orElse("");
+
+		return Map.entry(entry.getKey(), value);
 	}
 
 	public JobResult executeJobAndWait(Class<? extends AbstractJob> jobClass)
@@ -64,14 +84,30 @@ public class JobManager
 			throw new ObjectNotFoundException(AbstractJob.class, jobName);
 		}
 
-		taskExecutor.execute(jobs.get(jobName));
+		taskScheduler.execute(jobs.get(jobName));
 	}
 
-	private Map.Entry<String, String> getJobDescription(Map.Entry<String, AbstractJob> entry)
+	public void rescheduleJob(String jobName, Trigger trigger)
 	{
-		var annotation = AnnotationUtils.findAnnotation(entry.getValue().getClass(), JobDescription.class);
-		var value = Optional.ofNullable(annotation).map(JobDescription::value).orElse("");
+		var job = jobs.get(jobName);
 
-		return Map.entry(entry.getKey(), value);
+		if (job == null)
+		{
+			throw new ObjectNotFoundException(AbstractJob.class, jobName);
+		}
+
+		job.cancel();
+		job.setTrigger(trigger);
+
+		scheduleJob(job);
+	}
+
+	private void scheduleJob(AbstractJob job)
+	{
+		job.beforeScheduled();
+
+		job.setFuture(taskScheduler.schedule(job, job.getTrigger()));
+
+		job.afterScheduled();
 	}
 }

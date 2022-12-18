@@ -186,9 +186,7 @@ public class RemoteDictEndpoint implements RemoteDictService
 		schemeService.update(dict.getId(), dict);
 
 		enumsForUpdate.forEach(dictEnum -> schemeService.updateEnum(dict.getId(), dictEnum));
-
 		enumsForDelete.forEach(dictEnum -> schemeService.deleteEnum(dict.getId(), dictEnum.getId()));
-
 		enumsForSave.forEach(dictEnum -> schemeService.createEnum(dict.getId(), dictEnum));
 
 		dict.setFields(sourceFields);

@@ -18,11 +18,13 @@ package com.proit.app.controller;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import com.proit.app.configuration.properties.ApiProperties;
 import com.proit.app.exception.AppException;
 import com.proit.app.model.api.ApiResponse;
 import com.proit.app.model.api.ApiStatusCode;
 import com.proit.app.model.api.ApiStatusCodeImpl;
 import com.proit.app.utils.ExceptionHandlerUtils;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -51,8 +53,11 @@ import static com.proit.app.utils.ExceptionUtils.extract;
 
 @Slf4j
 @ControllerAdvice
+@RequiredArgsConstructor
 public class GlobalMvcExceptionHandler
 {
+	private final ApiProperties apiProperties;
+
 	@ExceptionHandler(Exception.class)
 	public Object handleException(HttpServletRequest request, HttpServletResponse response, Exception ex)
 	{
@@ -197,7 +202,11 @@ public class GlobalMvcExceptionHandler
 		if (statusCode == ApiStatusCodeImpl.UNKNOWN_ERROR)
 		{
 			resp.setExceptionCode(RandomStringUtils.randomAlphanumeric(6));
-			resp.setStackTrace(ExceptionUtils.getRootCauseStackTrace(e));
+
+			if (apiProperties.isStackTraceOnError())
+			{
+				resp.setStackTrace(ExceptionUtils.getRootCauseStackTrace(e));
+			}
 		}
 
 		return resp;

@@ -1,4 +1,6 @@
 app:
+    api.swagger.enabled: false
+
     quartz.enabled: true
 
     datasource:

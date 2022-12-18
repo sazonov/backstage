@@ -24,11 +24,11 @@ import org.springframework.data.repository.query.Param;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Optional;
 
 public interface ProcessRepository extends CustomJpaRepository<Process, String>, JpaSpecificationExecutor<Process>
 {
-	@Query("select p.id from Process p where p.instanceId = :instanceId")
-	String findIdByInstanceId(@Param("instanceId") Long instanceId);
+	Optional<Process> findByInstanceId(Long instanceId);
 
 	@Query("select p from Process p where p.active = :isActive and function('jsonb_extract_path_text', p.parameters, :paramName1) = :paramValue1")
 	List<Process> findByParameters(@Param("isActive") Boolean isActive, @Param("paramName1") String paramName1, @Param("paramValue1") Object paramValue1);

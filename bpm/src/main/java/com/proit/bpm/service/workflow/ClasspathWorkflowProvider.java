@@ -20,7 +20,6 @@ import com.proit.bpm.model.Workflow;
 import com.proit.bpm.model.WorkflowScript;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
@@ -83,7 +82,7 @@ public class ClasspathWorkflowProvider extends AbstractWorkflowProvider
 					{
 						Workflow workflow = new Workflow();
 						workflow.setId(workflowId);
-						workflow.setDefinition(IOUtils.toString(file.getInputStream(file.getEntry(BASE_JAR_PATH + workflowId + "/" + DEFAULT_WORKFLOW_FILE)), CharEncoding.UTF_8));
+						workflow.setDefinition(IOUtils.toString(file.getInputStream(file.getEntry(BASE_JAR_PATH + workflowId + "/" + DEFAULT_WORKFLOW_FILE)), StandardCharsets.UTF_8));
 
 						file.entries().asIterator().forEachRemaining(jarEntry -> {
 							if (isWorkflowScript(workflowId, jarEntry))

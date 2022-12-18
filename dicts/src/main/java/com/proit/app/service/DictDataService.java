@@ -234,10 +234,15 @@ public class DictDataService
 
 	public void delete(String dictId, String itemId, boolean deleted)
 	{
-		delete(dictId, itemId, deleted, SecurityUtils.getCurrentUserId());
+		delete(dictId, itemId, deleted, null, SecurityUtils.getCurrentUserId());
 	}
 
-	public void delete(String dictId, String itemId, boolean deleted, String userId)
+	public void delete(String dictId, String itemId, boolean deleted, String reason)
+	{
+		delete(dictId, itemId, deleted, reason, SecurityUtils.getCurrentUserId());
+	}
+
+	public void delete(String dictId, String itemId, boolean deleted, String reason, String userId)
 	{
 		var dictItem = getById(dictId, itemId);
 
@@ -245,7 +250,7 @@ public class DictDataService
 
 		serviceAdviceList.forEach(it -> it.handleDelete(dictId, dictItem, deleted));
 
-		mongoDictBackend.delete(dictId, itemId, deleted);
+		mongoDictBackend.delete(dictId, itemId, deleted, reason);
 	}
 
 	public void deleteAll(String dictId, boolean deleted)

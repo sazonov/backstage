@@ -28,7 +28,7 @@ import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.stereotype.Component;
 
 @Component
-public class KotlinBackend extends AbstractScriptBackend<Script>
+public class KotlinBackend extends AbstractScriptBackend
 {
 	private final KotlinCompiler kotlinCompiler = new KotlinCompiler();
 

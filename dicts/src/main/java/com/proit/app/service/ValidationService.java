@@ -132,7 +132,7 @@ public class ValidationService
 				.filter(field -> !ServiceFieldConstants.getServiceInsertableFields().contains(field.getId()))
 				.peek(dictField -> checkCast(dictId, dictField, doc.get(dictField.getId())))
 				.filter(DictField::isRequired)
-				.filter(dictField -> !doc.containsKey(dictField.getId()))
+				.filter(dictField -> !doc.containsKey(dictField.getId()) || doc.get(dictField.getId()) == null)
 				.findAny()
 				.ifPresent(field -> {
 					throw new FieldValidationException("Отсутствует обязательное поле: %s.".formatted(field.getId()));
@@ -237,8 +237,22 @@ public class ValidationService
 						throw new FieldValidationException("Значение отсутствует в связанном справочнике: %s.".formatted(dictField.getId()));
 					}
 				}
-				case DATE -> LocalDate.parse((String) value, MappingService.DATE_FORMATTER);
-				case TIMESTAMP -> LocalDateTime.parse((String) value, MappingService.DATE_TIME_FORMATTER);
+				case DATE -> {
+					if (value instanceof Date)
+					{
+						break;
+					}
+
+					LocalDate.parse((String) value, MappingService.DATE_FORMATTER);
+				}
+				case TIMESTAMP -> {
+					if (value instanceof Date)
+					{
+						break;
+					}
+
+					LocalDateTime.parse((String) value, MappingService.DATE_TIME_FORMATTER);
+				}
 				case JSON -> {
 					var o = (Map<?, ?>) value;
 				}

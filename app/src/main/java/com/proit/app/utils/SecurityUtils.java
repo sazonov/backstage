@@ -18,20 +18,23 @@ package com.proit.app.utils;
 
 import com.proit.app.model.other.user.Principal;
 import com.proit.app.model.other.user.UserInfo;
+import lombok.SneakyThrows;
+import lombok.experimental.UtilityClass;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.concurrent.Callable;
 
+@UtilityClass
 public final class SecurityUtils
 {
-	public static String getCurrentUserId()
+	public String getCurrentUserId()
 	{
 		return getCurrentUser().getId();
 	}
 
-	public static Principal getCurrentUser()
+	public Principal getCurrentUser()
 	{
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -52,27 +55,25 @@ public final class SecurityUtils
 		return (Principal) authentication.getPrincipal();
 	}
 
-	public static <R>Callable<R> runForUser(Principal user, Callable<R> callable)
+	@SneakyThrows
+	public <R> R runForUser(Principal user, Callable<R> callable)
 	{
-		return () -> {
-			setUser(user);
+		var currentAuth = SecurityContextHolder.getContext().getAuthentication();
+
+		try
+		{
+			SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(user, null));
 
 			return callable.call();
-		};
+		}
+		finally
+		{
+			SecurityContextHolder.getContext().setAuthentication(currentAuth);
+		}
 	}
 
-	public static Runnable runForUser(Principal user, Runnable runnable)
+	public <R> Callable<R> callableForUser(Principal user, Callable<R> callable)
 	{
-		return () -> {
-			setUser(user);
-
-			runnable.run();
-		};
-	}
-
-	public static void setUser(Principal principal)
-	{
-		SecurityContextHolder.getContext()
-				.setAuthentication(new UsernamePasswordAuthenticationToken(principal, null));
+		return () -> runForUser(user, callable);
 	}
 }

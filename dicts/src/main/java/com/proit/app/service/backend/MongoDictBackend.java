@@ -25,6 +25,7 @@ import com.proit.app.service.query.QueryParser;
 import com.proit.app.service.query.Translator;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.domain.Page;
@@ -33,12 +34,15 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.CollectionOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
+import org.springframework.data.mongodb.core.aggregation.ConvertOperators;
 import org.springframework.data.mongodb.core.aggregation.OutOperation;
 import org.springframework.data.mongodb.core.index.Index;
 import org.springframework.data.mongodb.core.query.Collation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.data.mongodb.core.schema.JsonSchemaObject.Type.JsonType;
 import org.springframework.data.mongodb.core.schema.JsonSchemaProperty;
 import org.springframework.data.mongodb.core.schema.MongoJsonSchema;
 import org.springframework.data.support.PageableExecutionUtils;
@@ -49,6 +53,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -61,9 +66,13 @@ import static org.springframework.data.mongodb.core.schema.JsonSchemaProperty.*;
 @ConditionalOnProperty(name = "app.dicts.storage", havingValue = "mongoDB")
 public class MongoDictBackend implements DictBackend
 {
+	public static final String LOOKUP_SUFFIX = "@join";
 	public static final String SCHEME_COLLECTION_ID = "dict";
 	// TODO: это уже не нужно.
 	public static final String ENUM_COLLECTION_ID = "dictEnum";
+
+	public static final Pattern ID_PATTERN = Pattern.compile("^(id)");
+	public static final Pattern WHITE_SPACES_ID_PATTERN = Pattern.compile("(\\s+(id))");
 
 	private final MongoTemplate mongoTemplate;
 
@@ -191,17 +200,46 @@ public class MongoDictBackend implements DictBackend
 			requiredBasicFields.forEach(fields::include);
 		}
 
-		if (filtersQuery == null)
+		var fieldsToJoin = new ArrayList<String>();
+		var sort = pageable.getSort();
+
+		if (sort.isSorted())
+		{
+			sort.stream()
+					.map(order -> requiredFields.stream()
+							.map(DictFieldName::getDictId)
+							.filter(Objects::nonNull)
+							.filter(fieldId -> order.getProperty().startsWith(fieldId))
+							.toList())
+					.flatMap(Collection::stream)
+					.forEach(fieldsToJoin::add);
+		}
+
+		if (StringUtils.isBlank(filtersQuery) && fieldsToJoin.isEmpty())
 		{
 			requiredBasicFields.remove("*");
 
 			result = mongoTemplate.find(query, Object.class, dict.getId());
 		}
+		else if (!fieldsToJoin.isEmpty())
+		{
+			var operations = new LinkedList<>(buildLookups(fieldsToJoin));
+			operations.add(buildSort(sort, fieldsToJoin));
+
+			if (pageable.isPaged())
+			{
+				operations.addAll(buildPaging(pageable));
+			}
+
+			result = mongoTemplate.aggregate(Aggregation.newAggregation(operations), dict.getId(), Object.class)
+					.getMappedResults();
+		}
 		else
 		{
 			try
 			{
-				var criteria = translator.process(dict, queryParser.parse(filtersQuery.replaceAll("^(id)", _ID).replaceAll("([^\\S]+(id))", " " + _ID)));
+				var criteria = getCriteria(dict, filtersQuery);
+
 				result = mongoTemplate.find(query.addCriteria(criteria), Object.class, dict.getId());
 			}
 			catch (QuerySyntaxError e)
@@ -226,6 +264,56 @@ public class MongoDictBackend implements DictBackend
 		}
 
 		return itemList;
+	}
+
+	private static List<AggregationOperation> buildLookups(ArrayList<String> subFiledToJoin)
+	{
+		final var foreignFieldAlias = "foreignId";
+
+		return subFiledToJoin.stream()
+				.<AggregationOperation>mapMulti((field, downstream) -> {
+					var foreignId = Aggregation.addFields()
+							.addField(foreignFieldAlias)
+							.withValue(ConvertOperators.ToObjectId.toObjectId("$" + field))
+							.build();
+					var lookup = Aggregation.lookup(field, foreignFieldAlias, _ID, field + LOOKUP_SUFFIX);
+
+					downstream.accept(foreignId);
+					downstream.accept(lookup);
+				})
+				.toList();
+	}
+
+	private static AggregationOperation buildSort(Sort sort, Collection<String> subFiledToJoin)
+	{
+		var correctSort = subFiledToJoin.stream()
+				.map(field -> sort.stream()
+						.filter(order -> order.getProperty().startsWith(field))
+						.findFirst()
+						.map(order -> {
+							var property = StringUtils.substringBefore(order.getProperty(), ".")
+									+ LOOKUP_SUFFIX + "." + StringUtils.substringAfter(order.getProperty(), ".");
+
+							return Sort.by(order.getDirection(), property);
+						})
+						.orElse(Sort.unsorted()))
+				.reduce(Sort::and)
+				.orElse(Sort.by(_ID));
+
+		return Aggregation.sort(correctSort);
+	}
+
+	private static List<AggregationOperation> buildPaging(Pageable pageable)
+	{
+		return List.of(Aggregation.skip(pageable.getOffset()), Aggregation.limit(pageable.getPageSize()));
+	}
+
+	private Criteria getCriteria(Dict dict, String filtersQuery)
+	{
+		var preValidQuery = ID_PATTERN.matcher(filtersQuery).replaceAll(_ID);
+		var validQuery = WHITE_SPACES_ID_PATTERN.matcher(preValidQuery).replaceAll(StringUtils.SPACE + _ID);
+
+		return translator.process(dict, queryParser.parse(validQuery));
 	}
 
 	@Override
@@ -301,10 +389,24 @@ public class MongoDictBackend implements DictBackend
 	@Override
 	public void delete(String dictId, String itemId, boolean deleted)
 	{
+		delete(dictId, itemId, deleted, null);
+	}
+
+	public void delete(String dictId, String itemId, boolean deleted, String reason)
+	{
 		addToTransactionData(dictId, false);
 
 		var doc = new HashMap<String, Object>();
-		doc.put(DELETED, deleted ? new Date() : null);
+
+		if (deleted)
+		{
+			doc.put(DELETED, new Date());
+			doc.put(DELETION_REASON, StringUtils.isBlank(reason) ? null : reason);
+		}
+		else
+		{
+			doc.put(DELETED, null);
+		}
 
 		var query = Query.query(Criteria.where(_ID).is(itemId));
 		validatedUpdate(dictId, 0L, doc, query);
@@ -532,7 +634,8 @@ public class MongoDictBackend implements DictBackend
 		var old = Optional.ofNullable(mongoTemplate.findOne(query, Map.class, dictId))
 				.orElseThrow(NullPointerException::new);
 
-		if (version != (Long) old.get(VERSION) && (!mappedDoc.containsKey(DELETED) || mappedDoc.size() > 1))
+		if (version != (Long) old.get(VERSION) && (!mappedDoc.containsKey(DELETED) || mappedDoc.size() > 1)
+				&& (!mappedDoc.containsKey(DELETED) && !mappedDoc.containsKey(DELETION_REASON) || mappedDoc.size() > 2))
 		{
 			throw new DictionaryConcurrentUpdateException(version, (Long) old.get(VERSION));
 		}
@@ -699,7 +802,7 @@ public class MongoDictBackend implements DictBackend
 					case INTEGER -> int64(fieldId);
 					case DECIMAL -> decimal128(fieldId);
 					case STRING, DICT, ATTACHMENT -> string(fieldId);
-					case BOOLEAN -> bool(fieldId);
+					case BOOLEAN -> named(fieldId).ofType(new JsonType("boolean"));
 					case DATE, TIMESTAMP -> date(fieldId);
 
 					default -> throw new RuntimeException();

@@ -17,6 +17,7 @@
 package com.proit.bpm.endpoint;
 
 import com.proit.app.model.api.ApiResponse;
+import com.proit.app.model.api.OkResponse;
 import com.proit.bpm.conversion.dto.WorkflowConverter;
 import com.proit.bpm.model.dto.DeployWorkflowRequest;
 import com.proit.bpm.model.dto.WorkflowDto;
@@ -42,7 +43,7 @@ public class WorkflowEndpoint
 
 	@PostMapping("/deploy")
 	@Operation(summary = "Устанавливает бизнес-процесс. Автоматически инкрементирует версию, если такой процесс уже установлен.")
-	public ApiResponse deployWorkflow(@Valid @RequestBody DeployWorkflowRequest request)
+	public OkResponse deployWorkflow(@Valid @RequestBody DeployWorkflowRequest request)
 	{
 		workflowService.deployWorkflow(request.getId(), request.getVersion(), request.getDefinition(), request.isForce());
 

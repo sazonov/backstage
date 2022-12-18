@@ -24,6 +24,7 @@ catalog {
 		version("guava", "$guavaVersion")
 		version("apachePOI", "$apachePOIVersion")
 		version("jersey", "$jerseyVersion")
+		version("minio", "$minioVersion")
 	}
 }
 

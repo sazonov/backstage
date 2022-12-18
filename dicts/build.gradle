@@ -7,6 +7,10 @@ apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 apply plugin: 'maven-publish'
 
+repositories {
+	mavenCentral()
+}
+
 delombok {
 	enabled = false
 }
@@ -53,7 +57,7 @@ dependencies {
 	compileOnly "org.postgresql:postgresql"
 
 	api "org.jparsec:jparsec:3.1"
-	api "org.apache.commons:commons-csv:1.4"
+	api 'org.apache.commons:commons-csv:1.9.0'
 	api "com.opencsv:opencsv:5.5"
 
 	testImplementation project(":app")
@@ -62,6 +66,7 @@ dependencies {
 	testImplementation "org.springframework.boot:spring-boot-starter-test"
 	testImplementation "org.springframework.boot:spring-boot-starter-actuator"
 	testImplementation "org.springframework.boot:spring-boot-starter-validation"
+	testImplementation "org.springframework.boot:spring-boot-starter-aop"
 	testImplementation "org.springframework.boot:spring-boot-starter-security"
 	testImplementation "org.springframework.boot:spring-boot-starter-web"
 	testImplementation "org.springframework.boot:spring-boot-starter-quartz"
@@ -70,7 +75,7 @@ dependencies {
 	testImplementation ("org.springframework.data:spring-data-jpa") {
 		exclude(group: "org.hibernate")
 	}
-	testImplementation "org.springframework.cloud:spring-cloud-starter-netflix-eureka-client:3.0.2"
+	testImplementation "org.springframework.cloud:spring-cloud-starter-netflix-eureka-client:$springCloudVersion"
 
 	testImplementation "org.apache.activemq:activemq-client"
 	testImplementation "org.apache.activemq:activemq-broker"

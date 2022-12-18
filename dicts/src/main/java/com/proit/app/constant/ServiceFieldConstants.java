@@ -29,13 +29,16 @@ public class ServiceFieldConstants
 	public static final String CREATED = "created";
 	public static final String UPDATED = "updated";
 	public static final String DELETED = "deleted";
+	public static final String DELETION_REASON = "deletionReason";
 	public static final String VERSION = "version";
 
 
-	//	TODO: определиться с допустимостью исползования поля id в рамках импортов и создания записей с предопределенным id
+	//	TODO: определиться с допустимостью использования поля id в рамках импортов и создания записей с предопределенным id
 	@Getter
-	private static final Set<String> serviceInsertableFields = Set.of(_ID, /*ID,*/ HISTORY, CREATED, UPDATED, DELETED, VERSION);
+	private static final Set<String> serviceInsertableFields = Set.of(_ID, /*ID,*/ HISTORY, CREATED, UPDATED, DELETED,
+			DELETION_REASON, VERSION);
 
 	@Getter
-	private static final Set<String> serviceSchemeFields = Set.of(_ID, ID, HISTORY, CREATED, UPDATED, DELETED, VERSION);
+	private static final Set<String> serviceSchemeFields = Set.of(_ID, ID, HISTORY, CREATED, UPDATED, DELETED,
+			DELETION_REASON, VERSION);
 }

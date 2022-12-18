@@ -87,6 +87,8 @@ public class AutoMigrateProcessesJob extends AbstractCronJob
 			}
 		}
 
+		log.info("Migrating processes to latest revisions completed.");
+
 		return JobResult.ok(Map.of(
 				"migratedProcessCount", migratedProcessCount,
 				"errorCount", errorCount

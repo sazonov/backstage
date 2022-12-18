@@ -49,4 +49,7 @@ public class DictItemDto
 	private LocalDateTime updated;
 
 	private LocalDateTime deleted;
+
+	@Schema(description = "Причина удаления")
+	private String deletionReason;
 }

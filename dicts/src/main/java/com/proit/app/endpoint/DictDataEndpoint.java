@@ -38,7 +38,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
@@ -76,7 +75,7 @@ public class DictDataEndpoint
 	@Operation(summary = "Получение записей справочника по фильтру.")
 	@PostMapping("/{dictId}/list")
 	public ApiResponse<List<DictItemDto>> getByFilter(@PathVariable String dictId, @RequestBody @Valid SearchRequest request,
-	                                                  @ParameterObject @PageableDefault Pageable pageable)
+	                                                  @PageableDefault Pageable pageable)
 	{
 		var result = dictDataService.getByFilter(dictId, request.getFields(), request.getQuery(), pageable);
 
@@ -117,7 +116,7 @@ public class DictDataEndpoint
 	@PostMapping("/{dictId}/delete")
 	public ApiResponse<?> delete(@PathVariable String dictId, @RequestBody @Valid DeleteDictItemRequest request)
 	{
-		dictDataService.delete(dictId, request.getItemId(), request.isDeleted());
+		dictDataService.delete(dictId, request.getItemId(), request.isDeleted(), request.getReason());
 
 		return ApiResponse.ok();
 	}

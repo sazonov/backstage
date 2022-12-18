@@ -41,6 +41,7 @@ public class AttachmentProperties
 	public static final String APPLICATION_DOC = "application/msword";
 	public static final String APPLICATION_XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 	public static final String APPLICATION_XLS = "application/vnd.ms-excel";
+	public static final String APPLICATION_XLSM = "application/vnd.ms-excel.sheet.macroEnabled.12";
 
 	public enum StoreType
 	{
@@ -126,6 +127,8 @@ public class AttachmentProperties
 			APPLICATION_DOC,
 			APPLICATION_XLS,
 			APPLICATION_XLSX,
+			APPLICATION_XLSM,
+
 			MediaType.IMAGE_JPEG_VALUE,
 			MediaType.IMAGE_PNG_VALUE,
 			MediaType.APPLICATION_PDF_VALUE);

@@ -157,7 +157,7 @@ public class DictsDDLProvider implements BeanNameAware
 						.count();
 
 				log.info("Обработано новых миграций: {}.", count);
-				log.info("Успешно валидированно миграций: {}.", migrationByName.size());
+				log.info("Успешно валидировано миграций: {}.", migrationByName.size());
 			}
 		}
 		catch (Exception e)

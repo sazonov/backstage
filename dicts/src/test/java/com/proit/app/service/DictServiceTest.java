@@ -45,7 +45,7 @@ class DictServiceTest extends AbstractTest
 	@Test
 	void getAll()
 	{
-		assertEquals(9, dictService.getAll().size());
+		assertEquals(10, dictService.getAll().size());
 	}
 
 	@Test

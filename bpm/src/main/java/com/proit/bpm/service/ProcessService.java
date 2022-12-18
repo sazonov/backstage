@@ -49,9 +49,24 @@ public class ProcessService
 	private final ProcessEngine processEngine;
 	private final TaskManager taskManager;
 
+	public Process startProcess(String workflowId)
+	{
+		return startProcess(workflowId, Map.of());
+	}
+
 	public Process startProcess(String workflowId, Map<String, Object> parameters)
 	{
 		return processEngine.startProcess(workflowService.getActualWorkflowId(workflowId), parameters);
+	}
+
+	public Optional<Process> startProcessOnEvent(String event, Map<String, Object> eventParameters)
+	{
+		return startProcessOnEvent(event, eventParameters, Map.of());
+	}
+
+	public Optional<Process> startProcessOnEvent(String event, Map<String, Object> eventParameters, Map<String, Object> processParameters)
+	{
+		return processEngine.startProcessOnEvent(event, eventParameters, processParameters);
 	}
 
 	public void stopProcess(String processId)
@@ -89,7 +104,7 @@ public class ProcessService
 		return processEngine.getProcessTimers(processId);
 	}
 
-	void updateProcessTimer(String processId, String timerName, LocalDateTime nextFireTime)
+	public void updateProcessTimer(String processId, String timerName, LocalDateTime nextFireTime)
 	{
 		processEngine.updateProcessTimer(processId, timerName, nextFireTime);
 	}
@@ -149,7 +164,7 @@ public class ProcessService
 
 	public Page<Task> getTasks(TaskFilter taskFilter, Pageable pageable)
 	{
-		return taskManager.getTasks(taskFilter, pageable, true);
+		return taskManager.getTasks(taskFilter, pageable);
 	}
 
 	public void assignTask(String taskId, String userId)

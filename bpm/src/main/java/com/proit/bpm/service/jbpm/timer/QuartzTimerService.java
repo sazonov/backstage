@@ -32,6 +32,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
+import org.drools.core.time.Job;
+import org.drools.core.time.Trigger;
 import org.drools.core.time.*;
 import org.drools.core.time.impl.TimerJobFactoryManager;
 import org.drools.core.time.impl.TimerJobInstance;
@@ -40,16 +42,13 @@ import org.jbpm.process.instance.timer.TimerManager;
 import org.jbpm.ruleflow.instance.RuleFlowProcessInstance;
 import org.jbpm.workflow.instance.node.StateBasedNodeInstance;
 import org.jbpm.workflow.instance.node.TimerNodeInstance;
-import org.quartz.JobBuilder;
 import org.quartz.Scheduler;
-import org.quartz.SchedulerException;
-import org.quartz.TriggerBuilder;
+import org.quartz.*;
 import org.quartz.impl.matchers.GroupMatcher;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
@@ -61,8 +60,6 @@ import java.util.*;
 public class QuartzTimerService implements TimerService, ProcessTimerService
 {
 	private final Scheduler scheduler;
-
-	private final ProcessUtils processUtils;
 
 	private final BpmProperties bpmProperties;
 
@@ -95,9 +92,14 @@ public class QuartzTimerService implements TimerService, ProcessTimerService
 			for (var jobKey : scheduler.getJobKeys(GroupMatcher.groupEquals(getTimerGroup(processId))))
 			{
 				var jobDetail = scheduler.getJobDetail(jobKey);
+				var jobTriggers = scheduler.getTriggersOfJob(jobKey);
+				var jobNextFireDate = jobTriggers.isEmpty() ? null : jobTriggers.get(0).getNextFireTime();
 				var jobData = jobDetail.getJobDataMap();
 
-				result.add(new QuartzProcessTimer(jobData.getString("timerName"), LocalDateTime.ofInstant(Instant.ofEpochMilli(jobData.getLong("fireTime")), ZoneId.systemDefault()), jobKey));
+				result.add(new QuartzProcessTimer(
+						jobData.getString("timerName"),
+						Optional.ofNullable(jobNextFireDate).map(d -> LocalDateTime.ofInstant(d.toInstant(), ZoneId.systemDefault())).orElse(null),
+						jobKey));
 			}
 
 			return result;
@@ -126,8 +128,8 @@ public class QuartzTimerService implements TimerService, ProcessTimerService
 
 			job.getJobDataMap().replace("fireTime", nextFireTimeDate.getTime());
 
-			scheduler.rescheduleJob(triggers.get(0).getKey(), newTrigger);
-			scheduler.addJob(job, true);
+			scheduler.unscheduleJob(triggers.get(0).getKey());
+			scheduler.scheduleJob(job, newTrigger);
 
 			log.info("Timer updated. Id: '{}', name: '{}', fire time: '{}', process id: '{}'.", timer.getKey().getName(), timerName, nextFireTimeDate, processId);
 		}
@@ -180,7 +182,9 @@ public class QuartzTimerService implements TimerService, ProcessTimerService
 			}
 
 			var processInstance = (RuleFlowProcessInstance) jobContext.getWorkingMemory().getProcessInstance(jobContext.getProcessInstanceId());
-			var processId = processUtils.getProcessId(processInstance);
+			var processId = ProcessUtils.getProcessId(processInstance).orElseThrow(() ->
+				new BpmException("cannot get process id for jbpm process instance %d".formatted(processInstance.getId()))
+			);
 
 			String timerName = null;
 
@@ -247,12 +251,41 @@ public class QuartzTimerService implements TimerService, ProcessTimerService
 
 			log.info("Timer created. Id: '{}', name: '{}', fire time: '{}'{}, process id: '{}'.", timerId, timerName, nextFireTime, isNextFireTimeOverridden ? " (overridden)" : "", processId);
 
-			return new QuartzJobHandle(jobDetail.getKey());
+			return createJobHandle(jobDetail.getKey());
 		}
 		catch (Exception e)
 		{
 			throw new BpmException("failed to create process timer", e);
 		}
+	}
+
+	public List<TimerInstance> getTimerInstances(String processId)
+	{
+		var result = new ArrayList<TimerInstance>(10);
+
+		try
+		{
+			for (var jobKey : scheduler.getJobKeys(GroupMatcher.groupEquals(getTimerGroup(processId))))
+			{
+				var jobDetail = scheduler.getJobDetail(jobKey);
+
+				TimerInstance timerInstance = objectMapper.readerFor(TimerInstance.class).readValue(jobDetail.getJobDataMap().getString("timerInstanceData"));
+				timerInstance.setJobHandle(createJobHandle(jobKey));
+
+				result.add(timerInstance);
+			}
+		}
+		catch (Exception e)
+		{
+			throw new BpmException("failed to update process timer", e);
+		}
+
+		return result;
+	}
+
+	private JobHandle createJobHandle(JobKey key)
+	{
+		return new QuartzJobHandle(key);
 	}
 
 	public boolean removeJob(JobHandle jobHandle)

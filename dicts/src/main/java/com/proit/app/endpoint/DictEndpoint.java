@@ -29,7 +29,6 @@ import com.proit.app.model.dto.request.CreateDictEnumRequest;
 import com.proit.app.model.dto.request.CreateDictRequest;
 import com.proit.app.model.dto.request.DeleteDictRequest;
 import com.proit.app.service.DictService;
-import com.proit.app.service.remote.RemoteDictService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

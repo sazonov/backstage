@@ -16,16 +16,11 @@
 
 package com.proit.app.service.job;
 
-import lombok.Getter;
-
 /**
  * Абстрактный класс для задач, которые запускаются только в ручном режиме.
  */
 public abstract class AbstractManualJob extends AbstractJob
 {
-	@Getter
-	private final NoOpTrigger trigger;
-
 	public AbstractManualJob()
 	{
 		trigger = new NoOpTrigger();

@@ -9,9 +9,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import reactor.function.Consumer4;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 @Component
 @RequiredArgsConstructor
@@ -25,7 +27,7 @@ public class BindingDictDataServiceAdvice implements DictDataServiceAdvice
 	@Override
 	public void handleAfterCreate(String dictId, DictItem item)
 	{
-		handleAttachment(dictId, item.getData(), item.getId(), attachmentService::bindAttachment);
+		handleAttachment(dictId, item.getData(), item.getId(), attachmentService::bindAttachments);
 	}
 
 	@Override
@@ -33,13 +35,14 @@ public class BindingDictDataServiceAdvice implements DictDataServiceAdvice
 	{
 		var updatedAttachmentFieldIds = getAttachmentDictFieldIds(dictId)
 				.stream()
+				.map(DictField::getId)
 				.filter(id -> !Objects.equals(oldItem.getData().get(id), updatedItem.get(id)))
 				.toList();
 
 		if (!updatedAttachmentFieldIds.isEmpty())
 		{
-			handleAttachment(dictId, oldItem.getData(), oldItem.getId(), attachmentService::releaseAttachment);
-			handleAttachment(dictId, updatedItem, oldItem.getId(), attachmentService::bindAttachment);
+			handleAttachment(dictId, oldItem.getData(), oldItem.getId(), attachmentService::releaseAttachments);
+			handleAttachment(dictId, updatedItem, oldItem.getId(), attachmentService::bindAttachments);
 		}
 	}
 
@@ -54,33 +57,45 @@ public class BindingDictDataServiceAdvice implements DictDataServiceAdvice
 		}
 		else
 		{
-			attachmentIds.forEach(attachmentId -> handleAttachment(dictId, item.getData(), item.getId(), attachmentService::bindAttachment));
+			attachmentIds.forEach(attachmentId -> handleAttachment(dictId, item.getData(), item.getId(), attachmentService::bindAttachments));
 		}
 	}
 
-	private void handleAttachment(String dictId, Map<String, Object> doc, String id, Consumer4<String, String, String, String> action)
+	private void handleAttachment(String dictId, Map<String, Object> doc, String id, Consumer4<Collection<String>, String, String, String> action)
 	{
 		getAttachmentDictFieldIds(dictId)
-				.forEach(fieldId -> action.accept((String) doc.get(fieldId), "-1",
-						DICTS_ATTACHMENT_TYPE.formatted(dictId, id, fieldId), id));
+				.stream()
+				.filter(dictField -> dictField.isRequired() || doc.get(dictField.getId()) != null)
+				.forEach(field -> action.accept(getAttachmentIdsFromField(doc.get(field.getId()), field),
+						"-1", DICTS_ATTACHMENT_TYPE.formatted(dictId, id, field.getId()), id));
 	}
 
 	private List<String> getAttachmentIds(String dictId, DictItem dictItem)
 	{
 		return getAttachmentDictFieldIds(dictId)
 				.stream()
-				.filter(field -> dictItem.getData().get(field) != null)
-				.map(field -> (String) dictItem.getData().get(field))
+				.filter(field -> dictItem.getData().get(field.getId()) != null)
+				.flatMap(field -> getAttachmentIdsFromField(dictItem.getData().get(field.getId()), field).stream())
 				.toList();
 	}
 
-	private List<String> getAttachmentDictFieldIds(String dictId)
+	@SuppressWarnings("unchecked")
+	private List<String> getAttachmentIdsFromField(Object value, DictField dictField)
+	{
+		if (dictField.isMultivalued())
+		{
+			return ((List<String>) value);
+		}
+
+		return List.of((String) value);
+	}
+
+	private List<DictField> getAttachmentDictFieldIds(String dictId)
 	{
 		return dictService.getById(dictId)
 				.getFields()
 				.stream()
 				.filter(it -> it.getType().equals(DictFieldType.ATTACHMENT))
-				.map(DictField::getId)
 				.toList();
 	}
 }

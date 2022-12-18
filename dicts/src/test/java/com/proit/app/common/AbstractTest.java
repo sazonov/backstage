@@ -17,6 +17,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.CollectionOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.index.Index;
+import org.springframework.data.mongodb.core.schema.JsonSchemaObject.Type.JsonType;
 import org.springframework.data.mongodb.core.schema.JsonSchemaProperty;
 import org.springframework.data.mongodb.core.schema.MongoJsonSchema;
 import org.springframework.test.context.ContextConfiguration;
@@ -78,7 +79,7 @@ public class AbstractTest
 
 	static
 	{
-		mongo = new MongoDBContainer("mongo");
+		mongo = new MongoDBContainer("mongo:5");
 		postgres = new PostgreSQLContainer<>("postgres");
 
 		mongo.start();
@@ -150,6 +151,16 @@ public class AbstractTest
 							.build()
 			);
 
+			fields.add(
+					DictField.builder()
+							.id("booleanField")
+							.name("Булево")
+							.type(DictFieldType.BOOLEAN)
+							.required(true)
+							.multivalued(false)
+							.build()
+			);
+
 			dict.setFields(fields);
 
 			var index = DictIndex.builder()
@@ -207,7 +218,8 @@ public class AbstractTest
 							"stringField", "string",
 							"integerField", 1L,
 							"doubleField", Decimal128.parse("2.0"),
-							"timestampField", "2021-08-15T06:00:00.000Z"));
+							"timestampField", "2021-08-15T06:00:00.000Z",
+							"booleanField", true));
 
 			doc.put(CREATED, LocalDateTime.now());
 			doc.put(UPDATED, LocalDateTime.now());
@@ -315,7 +327,7 @@ public class AbstractTest
 					case INTEGER -> int64(fieldId);
 					case DECIMAL -> decimal128(fieldId);
 					case STRING, DICT -> string(fieldId);
-					case BOOLEAN -> bool(fieldId);
+					case BOOLEAN -> named(fieldId).ofType(new JsonType("boolean"));
 					case DATE, TIMESTAMP -> date(fieldId);
 
 					default -> throw new RuntimeException();

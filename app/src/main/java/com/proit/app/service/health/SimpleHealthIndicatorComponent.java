@@ -16,12 +16,14 @@
 
 package com.proit.app.service.health;
 
+import lombok.Getter;
 import org.springframework.boot.actuate.health.Health;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
+@Getter
 public class SimpleHealthIndicatorComponent extends AbstractHealthIndicatorComponent
 {
 	private Boolean up;

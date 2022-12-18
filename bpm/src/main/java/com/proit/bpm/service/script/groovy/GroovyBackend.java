@@ -28,7 +28,7 @@ import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.stereotype.Component;
 
 @Component
-public class GroovyBackend extends AbstractScriptBackend<Script>
+public class GroovyBackend extends AbstractScriptBackend
 {
 	public GroovyBackend(AutowireCapableBeanFactory beanFactory)
 	{
@@ -37,9 +37,7 @@ public class GroovyBackend extends AbstractScriptBackend<Script>
 
 	public Script compile(WorkflowScript workflowScript)
 	{
-		ScriptClassLoader groovyClassLoader = new ScriptClassLoader(Thread.currentThread().getContextClassLoader());
-
-		try
+		try (ScriptClassLoader groovyClassLoader = new ScriptClassLoader(Thread.currentThread().getContextClassLoader()))
 		{
 			return new Script(workflowScript.getId(), groovyClassLoader.parseClass(workflowScript), this);
 		}

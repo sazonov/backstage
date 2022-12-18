@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -36,6 +37,16 @@ class MappingServiceTest extends AbstractTest
 				"timestampField", "2021-08-15T06:00:00.000Z");
 
 		assertThrows(DictionaryNotFoundException.class, () -> mappingService.mapDictDoc("incorrect", map));
+	}
+
+	@Test
+	void mapDictDateFieldsCorrect()
+	{
+		Map<String, Object> stringDateMap = Map.of("timestampField", "2021-08-15T06:00:00.000Z");
+		Map<String, Object> objectDateMap = Map.of("timestampField", new Date());
+
+		mappingService.mapDictDoc(DICT_ID, stringDateMap);
+		mappingService.mapDictDoc(DICT_ID, objectDateMap);
 	}
 
 	@Test

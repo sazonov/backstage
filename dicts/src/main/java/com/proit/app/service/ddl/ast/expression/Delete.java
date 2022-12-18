@@ -16,7 +16,7 @@
 
 package com.proit.app.service.ddl.ast.expression;
 
-import com.proit.app.service.ddl.ast.ColumnWithValue;
+import com.proit.app.service.ddl.ast.ComparingValueColumn;
 import com.proit.app.service.ddl.ast.Id;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -27,5 +27,5 @@ public class Delete implements Expression
 {
 	private final Id table;
 
-	private final ColumnWithValue column;
+	private final ComparingValueColumn column;
 }

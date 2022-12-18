@@ -1,6 +1,7 @@
 app:
     jpa.enabled: true
     quartz.enabled: true
+    api.swagger.enabled: false
 
     jms:
         enabled: true

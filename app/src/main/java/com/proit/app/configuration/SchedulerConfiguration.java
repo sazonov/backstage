@@ -61,19 +61,11 @@ public class SchedulerConfiguration implements SchedulingConfigurer
 	}
 
 	@Bean
-	public HealthContributor scheduledJobs(Map<String, AbstractJob> jobs)
+	public HealthContributor healthContributor(Map<String, AbstractJob> jobs)
 	{
 		log.info("Scheduled jobs found: {}.", jobs.keySet());
 
 		var healthIndicators = jobs.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, it -> new JobHealthIndicator(it.getValue())));
-
-		jobs.values().forEach(it -> {
-			it.beforeScheduled();
-
-			taskScheduler().schedule(it, it.getTrigger());
-
-			it.afterScheduled();
-		});
 
 		return ActuatorUtils.createHealthComposite(healthIndicators);
 	}

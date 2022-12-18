@@ -20,51 +20,36 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.transaction.ChainedTransactionManager;
+import org.springframework.jms.connection.JmsTransactionManager;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Optional;
 
 @Configuration
 public class TransactionConfiguration
 {
 	@Primary
 	@Bean("transactionManager")
-	public PlatformTransactionManager chainedTransactionManager(List<PlatformTransactionManager> transactionManagers)
+	public PlatformTransactionManager chainedTransactionManager(Optional<JpaTransactionManager> jpaTransactionManager, Optional<JmsTransactionManager> jmsTransactionManager)
 	{
+		var transactionManagers = new ArrayList<PlatformTransactionManager>(2);
+
+		jmsTransactionManager.ifPresent(transactionManagers::add);
+		jpaTransactionManager.ifPresent(transactionManagers::add);
+
 		if (transactionManagers.isEmpty())
 		{
 			return null;
 		}
-
-		if (transactionManagers.size() == 1)
+		else if (transactionManagers.size() == 1)
 		{
 			return transactionManagers.get(0);
 		}
 
-		List<PlatformTransactionManager> orderedManagers = new ArrayList<>(transactionManagers.size());
-		PlatformTransactionManager jpaTransactionManager = null;
-
-		for (var manager : transactionManagers)
-		{
-			if (manager instanceof JpaTransactionManager)
-			{
-				jpaTransactionManager = manager;
-			}
-			else
-			{
-				orderedManagers.add(manager);
-			}
-		}
-
-		if (jpaTransactionManager != null)
-		{
-			orderedManagers.add(jpaTransactionManager);
-		}
-
-		return new ChainedTransactionManager(orderedManagers.toArray(new PlatformTransactionManager[0]));
+		return new ChainedTransactionManager(transactionManagers.toArray(new PlatformTransactionManager[0]));
 	}
 
 	@Bean

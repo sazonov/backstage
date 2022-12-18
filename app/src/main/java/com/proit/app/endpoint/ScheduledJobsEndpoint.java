@@ -17,12 +17,14 @@
 package com.proit.app.endpoint;
 
 import com.proit.app.model.api.ApiResponse;
+import com.proit.app.model.dto.scheduledjob.request.RescheduleJobRequest;
 import com.proit.app.service.job.JobManager;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.Map;
 
 @Tag(name = "scheduled-jobs-endpoint", description = "Методы для работы с периодическими задачами внутри сервиса.")
@@ -45,6 +47,15 @@ public class ScheduledJobsEndpoint
 	public ApiResponse<?> execute(@RequestParam String jobName)
 	{
 		jobManager.executeJob(jobName);
+
+		return ApiResponse.ok();
+	}
+
+	@PostMapping("/reschedule")
+	@Operation(summary = "Позволяет изменить план расписания периодической задачи.")
+	public ApiResponse<?> rescheduleJob(@RequestBody @Valid RescheduleJobRequest request)
+	{
+		jobManager.rescheduleJob(request.getJobName(), request.getTriggerType().createTrigger(request.getExpression()));
 
 		return ApiResponse.ok();
 	}

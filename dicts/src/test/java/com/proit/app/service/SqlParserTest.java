@@ -71,61 +71,61 @@ class SqlParserTest extends AbstractTest
 			""";
 
 	@Test
-	public void parse_emptyQuery()
+	void parse_emptyQuery()
 	{
 		assertTrue(sqlParser.parse(EMPTY_QUERY).isEmpty());
 	}
 
 	@Test
-	public void parse_commentQuery()
+	void parse_commentQuery()
 	{
 		assertTrue(sqlParser.parse(COMMENT_QUERY).isEmpty());
 	}
 
 	@Test
-	public void parse_createTableQuery()
+	void parse_createTableQuery()
 	{
 		assertEquals(sqlParser.parse(CREATE_TABLE_QUERY).size(), 2);
 	}
 
 	@Test
-	public void parse_alterTableQuery()
+	void parse_alterTableQuery()
 	{
 		assertEquals(sqlParser.parse(ALTER_TABLE_QUERY).size(), 5);
 	}
 
 	@Test
-	public void parse_insertQuery()
+	void parse_insertQuery()
 	{
 		assertEquals(sqlParser.parse(INSERT_QUERY).size(), 2);
 	}
 
 	@Test
-	public void parse_updateQuery()
+	void parse_updateQuery()
 	{
 		assertEquals(sqlParser.parse(UPDATE_QUERY).size(), 2);
 	}
 
 	@Test
-	public void parse_updateByColumnValueQuery()
+	void parse_updateByColumnValueQuery()
 	{
 		assertEquals(sqlParser.parse(UPDATE_BY_COLUMN_VALUE_QUERY).size(), 1);
 	}
 
 	@Test
-	public void parse_deleteQuery()
+	void parse_deleteQuery()
 	{
 		assertEquals(sqlParser.parse(DELETE_QUERY).size(), 1);
 	}
 
 	@Test
-	public void parse_createIndex()
+	void parse_createIndex()
 	{
 		assertEquals(sqlParser.parse(CREATE_INDEX_QUERY).size(), 3);
 	}
 
 	@Test
-	public void parse_deleteIndex()
+	void parse_deleteIndex()
 	{
 		assertEquals(sqlParser.parse(DELETE_INDEX_QUERY).size(), 1);
 	}

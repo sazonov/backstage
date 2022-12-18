@@ -17,10 +17,7 @@
 package com.proit.app.service.ddl;
 
 import com.proit.app.exception.DDLSyntaxError;
-import com.proit.app.service.ddl.ast.ColumnDefinition;
-import com.proit.app.service.ddl.ast.ColumnWithValue;
-import com.proit.app.service.ddl.ast.Id;
-import com.proit.app.service.ddl.ast.IdWithName;
+import com.proit.app.service.ddl.ast.*;
 import com.proit.app.service.ddl.ast.expression.*;
 import com.proit.app.service.ddl.ast.expression.table.AlterTable;
 import com.proit.app.service.ddl.ast.expression.table.CreateIndexExpression;
@@ -28,6 +25,7 @@ import com.proit.app.service.ddl.ast.expression.table.CreateTable;
 import com.proit.app.service.ddl.ast.expression.table.DeleteIndexExpression;
 import com.proit.app.service.ddl.ast.expression.table.operation.*;
 import com.proit.app.service.ddl.ast.value.*;
+import com.proit.app.service.query.ast.Predicate;
 import org.jparsec.Parser;
 import org.jparsec.Parsers;
 import org.jparsec.Scanners;
@@ -49,7 +47,7 @@ public class SqlParser
 	};
 
 	static final String[] OPERATORS = {
-			"=", "<", ">", "<=", ">=", ".", "*", ",", "(", ")", "+", "-", "/", ";", "[]", "[", "]", "\""
+			"=", "!=", "<", ">", "<=", ">=", ".", "*", ",", "(", ")", "+", "-", "/", ";", "[]", "[", "]", "\"", "<>"
 	};
 
 	final Terminals TERMS = Terminals.operators(OPERATORS).words(Scanners.IDENTIFIER).caseInsensitiveKeywords(KEYWORDS).build();
@@ -174,18 +172,40 @@ public class SqlParser
 			VALUE.sepBy1(term(",")).between(term("("), term(")")).sepBy1(term(",")),
 			(table, fields, term, values) -> new Insert(table, fields, values));
 
+	final Parser<?> COMPARING_TERMS = Parsers.or(term("="), term("!="),
+			term("<"), term(">"),
+			term("<="), term(">="));
+
+	final Parser<Predicate.Type> CompOp = Parsers.or(
+			term("=").retn(Predicate.Type.EQ),
+			term("<").retn(Predicate.Type.LS),
+			term(">").retn(Predicate.Type.GT),
+			term("<=").retn(Predicate.Type.LEQ),
+			term(">=").retn(Predicate.Type.GEQ),
+			term("!=").retn(Predicate.Type.NEQ),
+			term("<>").retn(Predicate.Type.NEQ)
+	);
+
 	final Parser<ColumnWithValue> COLUMN_VALUE_SET_EXPR = Parsers.sequence(
-			ID, term("=").next(Parsers.or(COLUMN_VALUE, VALUE)), ColumnWithValue::new);
+			ID,
+			COMPARING_TERMS.next(Parsers.or(COLUMN_VALUE, VALUE)),
+			ColumnWithValue::new);
+
+	final Parser<ComparingValueColumn> COMPARING_VALUE_EXPR = Parsers.sequence(
+			ID,
+			CompOp,
+			Parsers.or(COLUMN_VALUE, VALUE),
+			ComparingValueColumn::new);
 
 	final Parser<Expression> UPDATE_EXPR = Parsers.sequence(
 			term("update").next(ID),
 			term("set").next(COLUMN_VALUE_SET_EXPR.sepBy1(term(","))),
-			term("where").next(COLUMN_VALUE_SET_EXPR).optional(null),
+			term("where").next(COMPARING_VALUE_EXPR).optional(null),
 			Update::new);
 
 	final Parser<Expression> DELETE_EXPR = Parsers.sequence(
 			phrase("delete", "from").next(ID),
-			term("where").next(COLUMN_VALUE_SET_EXPR).optional(null),
+			term("where").next(COMPARING_VALUE_EXPR).optional(null),
 			Delete::new);
 
 	final Parser<Expression> DROP_EXPR = phrase("drop", "table").next(ID).map(Drop::new);

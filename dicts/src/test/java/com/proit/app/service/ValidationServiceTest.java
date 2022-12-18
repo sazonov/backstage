@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -119,13 +120,22 @@ class ValidationServiceTest extends AbstractTest
 	@Test
 	void validateDocInsertCorrect()
 	{
-		Map<String, Object> map = Map.of(
+		Map<String, Object> stringDateMap = Map.of(
 				"stringField", "string",
 				"integerField", 1,
 				"doubleField", Decimal128.parse("2.0"),
-				"timestampField", "2021-08-15T06:00:00.000Z");
+				"timestampField", "2021-08-15T06:00:00.000Z",
+				"booleanField", true);
 
-		validationService.validateDocInsert(DICT_ID, map);
+		Map<String, Object> objectDateMap = Map.of(
+				"stringField", "string",
+				"integerField", 1,
+				"doubleField", Decimal128.parse("2.0"),
+				"timestampField", new Date(),
+				"booleanField", Boolean.TRUE);
+
+		validationService.validateDocInsert(DICT_ID, stringDateMap);
+		validationService.validateDocInsert(DICT_ID, objectDateMap);
 	}
 
 	@Test

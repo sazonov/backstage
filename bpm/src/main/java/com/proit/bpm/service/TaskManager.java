@@ -39,6 +39,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -47,7 +48,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.sql.Types;
 import java.time.LocalDateTime;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -195,12 +195,7 @@ public class TaskManager
 		executeTaskScript(task, TASK_HANDLER_METHOD_ASSIGN);
 	}
 
-	public List<Task> getTasks(TaskFilter taskFilter, Pageable pageable)
-	{
-		return getTasks(taskFilter, pageable, false).getContent();
-	}
-
-	public Page<Task> getTasks(TaskFilter taskFilter, Pageable pageable, boolean countTasks)
+	public Page<Task> getTasks(TaskFilter taskFilter, Pageable pageable)
 	{
 		try
 		{
@@ -254,19 +249,9 @@ public class TaskManager
 				parameters.addValue("taskParameters", objectMapper.writerFor(Map.class).writeValueAsString(taskFilter.getTaskParameters()));
 			}
 
-			var pageSql = "";
-
-			if (pageable.isPaged())
-			{
-				pageSql = " order by t.id offset :pageOffset limit :pageSize";
-
-				parameters.addValue("pageSize", pageable.getPageSize());
-				parameters.addValue("pageOffset", pageable.getOffset());
-			}
-
 			var commonSql = "from task t join process p on t.fk_process = p.id where " + String.join(" and ", whereClauses);
 
-			var itemSql = "select t.id " + commonSql + pageSql;
+			var itemSql = "select t.id " + commonSql + " order by t.id";
 			var itemIds = jdbcTemplate.queryForList(itemSql, parameters, String.class);
 
 			if (itemIds.isEmpty())
@@ -276,12 +261,9 @@ public class TaskManager
 
 			var items = taskRepository.findAll(itemIds);
 
-			if (countTasks)
+			if (pageable.isPaged())
 			{
-				var countSql = "select count(distinct t.id) " + commonSql;
-				var totalElements = jdbcTemplate.queryForObject(countSql, parameters, Long.class);
-
-				return new PageImpl<>(items, pageable, totalElements);
+				return PageableExecutionUtils.getPage(items, pageable, items::size);
 			}
 
 			return new PageImpl<>(items);

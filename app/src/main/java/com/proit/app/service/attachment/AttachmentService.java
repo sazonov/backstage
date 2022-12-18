@@ -27,6 +27,7 @@ import com.proit.app.service.attachment.store.AttachmentStore;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -37,7 +38,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import javax.validation.constraints.NotNull;
-import javax.xml.bind.DatatypeConverter;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -183,6 +183,12 @@ public class AttachmentService
 	}
 
 	@Transactional
+	public void releaseAttachments(@NonNull Collection<String> attachmentIds, @NonNull String userId, @NonNull String type, @NonNull String objectId)
+	{
+		attachmentIds.forEach(id -> attachmentBindingRepository.deleteByAttachmentIdAndUserIdAndTypeAndObjectId(id, userId, type, objectId));
+	}
+
+	@Transactional
 	public void releaseAttachment(@NonNull String attachmentId, @NonNull String userId, @NonNull Enum<?> type, @NonNull String objectId)
 	{
 		releaseAttachment(attachmentId, userId, type.name(), objectId);
@@ -276,7 +282,7 @@ public class AttachmentService
 
 			if (sourceStore.attachmentExists(attachment) && !targetStore.attachmentExists(attachment))
 			{
-				targetStore.saveAttachment(attachment,  sourceStore.getAttachment(attachment));
+				targetStore.saveAttachment(attachment, sourceStore.getAttachment(attachment));
 			}
 
 			if (counter % 100 == 0)
@@ -290,7 +296,7 @@ public class AttachmentService
 
 	public String calculateChecksum(byte[] data)
 	{
-		return DatatypeConverter.printHexBinary(DigestUtils.getMd5Digest().digest(data));
+		return Hex.encodeHexString(DigestUtils.getMd5Digest().digest(data)).toUpperCase();
 	}
 
 	public AttachmentStore getAttachmentStore(AttachmentProperties.StoreType storeType)

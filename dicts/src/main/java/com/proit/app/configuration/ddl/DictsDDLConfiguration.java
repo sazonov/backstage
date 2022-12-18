@@ -39,6 +39,7 @@ public class DictsDDLConfiguration
 	public void initialize()
 	{
 		log.info("Applying DDL with '{}'...", dictsDDLProvider.getName());
+
 		dictsDDLProvider.update();
 	}
 }

@@ -40,6 +40,7 @@ import org.apache.activemq.store.PersistenceAdapter;
 import org.apache.activemq.store.kahadb.KahaDBPersistenceAdapter;
 import org.apache.activemq.store.memory.MemoryPersistenceAdapter;
 import org.apache.activemq.transport.discovery.DiscoveryAgent;
+import org.apache.activemq.util.DefaultIOExceptionHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -91,7 +92,7 @@ public class JmsConfiguration
 	}
 
 	@Bean
-	public JmsListenerContainerFactory<?> nonTxJmsListenerContainerFactory(ConnectionFactory connectionFactory, PlatformTransactionManager transactionManager)
+	public JmsListenerContainerFactory<?> nonTxJmsListenerContainerFactory(ConnectionFactory connectionFactory)
 	{
 		return createListenerContainerFactory(connectionFactory, null);
 	}
@@ -143,6 +144,10 @@ public class JmsConfiguration
 			log.warn("Jms broker name is not specified. Using auto generated name: {}.", jmsProperties.getBrokerName());
 		}
 
+		var ioExceptionHandler = new DefaultIOExceptionHandler();
+		ioExceptionHandler.setIgnoreNoSpaceErrors(false);
+		ioExceptionHandler.setIgnoreSQLExceptions(false);
+
 		BrokerService brokerService = new BrokerService();
 		brokerService.addConnector(getConnectorURI());
 		brokerService.setDestinationPolicy(setupDestinationPolicies());
@@ -152,6 +157,7 @@ public class JmsConfiguration
 		brokerService.setPlugins(new BrokerPlugin[] {
 				new StatisticsBrokerPlugin()
 		});
+		brokerService.setIoExceptionHandler(ioExceptionHandler);
 
 		if (jmsProperties.getStoreSizeLimit() != null)
 		{

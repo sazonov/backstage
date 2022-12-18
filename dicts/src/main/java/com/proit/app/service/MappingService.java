@@ -21,7 +21,7 @@ import com.proit.app.domain.DictField;
 import com.proit.app.domain.DictFieldName;
 import com.proit.app.domain.DictFieldType;
 import com.proit.app.domain.DictItem;
-import com.proit.app.util.StreamCollectors;
+import com.proit.app.utils.StreamCollectors;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
@@ -95,6 +95,7 @@ public class MappingService
 		var created = (Date) map.get(CREATED);
 		var updated = (Date) map.get(UPDATED);
 		var deleted = (Date) map.get(DELETED);
+		var deletionReason = (String) map.get(DELETION_REASON);
 
 		String id = null;
 
@@ -109,6 +110,7 @@ public class MappingService
 				.history((List<Map<String, Object>>) map.get(HISTORY))
 				.created(created == null ? null : mapToLocalDateTime(created))
 				.deleted(deleted == null ? null : mapToLocalDateTime(deleted))
+				.deletionReason(deleted == null ? null : deletionReason)
 				.updated(updated == null ? null : mapToLocalDateTime(updated))
 				.data(data)
 				.build();
@@ -145,6 +147,7 @@ public class MappingService
 		{
 			return mapMultivaluedField(field, o);
 		}
+
 		return mapSingleField(field, o);
 	}
 
@@ -196,8 +199,8 @@ public class MappingService
 		}
 
 		return field.getType() == DictFieldType.TIMESTAMP
-				? mapToLocalDateTime((String) o)
-				: mapToLocalDate((String) o);
+				? mapToLocalDateTime(o)
+				: mapToLocalDate(o);
 	}
 
 	/**
@@ -214,14 +217,29 @@ public class MappingService
 		return o;
 	}
 
-	private LocalDate mapToLocalDate(String value)
+	private LocalDate mapToLocalDate(Object value)
 	{
-		return LocalDate.parse(value, DATE_FORMATTER);
+		if (value instanceof Date date)
+		{
+			return mapToLocalDate(date);
+		}
+
+		return LocalDate.parse((String) value, DATE_FORMATTER);
 	}
 
-	private LocalDateTime mapToLocalDateTime(String value)
+	private LocalDate mapToLocalDate(Date value)
 	{
-		return LocalDateTime.parse(value, DATE_TIME_FORMATTER);
+		return value.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+	}
+
+	private LocalDateTime mapToLocalDateTime(Object value)
+	{
+		if (value instanceof Date date)
+		{
+			return mapToLocalDateTime(date);
+		}
+
+		return LocalDateTime.parse((String) value, DATE_TIME_FORMATTER);
 	}
 
 	private LocalDateTime mapToLocalDateTime(Date value)

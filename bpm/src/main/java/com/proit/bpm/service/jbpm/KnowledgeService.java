@@ -24,7 +24,12 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.drools.compiler.compiler.ProcessLoadError;
+import org.jbpm.ruleflow.core.RuleFlowProcess;
+import org.jbpm.workflow.core.node.EventTrigger;
+import org.jbpm.workflow.core.node.StartNode;
+import org.jbpm.workflow.core.node.Trigger;
 import org.kie.api.KieBase;
+import org.kie.api.definition.process.Node;
 import org.kie.api.io.ResourceType;
 import org.kie.internal.builder.KnowledgeBuilder;
 import org.kie.internal.builder.KnowledgeBuilderFactory;
@@ -45,7 +50,7 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.stream.Collectors;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -102,8 +107,8 @@ public class KnowledgeService implements ApplicationListener<WorkflowsUpdatedEve
 
 		if (builder.hasErrors())
 		{
-			var processErrors = builder.getErrors().stream().filter(it -> it instanceof ProcessLoadError).collect(Collectors.toList());
-			var otherErrors = builder.getErrors().stream().filter(it -> !processErrors.contains(it)).collect(Collectors.toList());
+			var processErrors = builder.getErrors().stream().filter(it -> it instanceof ProcessLoadError).toList();
+			var otherErrors = builder.getErrors().stream().filter(it -> !processErrors.contains(it)).toList();
 
 			processErrors.forEach(error -> {
 				log.error("Error while loading workflow '{}': {}", error.getResource().getSourcePath(), error);
@@ -117,7 +122,41 @@ public class KnowledgeService implements ApplicationListener<WorkflowsUpdatedEve
 			throw new BpmException("failed to init knowledge base");
 		}
 
-		return builder.newKieBase();
+		return processKieBase(builder.newKieBase());
+	}
+
+	private KieBase processKieBase(KieBase kieBase)
+	{
+		for (var process : kieBase.getProcesses())
+		{
+			// Запуск по событию оставляем только в последних ревизиях процессов.
+			if (!workflowService.getActualWorkflowIds().contains(process.getId()))
+			{
+				if (process instanceof RuleFlowProcess ruleFlowProcess)
+				{
+					for (Node node : ruleFlowProcess.getNodes())
+					{
+						if (node instanceof StartNode startNode)
+						{
+							List<Trigger> triggers = startNode.getTriggers();
+
+							if (triggers != null)
+							{
+								for (Trigger trigger : triggers)
+								{
+									if (trigger instanceof EventTrigger)
+									{
+										startNode.removeTrigger(trigger);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		return kieBase;
 	}
 
 	private String processWorkflow(Workflow workflow)

@@ -18,6 +18,7 @@ package com.proit.app.service.job;
 
 import com.proit.app.model.other.JobResult;
 import com.proit.app.service.health.SimpleHealthIndicatorComponent;
+import lombok.Getter;
 import org.springframework.scheduling.support.SimpleTriggerContext;
 
 import java.util.Date;
@@ -29,6 +30,8 @@ public class JobHealthIndicator extends SimpleHealthIndicatorComponent implement
 {
 	private Date lastExecutionTime;
 	private Date lastCompletionTime;
+
+	@Getter
 	private Date nextExecutionTime;
 
 	public JobHealthIndicator(AbstractJob job)
@@ -37,15 +40,15 @@ public class JobHealthIndicator extends SimpleHealthIndicatorComponent implement
 	}
 
 	@Override
-	public void beforeScheduled(AbstractJob job)
+	public void beforeSchedule(AbstractJob job)
 	{
 
 	}
 
 	@Override
-	public void afterScheduled(AbstractJob job)
+	public void afterSchedule(AbstractJob job)
 	{
-		nextExecutionTime = Optional.ofNullable(job.getTrigger().nextExecutionTime(new SimpleTriggerContext())).orElse(null);
+		nextExecutionTime = job.getTrigger().nextExecutionTime(new SimpleTriggerContext());
 
 		upWithDetails(buildDetails());
 	}
@@ -60,7 +63,10 @@ public class JobHealthIndicator extends SimpleHealthIndicatorComponent implement
 	public void afterExecute(AbstractJob job, JobResult jobResult)
 	{
 		lastCompletionTime = new Date();
-		nextExecutionTime = Optional.ofNullable(job.getTrigger().nextExecutionTime(new SimpleTriggerContext(lastExecutionTime, lastExecutionTime, lastCompletionTime))).orElse(null);
+		nextExecutionTime = job.getTrigger().nextExecutionTime(new SimpleTriggerContext(
+				lastExecutionTime,
+				lastExecutionTime,
+				lastCompletionTime));
 
 		if (jobResult.isSuccess())
 		{
@@ -73,10 +79,18 @@ public class JobHealthIndicator extends SimpleHealthIndicatorComponent implement
 	}
 
 	@Override
+	public void onCancel(AbstractJob job)
+	{
+	}
+
+	@Override
 	public void onException(AbstractJob job, Exception exception)
 	{
 		lastCompletionTime = new Date();
-		nextExecutionTime = Optional.ofNullable(job.getTrigger().nextExecutionTime(new SimpleTriggerContext(lastExecutionTime, lastExecutionTime, lastCompletionTime))).orElse(null);
+		nextExecutionTime = job.getTrigger().nextExecutionTime(new SimpleTriggerContext(
+				lastExecutionTime,
+				lastExecutionTime,
+				lastCompletionTime));
 
 		downWithDetails(exception, buildDetails());
 	}

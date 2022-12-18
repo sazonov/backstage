@@ -23,22 +23,37 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.Trigger;
 
 import java.util.Optional;
+import java.util.concurrent.ScheduledFuture;
 
+@Getter
+@Setter
 @Slf4j
 public abstract class AbstractJob implements Runnable
 {
-	@Getter
-	@Setter
 	private JobEventListener eventListener;
+
+	protected Trigger trigger;
+
+	private ScheduledFuture<?> future;
 
 	public void beforeScheduled()
 	{
-		Optional.ofNullable(getEventListener()).ifPresent(it -> it.beforeScheduled(this));
+		Optional.ofNullable(getEventListener()).ifPresent(it -> it.beforeSchedule(this));
 	}
 
 	public void afterScheduled()
 	{
-		Optional.ofNullable(getEventListener()).ifPresent(it -> it.afterScheduled(this));
+		Optional.ofNullable(getEventListener()).ifPresent(it -> it.afterSchedule(this));
+	}
+
+	public void cancel()
+	{
+		Optional.ofNullable(getEventListener()).ifPresent(it -> it.onCancel(this));
+
+		if (future != null)
+		{
+			future.cancel(false);
+		}
 	}
 
 	public final void run()
@@ -58,8 +73,6 @@ public abstract class AbstractJob implements Runnable
 			Optional.ofNullable(getEventListener()).ifPresent(it -> it.onException(this, e));
 		}
 	}
-
-	public abstract Trigger getTrigger();
 
 	/**
 	 * Весь код задачи должен быть реализован в этой процедуре.

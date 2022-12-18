@@ -37,6 +37,7 @@ public class DictItemConverter extends AbstractConverter<DictItem, DictItemDto>
 				.created(source.getCreated())
 				.updated(source.getUpdated())
 				.deleted(source.getDeleted())
+				.deletionReason(source.getDeletionReason())
 				.build();
 	}
 }

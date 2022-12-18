@@ -25,6 +25,7 @@ import com.proit.bpm.configuration.properties.BpmProperties;
 import com.proit.bpm.domain.Process;
 import com.proit.bpm.domain.Task;
 import com.proit.bpm.domain.TaskResult;
+import com.proit.bpm.exception.BpmException;
 import com.proit.bpm.model.ProcessTimer;
 import com.proit.bpm.repository.ProcessRepository;
 import com.proit.bpm.repository.TaskRepository;
@@ -51,6 +52,7 @@ import org.drools.core.command.runtime.process.SetProcessInstanceVariablesComman
 import org.drools.core.impl.EnvironmentFactory;
 import org.jbpm.process.core.timer.TimerServiceRegistry;
 import org.jbpm.workflow.instance.WorkflowProcessInstance;
+import org.kie.api.event.process.ProcessStartedEvent;
 import org.kie.api.runtime.Environment;
 import org.kie.api.runtime.EnvironmentName;
 import org.kie.api.runtime.KieSession;
@@ -67,10 +69,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -103,8 +102,6 @@ public class JbpmProcessEngine implements ApplicationContextAware, ProcessEngine
 	private final Map<String, ScriptingExtension> scriptingExtensions;
 
 	private final NamedParameterJdbcTemplate jdbcTemplate;
-
-	private final ProcessUtils processUtils;
 
 	private final KnowledgeService knowledgeService;
 	private final SpringAwareTransactionManager transactionManager;
@@ -154,28 +151,72 @@ public class JbpmProcessEngine implements ApplicationContextAware, ProcessEngine
 	@Override
 	public Process startProcess(String workflowId, Map<String, Object> parameters)
 	{
-		var processInstance = new Process();
-		processInstance.setCreated(LocalDateTime.now());
-		processInstance.setWorkflowId(workflowId);
-		processInstance.setActive(true);
-		processInstance.getParameters().putAll(parameters);
+		var process = new Process();
+		process.setCreated(LocalDateTime.now());
+		process.setWorkflowId(workflowId);
+		process.setActive(true);
+		process.getParameters().putAll(parameters);
 
-		var session = loadSession(processInstance);
-		var process = session.createProcessInstance(workflowId, parameters);
+		var session = loadSession(process);
+		var processInstance = session.createProcessInstance(workflowId, parameters);
 
-		processInstance.setInstanceId(process.getId());
+		process.setInstanceId(processInstance.getId());
 
-		processRepository.saveAndFlush(processInstance);
+		processRepository.saveAndFlush(process);
 
-		processUtils.setProcessId(process, processInstance.getId());
+		ProcessUtils.setProcessId(processInstance, process.getId());
 
-		executeProcessScript(processInstance, PROCESS_HANDLER_METHOD_START);
+		executeProcessScript(process, PROCESS_HANDLER_METHOD_START);
 
-		session.startProcessInstance(process.getId());
+		session.startProcessInstance(processInstance.getId());
 
-		updateProcessState(processInstance, session);
+		updateProcessState(process, session);
 
-		return processInstance;
+		return process;
+	}
+
+	@Override
+	public Optional<Process> startProcessOnEvent(String event, Map<String, Object> eventParameters, Map<String, Object> processParameters)
+	{
+		var process = new Process();
+		process.setCreated(LocalDateTime.now());
+		process.setActive(true);
+		process.getParameters().putAll(processParameters);
+
+		var session = loadSession(process);
+
+		session.addEventListener(new DefaultProcessEventListener() {
+			@Override
+			public void beforeProcessStarted(ProcessStartedEvent event)
+			{
+				if (process.getId() != null)
+				{
+					throw new BpmException("running more than one event based process at the same time is not supported");
+				}
+
+				process.setWorkflowId(event.getProcessInstance().getProcessId());
+				process.setInstanceId(event.getProcessInstance().getId());
+
+				processRepository.saveAndFlush(process);
+
+				ProcessUtils.setProcessId(event.getProcessInstance(), process.getId());
+
+				processParameters.forEach((key, value) -> ProcessUtils.setProcessVariable(event.getProcessInstance(), key, value));
+
+				executeProcessScript(process, PROCESS_HANDLER_METHOD_START);
+			}
+		});
+
+		session.signalEvent(event, eventParameters);
+
+		if (process.getInstanceId() != null)
+		{
+			updateProcessState(process, session);
+
+			return Optional.of(process);
+		}
+
+		return Optional.empty();
 	}
 
 	@Override
@@ -304,7 +345,7 @@ public class JbpmProcessEngine implements ApplicationContextAware, ProcessEngine
 		var processInstance = processRepository.findByIdEx(processId);
 		var session = loadSession(processInstance);
 
-		processUtils.migrateProcess(processInstance, session.getProcessInstance(processInstance.getInstanceId()), workflowId);
+		ProcessUtils.migrateProcess(processInstance, session.getProcessInstance(processInstance.getInstanceId()), workflowId);
 	}
 
 	@Override

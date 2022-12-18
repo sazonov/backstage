@@ -18,7 +18,7 @@ package com.proit.bpm.service.jbpm.script;
 
 import com.proit.bpm.domain.Process;
 import com.proit.bpm.exception.BpmException;
-import com.proit.bpm.service.jbpm.ProcessUtils;
+import com.proit.bpm.repository.ProcessRepository;
 import com.proit.bpm.service.script.ScriptEngine;
 import com.proit.bpm.service.workflow.WorkflowService;
 import lombok.RequiredArgsConstructor;
@@ -34,15 +34,18 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public class ScriptFunctions implements ScriptingExtension
 {
+	private final ProcessRepository processRepository;
+
 	private final WorkflowService workflowService;
-	private final ProcessUtils processUtils;
 	private final ScriptEngine scriptEngine;
 
 	public Object invokeScript(ProcessContext processContext, String scriptName, Object... args)
 	{
 		log.info("Executing script '{}'.", scriptName);
 
-		var process = processUtils.getProcess(processContext.getProcessInstance());
+		var process = processRepository.findByInstanceId(processContext.getProcessInstance().getId()).orElseThrow(() ->
+			new BpmException("cannot find process for jbpm process instance %d".formatted(processContext.getProcessInstance().getId()))
+		);
 
 		return executeScript(process, scriptName, args);
 	}

@@ -12,7 +12,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
-public class InterpreterTest extends AbstractTest
+class InterpreterTest extends AbstractTest
 {
 	@Autowired
 	private SqlParser sqlParser;
@@ -40,7 +40,7 @@ public class InterpreterTest extends AbstractTest
 			""";
 
 	@Test
-	public void updateByColumnValueTest()
+	void updateByColumnValueTest()
 	{
 		interpreter.execute(sqlParser.parse(QUERY));
 
@@ -57,5 +57,71 @@ public class InterpreterTest extends AbstractTest
 
 		assertEquals(videos.getTotalElements(), 1L);
 		assertNotEquals(videos.getContent().get(0).getData().get("link"), videos.getContent().get(0).getData().get("externalLink"));
+	}
+
+	@Test
+	void parse_updatePositiveCondition()
+	{
+		interpreter.execute(sqlParser.parse("""
+					update user
+					set type = 'EmbeddedReactiveStreamsMongoClientDependsOnBeanFactoryPostProcessor'
+					where first_name = 'Bender';
+				"""));
+
+		long actual = dictDataService.countByFilter("user", "type = 'EmbeddedReactiveStreamsMongoClientDependsOnBeanFactoryPostProcessor'");
+
+		assertEquals(1, actual);
+	}
+
+	@Test
+	void parse_updateNegativeCondition()
+	{
+		interpreter.execute(sqlParser.parse("""
+				update user
+				set type = 'PropertySourceOrderingBeanFactoryPostProcessor'
+				where first_name = 'Bender';
+				"""));
+
+		long actual = dictDataService.countByFilter("user", "first_name = 'Bender' and type = 'PropertySourceOrderingBeanFactoryPostProcessor'");
+
+		assertEquals(1, actual);
+	}
+
+	@Test
+	void parse_updateWithoutCondition()
+	{
+		interpreter.execute(sqlParser.parse("""
+				update user
+				set type = 'COMPONENTS';
+				"""));
+
+		long actual = dictDataService.countByFilter("user", "type = 'COMPONENTS'");
+
+		assertEquals(2, actual);
+	}
+
+
+	@Test
+	void parse_deleteNegativeCondition()
+	{
+		interpreter.execute(sqlParser.parse("""
+				delete from user
+				where first_name !='Bender';
+				"""));
+
+		long actual = dictDataService.countByFilter("user", "first_name !='Bender' and deleted != null");
+
+		assertEquals(1, actual);
+	}
+
+
+	@Test
+	void parse_deleteWithoutCondition()
+	{
+		interpreter.execute(sqlParser.parse("delete from user;"));
+
+		long actual = dictDataService.countByFilter("user", "deleted = null");
+
+		assertEquals(0, actual);
 	}
 }

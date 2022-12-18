@@ -16,16 +16,19 @@
 
 package com.proit.app.utils;
 
+import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.FlywayException;
+import org.flywaydb.core.internal.database.postgresql.PostgreSQLConfigurationExtension;
 
 import javax.sql.DataSource;
 import java.util.Collections;
 import java.util.Map;
 
 @Slf4j
+@UtilityClass
 public class DDLUtils
 {
 	public static void applyDDL(String application, String scheme, DataSource dataSource)
@@ -55,6 +58,9 @@ public class DDLUtils
 		}
 
 		var flyway = builder.load();
+
+		var configurationExtension = flyway.getConfiguration().getPluginRegister().getPlugin(PostgreSQLConfigurationExtension.class);
+		configurationExtension.setTransactionalLock(false);
 
 		try
 		{

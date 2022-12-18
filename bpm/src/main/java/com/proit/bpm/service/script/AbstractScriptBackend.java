@@ -28,7 +28,7 @@ import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import java.util.Arrays;
 
 @RequiredArgsConstructor
-public abstract class AbstractScriptBackend<T extends Script> implements ScriptBackend<T>
+public abstract class AbstractScriptBackend implements ScriptBackend
 {
 	private final WorkflowScript.Type supportedScriptType;
 
@@ -39,7 +39,7 @@ public abstract class AbstractScriptBackend<T extends Script> implements ScriptB
 		return type == supportedScriptType;
 	}
 
-	public Object execute(T script, String methodName, Object ... parameters)
+	public Object execute(Script script, String methodName, Object ... parameters)
 	{
 		try
 		{

@@ -84,7 +84,7 @@ public class QueryParser
 
 	final Parser<Expression> PREDICATE = Parsers.or(COMPARE_EXPR, LIKE_EXPR, IN_EXPR, ILIKE_EXPR);
 
-	final UnaryOperator<Expression> NOT = (expr) -> new LogicExpression(expr, null, LogicExpression.Type.NOT);
+	final UnaryOperator<Expression> NOT = expr -> new LogicExpression(expr, null, LogicExpression.Type.NOT);
 	final BinaryOperator<Expression> AND = (lhs, rhs) -> new LogicExpression(lhs, rhs, LogicExpression.Type.AND);
 	final BinaryOperator<Expression> OR = (lhs, rhs) -> new LogicExpression(lhs, rhs, LogicExpression.Type.OR);
 

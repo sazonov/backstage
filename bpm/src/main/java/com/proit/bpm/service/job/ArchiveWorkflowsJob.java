@@ -19,17 +19,12 @@ package com.proit.bpm.service.job;
 import com.proit.app.model.other.JobResult;
 import com.proit.app.service.job.AbstractCronJob;
 import com.proit.app.service.job.JobDescription;
-import com.proit.bpm.model.Workflow;
 import com.proit.bpm.repository.DeployedWorkflowRepository;
 import com.proit.bpm.repository.ProcessRepository;
 import com.proit.bpm.service.workflow.WorkflowService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
-import java.util.Comparator;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -51,10 +46,7 @@ public class ArchiveWorkflowsJob extends AbstractCronJob
 	{
 		log.info("Archiving workflows.");
 
-		var actualWorkflowsIds = workflowService.getWorkflows().stream().collect(Collectors.groupingBy(Workflow::getId,
-				Collectors.maxBy(Comparator.comparing(Workflow::getVersion)))).values().stream()
-				.filter(Optional::isPresent).map(Optional::get).map(Workflow::getFullId).toList();
-
+		var actualWorkflowsIds = workflowService.getActualWorkflowIds();
 		var activeWorkflowIds = processRepository.findActiveWorkflowIds();
 
 		log.info("Actual workflows: {}.", actualWorkflowsIds);

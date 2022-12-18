@@ -19,7 +19,7 @@ package com.proit.app.model.api;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Ответ, не содержащий данных")
-public class OkResponse extends ApiResponse<Object>
+public class OkResponse extends ApiResponse<Void>
 {
 	static final OkResponse INSTANCE = new OkResponse();
 

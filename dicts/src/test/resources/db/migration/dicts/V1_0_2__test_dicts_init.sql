@@ -21,5 +21,3 @@ create table indebtedness['Задолженности']
    organization['Организация'] text,
    comments['Комментарии'] json[]
 );
-
--- INSERT INTO indebtedness (consumption_type, amount, comments, fk_user, fk_district, description, type, rso, number, amount_updated, organization) VALUES ('GAS', 111.22, null, 'operator_id', 'ec9325f8-96f9-4c9c-acb9-11082ec5f19a', 'Test', 'INDEBTEDNESS', 'OEK', 1000153, '2021-04-20T15:00:55.353296', 'ZHIL');

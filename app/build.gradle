@@ -63,9 +63,11 @@ dependencies {
 	api "commons-codec:commons-codec:$commonsCodecVersion"
 	api "commons-beanutils:commons-beanutils:$commonsBeanUtilsVersion"
 
-	api "javax.xml.bind:jaxb-api:2.3.1"
-	api "com.sun.xml.bind:jaxb-core:2.3.0.1"
-	api "com.sun.xml.bind:jaxb-impl:2.3.1"
+	api "jakarta.activation:jakarta.activation-api:2.1.0"
+	api "jakarta.xml.bind:jakarta.xml.bind-api:4.0.0"
+	api ("com.sun.xml.bind:jaxb-impl:4.0.1") {
+		exclude(module: "angus-activation")
+	}
 
 	api "org.springdoc:springdoc-openapi-ui:$springDocVersion"
 
@@ -98,14 +100,6 @@ dependencies {
 	testImplementation "org.testcontainers:testcontainers:$testContainersVersion"
 	testImplementation "org.testcontainers:junit-jupiter:$testContainersVersion"
 	testImplementation "org.testcontainers:postgresql:$testContainersVersion"
-
-	api "org.javassist:javassist:3.28.0-GA"
-	api("org.wickedsource.docx-stamper:docx-stamper:1.4.0") {
-		exclude group: 'org.javassist'
-	}
-	api("org.docx4j:docx4j:3.3.0") {
-		exclude group: 'org.slf4j'
-	}
 }
 
 test {

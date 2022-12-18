@@ -16,7 +16,6 @@
 
 package com.proit.app.service.job;
 
-import lombok.Getter;
 import org.springframework.scheduling.support.PeriodicTrigger;
 
 /**
@@ -24,9 +23,6 @@ import org.springframework.scheduling.support.PeriodicTrigger;
  */
 public abstract class AbstractFixedDelayJob extends AbstractJob
 {
-	@Getter
-	private final PeriodicTrigger trigger;
-
 	public AbstractFixedDelayJob()
 	{
 		trigger = new PeriodicTrigger(getFixedDelay());

@@ -25,7 +25,7 @@ import com.proit.app.domain.DictItem;
 import com.proit.app.service.DictDataService;
 import com.proit.app.service.DictPermissionService;
 import com.proit.app.service.DictService;
-import com.proit.app.util.StreamCollectors;
+import com.proit.app.utils.StreamCollectors;
 import com.proit.app.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -18,7 +18,7 @@ package com.proit.bpm.service.script;
 
 import com.proit.bpm.model.WorkflowScript;
 
-public interface ScriptBackend<T extends Script>
+public interface ScriptBackend
 {
 	/**
 	 * Возвращает true, если бэкенд поддерживает переданный тип скриптов.
@@ -28,10 +28,10 @@ public interface ScriptBackend<T extends Script>
 	/**
 	 * Компилирует скрипт и возвращает соответствующий объект.
  	 */
-	T compile(WorkflowScript workflowScript);
+	Script compile(WorkflowScript workflowScript);
 
 	/**
 	 * Выполняет указанный скрипт.
 	 */
-	Object execute(T script, String methodName, Object ... parameters);
+	Object execute(Script script, String methodName, Object ... parameters);
 }

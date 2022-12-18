@@ -20,10 +20,7 @@ import com.proit.app.domain.*;
 import com.proit.app.exception.EnumNotFoundException;
 import com.proit.app.service.DictDataService;
 import com.proit.app.service.DictService;
-import com.proit.app.service.ddl.ast.ColumnDefinition;
-import com.proit.app.service.ddl.ast.ColumnType;
-import com.proit.app.service.ddl.ast.ColumnWithValue;
-import com.proit.app.service.ddl.ast.Id;
+import com.proit.app.service.ddl.ast.*;
 import com.proit.app.service.ddl.ast.expression.*;
 import com.proit.app.service.ddl.ast.expression.table.AlterTable;
 import com.proit.app.service.ddl.ast.expression.table.CreateIndexExpression;
@@ -31,6 +28,7 @@ import com.proit.app.service.ddl.ast.expression.table.CreateTable;
 import com.proit.app.service.ddl.ast.expression.table.DeleteIndexExpression;
 import com.proit.app.service.ddl.ast.expression.table.operation.*;
 import com.proit.app.service.ddl.ast.value.*;
+import com.proit.app.service.query.ast.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -209,6 +207,7 @@ public class Interpreter
 		}
 
 		dict.setFields(fields);
+
 		dictService.update(dictId, dict);
 	}
 
@@ -232,6 +231,7 @@ public class Interpreter
 		if (delete.getColumn() == null)
 		{
 			dictDataService.deleteAll(delete.getTable().getName(), true);
+
 			return;
 		}
 
@@ -395,17 +395,36 @@ public class Interpreter
 		return item;
 	}
 
-	private String buildFilterQuery(ColumnWithValue column)
+
+	public String getOperator(Predicate.Type type)
 	{
+		return switch (type)
+				{
+					case EQ -> "=";
+					case GT -> ">";
+					case LS -> "<";
+					case LEQ -> "<=";
+					case GEQ -> ">=";
+					case NEQ -> "!=";
+				};
+	}
+
+	private String buildFilterQuery(ComparingValueColumn column)
+	{
+		if (column == null || column.getPredicateType() == null)
+		{
+			return null;
+		}
+
 		if (column.getValue() instanceof StringValue)
 		{
-			return "%s = '%s'".formatted(column.getId().getName(), column.getValue().getValue());
+			return "%s %s '%s'".formatted(column.getId().getName(), getOperator(column.getPredicateType()), column.getValue().getValue());
 		}
 		else if (column.getValue() instanceof BooleanValue ||
 				 column.getValue() instanceof DecimalValue ||
 				 column.getValue() instanceof NullValue)
 		{
-			return "%s = %s".formatted(column.getId().getName(), column.getValue().getValue());
+			return "%s %s %s".formatted(column.getId().getName(), getOperator(column.getPredicateType()), column.getValue().getValue());
 		}
 		else
 		{

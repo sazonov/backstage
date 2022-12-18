@@ -5,4 +5,5 @@ include 'bpm'
 include 'dicts-api'
 include 'dicts'
 include 'dependencies'
+include 'doc-templates'
 

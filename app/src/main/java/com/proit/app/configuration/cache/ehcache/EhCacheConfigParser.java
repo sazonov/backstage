@@ -16,13 +16,13 @@
 
 package com.proit.app.configuration.cache.ehcache;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.persistence.jaxb.JAXBContext;
 
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -51,7 +51,7 @@ public class EhCacheConfigParser
 	public static class CacheConfig
 	{
 		@XmlElement(name = "cache")
-		private List<Cache> caches = new ArrayList<>();
+		private final List<Cache> caches = new ArrayList<>();
 	}
 
 	public static Optional<CacheConfig> parse()

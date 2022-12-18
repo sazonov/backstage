@@ -16,7 +16,6 @@
 
 package com.proit.app.service.job;
 
-import lombok.Getter;
 import org.springframework.scheduling.support.CronTrigger;
 
 /**
@@ -24,9 +23,6 @@ import org.springframework.scheduling.support.CronTrigger;
  */
 public abstract class AbstractCronJob extends AbstractJob
 {
-	@Getter
-	private final CronTrigger trigger;
-
 	public AbstractCronJob()
 	{
 		trigger = new CronTrigger(getCronExpression());

@@ -14,7 +14,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 @SpringBootTest
-@ContextConfiguration(initializers = {AbstractTests.Initializer.class})
+@ContextConfiguration(classes = TestApp.class, initializers = {AbstractTests.Initializer.class})
 @Import({DataSourceConfiguration.class, JpaConfiguration.class, JacksonAutoConfiguration.class, TaskSchedulingAutoConfiguration.class})
 public abstract class AbstractTests
 {

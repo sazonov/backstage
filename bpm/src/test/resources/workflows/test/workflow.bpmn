@@ -257,7 +257,7 @@
         <bpmn2:incoming>_8400FD80-B96B-4FB7-8EB5-DFFA62FD3BF6</bpmn2:incoming>
         <bpmn2:outgoing>_BB120F46-46EC-476E-B9AA-DE6C701696BF</bpmn2:outgoing>
         <bpmn2:timerEventDefinition id="_fXFX6aRJEeuhBLkKNv4Buw">
-          <bpmn2:timeDuration xsi:type="bpmn2:tFormalExpression" id="_fXFX6qRJEeuhBLkKNv4Buw">PT1M</bpmn2:timeDuration>
+          <bpmn2:timeDuration xsi:type="bpmn2:tFormalExpression" id="_fXFX6qRJEeuhBLkKNv4Buw">PT5M</bpmn2:timeDuration>
         </bpmn2:timerEventDefinition>
       </bpmn2:intermediateCatchEvent>
       <bpmn2:intermediateCatchEvent id="_8214AE69-EC46-4289-A020-D4AD97D844DB" name="standaloneTimer1_1">
@@ -269,7 +269,7 @@
         <bpmn2:incoming>_1E36184D-0C79-4F22-81FA-96117F2ED488</bpmn2:incoming>
         <bpmn2:outgoing>_8400FD80-B96B-4FB7-8EB5-DFFA62FD3BF6</bpmn2:outgoing>
         <bpmn2:timerEventDefinition id="_fXFX66RJEeuhBLkKNv4Buw">
-          <bpmn2:timeDuration xsi:type="bpmn2:tFormalExpression" id="_fXFX7KRJEeuhBLkKNv4Buw">PT1M</bpmn2:timeDuration>
+          <bpmn2:timeDuration xsi:type="bpmn2:tFormalExpression" id="_fXFX7KRJEeuhBLkKNv4Buw">PT5M</bpmn2:timeDuration>
         </bpmn2:timerEventDefinition>
       </bpmn2:intermediateCatchEvent>
       <bpmn2:parallelGateway id="_07669EA1-8E52-465F-8275-7C5CCD7B4B3D" gatewayDirection="Diverging">
@@ -286,7 +286,7 @@
         <bpmn2:incoming>_F06BF074-F779-4E92-A698-0C39A2DDF796</bpmn2:incoming>
         <bpmn2:outgoing>_95AAE7B2-C5EF-4699-8689-C810577DB3F2</bpmn2:outgoing>
         <bpmn2:timerEventDefinition id="_fXFX7aRJEeuhBLkKNv4Buw">
-          <bpmn2:timeDuration xsi:type="bpmn2:tFormalExpression" id="_fXFX7qRJEeuhBLkKNv4Buw">PT2M</bpmn2:timeDuration>
+          <bpmn2:timeDuration xsi:type="bpmn2:tFormalExpression" id="_fXFX7qRJEeuhBLkKNv4Buw">PT10M</bpmn2:timeDuration>
         </bpmn2:timerEventDefinition>
       </bpmn2:intermediateCatchEvent>
       <bpmn2:endEvent id="_FCE5B393-3ED6-433C-A484-DBD9F61FC276">

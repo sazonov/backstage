@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.proit.app.util;
+package com.proit.app.utils;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;

@@ -24,62 +24,11 @@ dependencies {
 
 	compileOnly project(":app")
 
-	compileOnly "org.springframework.boot:spring-boot-starter"
 	compileOnly "org.springframework.cloud:spring-cloud-starter-openfeign:$springCloudVersion"
-	compileOnly "org.springframework.boot:spring-boot-starter-actuator"
-	compileOnly "org.springframework.boot:spring-boot-starter-web"
-	compileOnly "org.springframework.boot:spring-boot-starter-validation"
-	compileOnly "org.springframework.boot:spring-boot-starter-security"
-	compileOnly "org.springframework.boot:spring-boot-starter-cache"
-	compileOnly "org.springframework.boot:spring-boot-starter-activemq"
-	compileOnly "org.springframework.boot:spring-boot-starter-quartz"
-	compileOnly "org.springframework.boot:spring-boot-starter-data-mongodb"
+	compileOnly "org.springframework.cloud:spring-cloud-starter-netflix-eureka-client:$springCloudVersion"
 	compileOnly ("org.springframework.data:spring-data-jpa") {
 		exclude(group: "org.hibernate")
 	}
-	compileOnly "org.springframework.cloud:spring-cloud-starter-netflix-eureka-client:$springCloudVersion"
-
-	compileOnly "org.freemarker:freemarker"
-
-	compileOnly "org.apache.activemq:activemq-kahadb-store"
-	compileOnly "net.sf.ehcache:ehcache"
-	compileOnly "com.hazelcast:hazelcast-spring"
-	compileOnly "com.fasterxml.jackson.core:jackson-annotations"
-	compileOnly "org.flywaydb:flyway-core"
-
-	compileOnly "net.postgis:postgis-jdbc:$postgisVersion"
-	compileOnly "org.geolatte:geolatte-geom:$geolatteVersion"
-
-	compileOnly "org.postgresql:postgresql"
-
-	testImplementation project(":app")
-
-	testImplementation "org.springframework.boot:spring-boot-starter-test"
-	testImplementation "org.springframework.boot:spring-boot-starter-actuator"
-	testImplementation "org.springframework.boot:spring-boot-starter-validation"
-	testImplementation "org.springframework.boot:spring-boot-starter-security"
-	testImplementation "org.springframework.boot:spring-boot-starter-web"
-	testImplementation "org.springframework.boot:spring-boot-starter-quartz"
-	testImplementation "org.springframework.boot:spring-boot-starter-activemq"
-	testImplementation "org.springframework.boot:spring-boot-starter-data-mongodb"
-	testImplementation ("org.springframework.data:spring-data-jpa") {
-		exclude(group: "org.hibernate")
-	}
-	testImplementation "org.springframework.cloud:spring-cloud-starter-netflix-eureka-client:3.0.2"
-
-	testImplementation "org.apache.activemq:activemq-client"
-	testImplementation "org.apache.activemq:activemq-broker"
-	testImplementation "org.apache.activemq:activemq-kahadb-store"
-	testImplementation "org.apache.activemq:activemq-pool"
-	testImplementation "org.apache.activemq:activemq-spring"
-
-	testImplementation "org.flywaydb:flyway-core"
-	testImplementation "com.zaxxer:HikariCP"
-	testImplementation "org.postgresql:postgresql"
-
-	testImplementation "org.testcontainers:testcontainers:$testContainersVersion"
-	testImplementation "org.testcontainers:junit-jupiter:$testContainersVersion"
-	testImplementation "org.testcontainers:mongodb:$testContainersVersion"
 }
 
 test {

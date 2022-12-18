@@ -20,13 +20,15 @@ import com.proit.app.model.other.JobResult;
 
 public interface JobEventListener
 {
-	void beforeScheduled(AbstractJob job);
+	void beforeSchedule(AbstractJob job);
 
-	void afterScheduled(AbstractJob job);
+	void afterSchedule(AbstractJob job);
 
 	void beforeExecute(AbstractJob job);
 
 	void afterExecute(AbstractJob job, JobResult jobResult);
+
+	void onCancel(AbstractJob job);
 
 	void onException(AbstractJob job, Exception exception);
 }

@@ -18,8 +18,7 @@ package com.proit.bpm.service.jbpm;
 
 import com.proit.bpm.domain.Process;
 import com.proit.bpm.exception.BpmException;
-import com.proit.bpm.repository.ProcessRepository;
-import lombok.RequiredArgsConstructor;
+import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jbpm.ruleflow.instance.RuleFlowProcessInstance;
@@ -32,42 +31,27 @@ import org.kie.api.definition.process.WorkflowProcess;
 import org.kie.api.runtime.process.NodeInstance;
 import org.kie.api.runtime.process.NodeInstanceContainer;
 import org.kie.api.runtime.process.ProcessInstance;
-import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
-@Component
-@RequiredArgsConstructor
+@UtilityClass
 public class ProcessUtils
 {
 	private static final String PROCESS_VARIABLE_PROCESS_ID = "__processId";
 
 	private static final String NODE_METADATA_UNIQUE_ID = "UniqueId";
 
-	private final ProcessRepository processRepository;
-
-	public Process getProcess(ProcessInstance processInstance)
-	{
-		return processRepository.findByIdEx(getProcessId(processInstance));
-	}
-
 	public void setProcessId(ProcessInstance processInstance, String id)
 	{
 		setProcessVariable(processInstance, PROCESS_VARIABLE_PROCESS_ID, id);
 	}
 
-	public String getProcessId(ProcessInstance processInstance)
+	public Optional<String> getProcessId(ProcessInstance processInstance)
 	{
-		var processId = (String) getProcessVariable(processInstance, PROCESS_VARIABLE_PROCESS_ID);
-
-		if (processId == null)
-		{
-			processId = processRepository.findIdByInstanceId(processInstance.getId());
-		}
-
-		return processId;
+		return Optional.ofNullable((String) getProcessVariable(processInstance, PROCESS_VARIABLE_PROCESS_ID));
 	}
 
 	public Object getProcessVariable(ProcessInstance processInstance, String name)
@@ -82,7 +66,9 @@ public class ProcessUtils
 
 	public void migrateProcess(Process process, ProcessInstance processInstance, String workflowId)
 	{
-		var processId = getProcessId(processInstance);
+		var processId = getProcessId(processInstance).orElseThrow(() ->
+				new BpmException("cannot get process id for jbpm process instance %d".formatted(processInstance.getId()))
+		);
 
 		log.info("Migrating process instance {}...", processId);
 
@@ -131,7 +117,7 @@ public class ProcessUtils
 
 			if (nodeInstance instanceof SubProcessNodeInstance)
 			{
-				log.warn("Cannot migrate inner sub processes!");
+				log.warn("Migration of inner sub processes is not supported!");
 			}
 			else if (nodeInstance instanceof NodeInstanceContainer)
 			{

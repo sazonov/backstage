@@ -39,6 +39,8 @@ import java.util.stream.Collectors;
 
 public abstract class AbstractWorkflowProvider implements WorkflowProvider
 {
+	private static final Version DEFAULT_VERSION = Version.parse("1.0");
+
 	public List<ExportedWorkflow> exportWorkflows()
 	{
 		return getWorkflows().stream().map(this::exportWorkflow).collect(Collectors.toList());
@@ -119,7 +121,9 @@ public abstract class AbstractWorkflowProvider implements WorkflowProvider
 
 			if (workflow.getVersion() == null)
 			{
-				workflow.setVersion(Version.parse(processNode.getAttribute("drools:version")));
+				var version = Version.parse(processNode.getAttribute("drools:version"));
+
+				workflow.setVersion(version.isLessThan(DEFAULT_VERSION) ? DEFAULT_VERSION : version);
 			}
 		}
 		catch (Exception e)

@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.data.domain.PageRequest;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.Future;
 
@@ -19,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @Order(1)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class BpmTests extends AbstractTests
+class BpmTests extends AbstractTests
 {
 	@Autowired private AsyncTaskExecutor taskExecutor;
 
@@ -49,11 +51,72 @@ public class BpmTests extends AbstractTests
 	}
 
 	@Test
+	public void boundaryTimerTest()
+	{
+		var process = processService.startProcess("boundaryTimer");
+		var timers = processService.getProcessTimers(process.getId());
+
+		assertFalse(timers.isEmpty());
+
+		processService.sendEvent(process, "skipBoundaryTimer1");
+
+		timers = processService.getProcessTimers(process.getId());
+
+		assertFalse(timers.isEmpty());
+
+		processService.sendEvent(process, "skipBoundaryTimer2");
+
+		timers = processService.getProcessTimers(process.getId());
+
+		assertTrue(timers.isEmpty());
+	}
+
+	@Test
+	public void eventDrivenStart()
+	{
+		var paramName = "objectId";
+		var paramValue = 1;
+
+		var process = processService.startProcessOnEvent("startSignal1", Map.of(paramName, paramValue), Map.of(paramName, paramValue));
+
+		assertTrue(process.isPresent());
+		assertTrue(process.get().isActive());
+		assertEquals(process.get().getParameters().get(paramName), paramValue);
+
+		process = processService.startProcessOnEvent("startSignal2", Map.of());
+
+		assertTrue(process.isPresent());
+		assertFalse(process.get().isActive());
+		assertTrue(process.get().getParameters().isEmpty());
+
+		process = processService.startProcessOnEvent("startSignal3", Map.of());
+
+		assertFalse(process.isPresent());
+	}
+
+	@Test
 	public void runProcess()
 	{
 		var process = processService.startProcess("test", Map.of(
 				"documentId", "123"
 		));
+
+		var timers = processService.getProcessTimers(process.getId());
+
+		assertEquals(timers.size(), 1);
+
+		var timerName = "Задача 1#1";
+		var timeNewFireTime = LocalDateTime.now().plusHours(1).truncatedTo(ChronoUnit.MILLIS);
+		var timer = timers.stream().filter(t -> timerName.equals(t.getName())).findFirst();
+
+		assertTrue(timer.isPresent());
+
+		processService.updateProcessTimer(process.getId(), timer.get().getName(), timeNewFireTime);
+
+		timer = processService.getProcessTimers(process.getId()).stream().filter(t -> timerName.equals(t.getName())).findFirst();
+
+		assertTrue(timer.isPresent());
+		assertEquals(timer.get().getNextFireTime(), timeNewFireTime);
 
 		var filter = TaskFilter.builder()
 				.process(process)
@@ -69,10 +132,6 @@ public class BpmTests extends AbstractTests
 				"comment", "Проверено успешно."
 		));
 
-		var timers = processService.getProcessTimers(process.getId());
-
-		assertEquals(timers.size(), 4);
-
 		filter = TaskFilter.builder()
 				.process(process)
 				.userRole("PM")
@@ -86,6 +145,8 @@ public class BpmTests extends AbstractTests
 		));
 
 		processService.sendEvent(process, "abortProcess", Map.of("data", "value"));
+
+		TimeUtils.sleep(5 * 1000);
 
 		process = processService.getProcess("documentId", "123").get();
 

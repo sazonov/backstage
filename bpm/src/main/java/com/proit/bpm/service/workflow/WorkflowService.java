@@ -23,6 +23,7 @@ import com.proit.bpm.model.Workflow;
 import com.proit.bpm.model.WorkflowScript;
 import com.proit.bpm.model.event.WorkflowsUpdatedEvent;
 import com.proit.bpm.repository.DeployedWorkflowRepository;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -35,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -50,6 +52,9 @@ public class WorkflowService
 	private final BpmProperties bpmProperties;
 
 	private final Map<String, Workflow> workflows = new HashMap<>();
+
+	@Getter
+	private Set<String> actualWorkflowIds = Set.of();
 
 	private boolean needToReloadWorkflows = false;
 
@@ -74,6 +79,10 @@ public class WorkflowService
 				});
 			}
 		});
+
+		actualWorkflowIds = workflows.values().stream()
+				.collect(Collectors.groupingBy(Workflow::getId, Collectors.maxBy(Comparator.comparing(Workflow::getVersion)))).values().stream()
+				.filter(Optional::isPresent).map(Optional::get).map(Workflow::getFullId).collect(Collectors.toSet());
 
 		if (workflows.isEmpty())
 		{
@@ -107,15 +116,9 @@ public class WorkflowService
 		}
 		else
 		{
-			var actualVersion = workflows.keySet().stream().filter(it -> it.startsWith(workflowId))
-					.map(it -> Version.parse(it.split("_")[1])).max(Version::compareTo).orElse(null);
-
-			if (actualVersion == null)
-			{
+			return getActualWorkflowIds().stream().filter(it -> it.split("_")[0].equals(workflowId)).findFirst().orElseThrow(() -> {
 				throw new BpmException(String.format("workflow '%s' not found", workflowId));
-			}
-
-			return workflowId + "_" + actualVersion;
+			});
 		}
 	}
 
@@ -144,7 +147,7 @@ public class WorkflowService
 	}
 
 	@Transactional
-	public void deployWorkflow(String workflowId, Version version, String definition, boolean force)
+	public synchronized void deployWorkflow(String workflowId, Version version, String definition, boolean force)
 	{
 		if (!bpmProperties.isDeployEnabled())
 		{
@@ -189,10 +192,7 @@ public class WorkflowService
 
 		deployedWorkflowRepository.save(workflow);
 
-		synchronized (this)
-		{
-			needToReloadWorkflows = true;
-		}
+		needToReloadWorkflows = true;
 	}
 
 	@Transactional

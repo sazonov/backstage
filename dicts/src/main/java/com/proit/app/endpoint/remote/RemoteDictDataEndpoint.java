@@ -123,7 +123,7 @@ public class RemoteDictDataEndpoint implements RemoteDictDataService
 	@PostMapping("/{dictId}/delete")
 	public ApiResponse<?> delete(@PathVariable String dictId, @RequestBody @Valid DeleteDictItemRequest request, @RequestParam String userId)
 	{
-		dictDataService.delete(dictId, request.getItemId(), request.isDeleted(), userId);
+		dictDataService.delete(dictId, request.getItemId(), request.isDeleted(), request.getReason(), userId);
 
 		return ApiResponse.ok();
 	}

@@ -18,6 +18,7 @@ package com.proit.app.utils.proxy.model;
 
 import com.proit.app.utils.proxy.ForceProxy;
 import com.proit.app.utils.proxy.NoProxy;
+import lombok.Getter;
 
 import javax.persistence.Entity;
 import java.lang.reflect.Constructor;
@@ -25,6 +26,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
+@Getter
 public class ProxyModel
 {
 	private final Class<?> clazz;
@@ -74,11 +76,13 @@ public class ProxyModel
 			throw new RuntimeException(String.format("class '%s' doesn't have public no arg constructor", clazz.getSimpleName()), e);
 		}
 
-		List<Field> declaredFields = new ArrayList<>(Arrays.asList(clazz.getDeclaredFields()));
+		List<Field> declaredFields = new ArrayList<>();
+		var currentClass = clazz;
 
-		if (clazz.getSuperclass() != null)
+		while (currentClass != null)
 		{
-			declaredFields.addAll(Arrays.asList(clazz.getSuperclass().getDeclaredFields()));
+			declaredFields.addAll(Arrays.asList(currentClass.getDeclaredFields()));
+			currentClass = currentClass.getSuperclass();
 		}
 
 		for (Field field : declaredFields)

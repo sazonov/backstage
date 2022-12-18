@@ -23,10 +23,13 @@ import com.proit.bpm.model.ProcessTimer;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public interface ProcessEngine
 {
 	Process startProcess(String workflowId, Map<String, Object> parameters);
+
+	Optional<Process> startProcessOnEvent(String event, Map<String, Object> eventParameters, Map<String, Object> processParameters);
 
 	void stopProcess(String processId);
 

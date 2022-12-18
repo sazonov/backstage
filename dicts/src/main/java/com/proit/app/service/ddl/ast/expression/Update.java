@@ -17,6 +17,7 @@
 package com.proit.app.service.ddl.ast.expression;
 
 import com.proit.app.service.ddl.ast.ColumnWithValue;
+import com.proit.app.service.ddl.ast.ComparingValueColumn;
 import com.proit.app.service.ddl.ast.Id;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -31,5 +32,5 @@ public class Update implements Expression
 
 	private final List<ColumnWithValue> columns;
 
-	private final ColumnWithValue row;
+	private final ComparingValueColumn row;
 }
