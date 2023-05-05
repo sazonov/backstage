@@ -3,6 +3,7 @@ package com.proit.app.service;
 import com.proit.app.common.AbstractTest;
 import com.proit.app.constant.ServiceFieldConstants;
 import com.proit.app.domain.Dict;
+import com.proit.app.domain.DictField;
 import com.proit.app.domain.DictIndex;
 import com.proit.app.exception.DictionaryAlreadyExistsException;
 import com.proit.app.exception.DictionaryDeletedException;
@@ -14,15 +15,11 @@ import org.springframework.data.domain.Sort;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 class DictServiceTest extends AbstractTest
 {
 	public static final String TEST_INDEX_2 = "testIndex2";
-
-	@Autowired
-	private DictService dictService;
 
 	@Test
 	void getByIdCorrect()
@@ -45,7 +42,7 @@ class DictServiceTest extends AbstractTest
 	@Test
 	void getAll()
 	{
-		assertEquals(10, dictService.getAll().size());
+		assertEquals(12, dictService.getAll().size());
 	}
 
 	@Test
@@ -55,9 +52,14 @@ class DictServiceTest extends AbstractTest
 
 		var fields = dict.getFields();
 
-		dict.setFields(fields.stream().filter(f -> !ServiceFieldConstants.getServiceInsertableFields().contains(f.getId())).collect(Collectors.toList()));
+		dict.setFields(fields.stream().filter(it -> !ServiceFieldConstants.getServiceSchemeFields().contains(it.getId())).collect(Collectors.toList()));
 
-		assertEquals(dict, dictService.create(dict));
+		var actual = dictService.create(dict);
+
+		assertEquals(dict, actual);
+
+		assertTrue(actual.getFields().stream().map(DictField::getId).anyMatch(it -> it.equalsIgnoreCase(ServiceFieldConstants.ID)));
+		assertFalse(actual.getFields().stream().map(DictField::getId).anyMatch(it -> it.equalsIgnoreCase(ServiceFieldConstants._ID)));
 
 		dict.setId(DICT_ID);
 		dict.setFields(fields);
@@ -109,7 +111,7 @@ class DictServiceTest extends AbstractTest
 	{
 		dictService.createIndex(DICT_ID, DictIndex.builder()
 				.id(TEST_INDEX_2)
-				.direction(Sort.Direction.ASC)
+				.direction(Sort.Direction.DESC)
 				.fields(List.of(dict.getFields().get(1).getId()))
 				.build());
 
@@ -130,6 +132,7 @@ class DictServiceTest extends AbstractTest
 		dictService.createIndex(DICT_ID, DictIndex.builder()
 				.id(INDEX_ID)
 				.fields(List.of("stringField"))
+				.direction(Sort.Direction.ASC)
 				.build());
 	}
 }

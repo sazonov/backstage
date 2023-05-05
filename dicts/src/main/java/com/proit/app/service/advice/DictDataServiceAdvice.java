@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -17,10 +17,10 @@
 package com.proit.app.service.advice;
 
 import com.proit.app.domain.DictItem;
+import com.proit.app.model.dictitem.DictDataItem;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
-import java.util.Map;
 
 // TODO: advice надо регистрировать на конкретный dict, чтобы исключить лишние бесполезные вызовы,
 // TODO: соответственно из интерфейса этот параметр уйдёт.
@@ -46,7 +46,7 @@ public interface DictDataServiceAdvice
 	{
 	}
 
-	default void handleBeforeCreate(String dictId, Map<String, Object> item)
+	default void handleBeforeCreate(DictDataItem item)
 	{
 	}
 
@@ -54,9 +54,9 @@ public interface DictDataServiceAdvice
 	{
 	}
 
-	default void handleBeforeCreateMany(String dictId, List<Map<String, Object>> items)
+	default void handleBeforeCreateMany(List<DictDataItem> items)
 	{
-		items.forEach(item -> handleBeforeCreate(dictId, item));
+		items.forEach(this::handleBeforeCreate);
 	}
 
 	default void handleAfterCreateMany(String dictId, List<DictItem> items)
@@ -64,7 +64,11 @@ public interface DictDataServiceAdvice
 		items.forEach(item -> handleAfterCreate(dictId, item));
 	}
 
-	default void handleUpdate(String dictId, DictItem oldItem, Map<String, Object> updatedItem)
+	default void handleUpdate(DictItem oldItem, DictDataItem dictDataItem)
+	{
+	}
+
+	default void handleAfterUpdate(String dictId, DictItem item)
 	{
 	}
 

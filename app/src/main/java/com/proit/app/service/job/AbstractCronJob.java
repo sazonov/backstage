@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,12 +16,13 @@
 
 package com.proit.app.service.job;
 
+import com.proit.app.model.dto.job.JobParams;
 import org.springframework.scheduling.support.CronTrigger;
 
 /**
  * Абстрактный класс для задач, которые запускаются по cron выражению.
  */
-public abstract class AbstractCronJob extends AbstractJob
+public abstract class AbstractCronJob<T extends JobParams> extends AbstractJob<T>
 {
 	public AbstractCronJob()
 	{

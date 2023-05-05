@@ -5,7 +5,6 @@
 		<class>com.proit.app.conversion.jpa.LocalDateTimeAttributeConverter</class>
 
 		<class>com.proit.app.model.domain.UuidGeneratedEntity</class>
-		<class>com.proit.app.model.domain.InternalUser</class>
 		<class>com.proit.app.model.domain.Attachment</class>
 		<class>com.proit.app.model.domain.AttachmentBinding</class>
 		<class>com.proit.app.model.domain.DocumentTemplate</class>

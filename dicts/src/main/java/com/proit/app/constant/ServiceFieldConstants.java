@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -23,15 +23,14 @@ import java.util.Set;
 @Deprecated
 public class ServiceFieldConstants
 {
-	public static final String _ID = "_id";
 	public static final String ID = "id";
+	public static final String _ID = "_id";
 	public static final String HISTORY = "history";
 	public static final String CREATED = "created";
 	public static final String UPDATED = "updated";
 	public static final String DELETED = "deleted";
-	public static final String DELETION_REASON = "deletionReason";
 	public static final String VERSION = "version";
-
+	public static final String DELETION_REASON = "deletionReason";
 
 	//	TODO: определиться с допустимостью использования поля id в рамках импортов и создания записей с предопределенным id
 	@Getter

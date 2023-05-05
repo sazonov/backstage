@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.proit.bpm.service.job;
 
+import com.proit.app.model.dto.job.EmptyJobParams;
 import com.proit.app.model.other.JobResult;
 import com.proit.app.service.job.AbstractCronJob;
 import com.proit.app.service.job.JobDescription;
@@ -30,7 +31,7 @@ import org.springframework.stereotype.Component;
 @Component
 @JobDescription("Архивация устаревших ревизий схем процессов")
 @RequiredArgsConstructor
-public class ArchiveWorkflowsJob extends AbstractCronJob
+public class ArchiveWorkflowsJob extends AbstractCronJob<EmptyJobParams>
 {
 	private final ProcessRepository processRepository;
 	private final DeployedWorkflowRepository deployedWorkflowRepository;

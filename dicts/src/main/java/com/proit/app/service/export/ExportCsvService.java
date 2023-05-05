@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -52,7 +51,7 @@ public class ExportCsvService implements ExportService
 				.map(DictField::getId)
 				.collect(Collectors.toList());
 
-		var headers = Stream.concat(systemFieldIds.stream(), dataFieldIds.stream()).collect(Collectors.toList());
+		var headers = Stream.concat(systemFieldIds.stream(), dataFieldIds.stream()).toArray(String[]::new);
 
 		var data = items.stream()
 				.map(item -> mapDictItem(dataFieldIds, item))
@@ -63,32 +62,34 @@ public class ExportCsvService implements ExportService
 
 	private String[] mapDictItem(List<String> dataFieldIds, DictItem item)
 	{
-		var itemData = new ArrayList<>();
+		var builder = Stream.builder()
+				.add(item.getId())
+				.add(item.getCreated())
+				.add(item.getUpdated())
+				.add(item.getDeleted() != null)
+				.add(item.getVersion());
 
-		itemData.add(item.getId());
-		itemData.add(item.getCreated());
-		itemData.add(item.getUpdated());
-		itemData.add(item.getDeleted() != null);
-		itemData.add(item.getVersion());
-		itemData.addAll(dataFieldIds.stream()
+		dataFieldIds.stream()
 				.map(it -> item.getData().getOrDefault(it, ""))
-				.collect(Collectors.toList()));
+				.forEach(builder::add);
 
-		return itemData.stream()
+		return builder.build()
 				.map(String::valueOf)
 				.toArray(String[]::new);
 	}
 
-	private byte[] writeToByteArray(List<String> headers, List<String[]> data)
+	private byte[] writeToByteArray(String[] headers, List<String[]> data)
 	{
-		try (var outputStream = new ByteArrayOutputStream();
-		     var osw = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
-		     var writer = new CSVWriter(osw))
+		try (var stream = new ByteArrayOutputStream();
+		     var streamWriter = new OutputStreamWriter(stream, StandardCharsets.UTF_8);
+		     var writer = new CSVWriter(streamWriter))
 		{
-			writer.writeNext(headers.toArray(String[]::new), false);
+			writer.writeNext(headers, false);
 			writer.writeAll(data, false);
 
-			return outputStream.toByteArray();
+			streamWriter.flush();
+
+			return stream.toByteArray();
 		}
 		catch (IOException e)
 		{

@@ -1,0 +1,1 @@
+create index if not exists ix_process_instance_id on process (instance_id);

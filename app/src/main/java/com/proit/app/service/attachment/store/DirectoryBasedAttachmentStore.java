@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ import java.io.InputStream;
 
 @Slf4j
 @Component
-@ConditionalOnProperty(AttachmentProperties.DirectoryProperties.DEPRECATED_ACTIVATION_PROPERTY)
+@ConditionalOnProperty(AttachmentProperties.DirectoryProperties.ACTIVATION_PROPERTY)
 @RequiredArgsConstructor
 public class DirectoryBasedAttachmentStore implements AttachmentStore
 {
@@ -49,7 +49,7 @@ public class DirectoryBasedAttachmentStore implements AttachmentStore
 	{
 		try
 		{
-			storePath = new File(attachmentProperties.getStorePath());
+			storePath = new File(attachmentProperties.getDirectory().getPath());
 			storePath.mkdirs();
 
 			log.info("Setting attachment store path: {}.", storePath.getPath());

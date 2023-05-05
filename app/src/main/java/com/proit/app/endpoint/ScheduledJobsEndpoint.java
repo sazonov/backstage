@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.proit.app.endpoint;
 
 import com.proit.app.model.api.ApiResponse;
+import com.proit.app.model.dto.job.JobParams;
 import com.proit.app.model.dto.scheduledjob.request.RescheduleJobRequest;
 import com.proit.app.service.job.JobManager;
 import io.swagger.v3.oas.annotations.Operation;
@@ -43,20 +44,47 @@ public class ScheduledJobsEndpoint
 	}
 
 	@PostMapping("/execute")
+	@Deprecated(forRemoval = true)
 	@Operation(summary = "Позволяет выполнить асинхронно указанную периодическую задачу, не дожидаясь планового расписания.")
-	public ApiResponse<?> execute(@RequestParam String jobName)
+	public ApiResponse<?> executeForRemoval(@RequestParam String jobName)
 	{
-		jobManager.executeJob(jobName);
+		jobManager.executeJob(jobName, null);
 
 		return ApiResponse.ok();
 	}
 
 	@PostMapping("/reschedule")
+	@Deprecated(forRemoval = true)
+	@Operation(summary = "Позволяет изменить план расписания периодической задачи.")
+	public ApiResponse<?> rescheduleJobForRemoval(@RequestBody @Valid RescheduleJobRequest request)
+	{
+		jobManager.rescheduleJob(request.getJobName(), request.getTriggerType().createTrigger(request.getExpression()));
+
+		return ApiResponse.ok();
+	}
+
+	@PostMapping("/{jobName}/execute")
+	@Operation(summary = "Позволяет выполнить асинхронно указанную периодическую задачу, изменив значение параметров задачи.")
+	public ApiResponse<?> execute(@PathVariable String jobName, @RequestBody(required = false) JobParams params)
+	{
+		jobManager.executeJob(jobName, params);
+
+		return ApiResponse.ok();
+	}
+
+	@PostMapping("/{jobName}/reschedule")
 	@Operation(summary = "Позволяет изменить план расписания периодической задачи.")
 	public ApiResponse<?> rescheduleJob(@RequestBody @Valid RescheduleJobRequest request)
 	{
 		jobManager.rescheduleJob(request.getJobName(), request.getTriggerType().createTrigger(request.getExpression()));
 
 		return ApiResponse.ok();
+	}
+
+	@GetMapping("/{jobName}/params")
+	@Operation(summary = "Возвращает схему параметров для указанной задачи.")
+	public ApiResponse<JobParams> getParams(@PathVariable String jobName)
+	{
+		return ApiResponse.of(jobManager.getParams(jobName));
 	}
 }

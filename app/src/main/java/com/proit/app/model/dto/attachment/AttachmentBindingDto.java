@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package com.proit.app.model.dto.attachment;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.proit.app.model.api.ApiConstants;
+import com.proit.app.model.other.date.DateConstants;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -27,7 +27,7 @@ import java.time.ZonedDateTime;
 @Setter
 public class AttachmentBindingDto
 {
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = ApiConstants.API_TIMESTAMP_FORMAT)
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateConstants.API_TIMESTAMP_FORMAT)
 	private ZonedDateTime created;
 
 	private String type;

@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,49 +16,66 @@
 
 package com.proit.app.service;
 
-import com.proit.app.constant.ServiceFieldConstants;
 import com.proit.app.domain.DictFieldType;
 import com.proit.app.domain.DictItem;
 import com.proit.app.exception.AppException;
+import com.proit.app.exception.ObjectNotFoundException;
 import com.proit.app.model.api.ApiStatusCodeImpl;
+import com.proit.app.model.dictitem.DictDataItem;
+import com.proit.app.model.dictitem.FieldDataItem;
 import com.proit.app.service.advice.DictDataServiceAdvice;
-import com.proit.app.service.backend.MongoDictBackend;
+import com.proit.app.service.backend.DictDataBackend;
+import com.proit.app.service.mapping.DictDataItemDictItemMapper;
+import com.proit.app.service.mapping.FieldDataItemDictFieldNameMapper;
+import com.proit.app.service.query.QueryParser;
+import com.proit.app.service.validation.DictDataValidationService;
 import com.proit.app.utils.SecurityUtils;
 import com.proit.app.utils.StreamUtils;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
-@Slf4j
+import static com.proit.app.constant.ServiceFieldConstants.*;
+
 @Service
 @RequiredArgsConstructor
 public class DictDataService
 {
 	private final DictService dictService;
-	private final MappingService mappingService;
-	private final ValidationService validationService;
 	private final DictPermissionService dictPermissionService;
+	private final DictDataValidationService dictDataValidationService;
 
-	private final MongoDictBackend mongoDictBackend;
+	private final DictDataItemDictItemMapper dictDataItemDictItemMapper;
+	private final FieldDataItemDictFieldNameMapper fieldDataItemDictFieldNameMapper;
+
+	private final DictDataBackend dictDataBackend;
+
+	private final QueryParser queryParser;
 
 	@Getter
 	private final List<DictDataServiceAdvice> serviceAdviceList;
 
+	//TODO: Провести рефакторинг
+	// создать апи для getById с проверкой секьюрити и валидацией.
 	public DictItem getById(String dictId, String itemId)
 	{
-		var dictFieldNames = List.of(mappingService.mapDictFieldName("*"));
+		return getById(dictId, itemId, SecurityUtils.getCurrentUserId());
+	}
 
-		validationService.validateSelectFields(dictId, dictFieldNames);
-
-		return mappingService.mapDictItem(dictId, mongoDictBackend.getById(dictId, itemId, dictFieldNames));
+	public DictItem getById(String dictId, String itemId, String userId)
+	{
+		return getByIds(dictId, List.of(itemId), userId)
+				.stream()
+				.findFirst()
+				.orElseThrow(() -> new ObjectNotFoundException(DictItem.class, "dictId: %s, itemId: %s".formatted(dictId, itemId)));
 	}
 
 	public List<DictItem> getByIds(String dictId, List<String> ids)
@@ -82,14 +99,14 @@ public class DictDataService
 		}
 
 		var requiredFields = selectFields.stream()
-				.map(mappingService::mapDictFieldName)
+				.map(this::buildFieldDataItem)
+				.map(fieldDataItemDictFieldNameMapper::map)
 				.toList();
 
-		validationService.validateSelectFields(dictId, requiredFields);
+		dictDataValidationService.validateSelectFields(dictId, requiredFields);
 
-		return mongoDictBackend.getByIds(dictId, ids, requiredFields)
+		return dictDataBackend.getByIds(dictId, ids, requiredFields)
 				.stream()
-				.map(it -> mappingService.mapDictItem(dictId, it))
 				.sorted(StreamUtils.listOrderComparator(ids))
 				.toList();
 	}
@@ -99,6 +116,8 @@ public class DictDataService
 		return getByFilter(dictId, selectFields, filtersQuery, pageable, SecurityUtils.getCurrentUserId());
 	}
 
+	//TODO: При реализации дополнительного адаптера, осуществить валидацию pageable (в т.н. сортировки), selectFields, filtersQuery на наличие переданных клиентом
+	// полей характерных для монго адаптера (_id). Рассмотреть возможность реализации валидации в эдвайсах.
 	public Page<DictItem> getByFilter(String dictId, List<String> selectFields, String filtersQuery, Pageable pageable, String userId)
 	{
 		dictPermissionService.checkViewPermission(dictId, userId);
@@ -113,17 +132,13 @@ public class DictDataService
 		serviceAdviceList.forEach(it -> it.handleGetByFilter(dictId, selectFields, filtersQuery, pageable));
 
 		var requiredFields = selectFields.stream()
-				.map(mappingService::mapDictFieldName)
+				.map(this::buildFieldDataItem)
+				.map(fieldDataItemDictFieldNameMapper::map)
 				.toList();
 
-		validationService.validateSelectFields(dictId, requiredFields);
+		dictDataValidationService.validateSelectFields(dictId, requiredFields);
 
-		var customizedPageable = pageable.getSort().isEmpty()
-				? pageable
-				: PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort().and(Sort.by(Sort.Direction.ASC, ServiceFieldConstants._ID)));
-
-		return mongoDictBackend.getByFilter(dict, requiredFields, filtersQuery, customizedPageable)
-				.map(it -> mappingService.mapDictItem(dictId, it));
+		return dictDataBackend.getByFilter(dictId, requiredFields, queryParser.parse(filtersQuery), pageable);
 	}
 
 	public boolean existsById(String dictId, String itemId)
@@ -137,7 +152,7 @@ public class DictDataService
 
 		serviceAdviceList.forEach(it -> it.handleExistsById(dictId, itemId));
 
-		return mongoDictBackend.existsById(dictId, itemId);
+		return dictDataBackend.existsById(dictId, itemId);
 	}
 
 	public boolean existsByFilter(String dictId, String filtersQuery)
@@ -151,7 +166,7 @@ public class DictDataService
 
 		serviceAdviceList.forEach(it -> it.handleExistsByFilter(dictId, filtersQuery));
 
-		return mongoDictBackend.existsByFilter(dictId, filtersQuery);
+		return dictDataBackend.existsByFilter(dictId, queryParser.parse(filtersQuery));
 	}
 
 	public long countByFilter(String dictId, String filtersQuery)
@@ -165,71 +180,104 @@ public class DictDataService
 
 		serviceAdviceList.forEach(it -> it.handleCountByFilter(dictId, filtersQuery));
 
-		return mongoDictBackend.countByFilter(dictId, filtersQuery);
+		return dictDataBackend.countByFilter(dictId, queryParser.parse(filtersQuery));
 	}
 
-	public DictItem create(String dictId, Map<String, Object> doc)
+	@Deprecated(forRemoval = true)
+	public DictItem create(String dictId, Map<String, Object> dictData)
 	{
-		return create(dictId, doc, SecurityUtils.getCurrentUserId());
+		return create(buildDictDataItem(dictId, dictData));
 	}
 
-	public DictItem create(String dictId, Map<String, Object> doc, String userId)
+	@Deprecated(forRemoval = true)
+	public DictItem create(String dictId, Map<String, Object> dictData, String userId)
 	{
+		return create(buildDictDataItem(dictId, dictData), userId);
+	}
+
+	public DictItem create(DictDataItem dictDataItem)
+	{
+		return create(dictDataItem, SecurityUtils.getCurrentUserId());
+	}
+
+	public DictItem create(DictDataItem dictDataItem, String userId)
+	{
+		var dictId = dictDataItem.getDictId();
+
 		dictPermissionService.checkEditPermission(dictId, userId);
-		serviceAdviceList.forEach(it -> it.handleBeforeCreate(dictId, doc));
+		serviceAdviceList.forEach(it -> it.handleBeforeCreate(dictDataItem));
 
-		validationService.validateDocInsert(dictId, doc);
-		var mappedDoc = mappingService.mapDictDoc(dictId, doc);
+		dictDataValidationService.validateDictDataItem(dictDataItem);
+		var dictItem = dictDataItemDictItemMapper.map(dictDataItem);
 
-		var result = mappingService.mapDictItem(dictId, mongoDictBackend.create(dictId, mappedDoc));
+		setServiceDictItemFields(dictItem);
+
+		var result = dictDataBackend.create(dictId, dictItem);
 
 		serviceAdviceList.forEach(it -> it.handleAfterCreate(dictId, result));
 
 		return result;
 	}
 
-	public List<DictItem> createMany(String dictId, List<Map<String, Object>> docs)
+	//TODO: перевести вызовы в тестах на вызовы с DictDataItem
+	@Deprecated(forRemoval = true)
+	public List<DictItem> createMany(String dictId, List<Map<String, Object>> dictDataList)
 	{
-		return createMany(dictId, docs, SecurityUtils.getCurrentUserId());
+		return createMany(dictId, dictDataList.stream().map(it -> buildDictDataItem(dictId, it)).toList(), SecurityUtils.getCurrentUserId());
 	}
 
-	public List<DictItem> createMany(String dictId, List<Map<String, Object>> docs, String userId)
+	public List<DictItem> createMany(String dictId, List<DictDataItem> dictDataItems, String userId)
 	{
 		dictPermissionService.checkEditPermission(dictId, userId);
-		serviceAdviceList.forEach(it -> it.handleBeforeCreateMany(dictId, docs));
+		serviceAdviceList.forEach(it -> it.handleBeforeCreateMany(dictDataItems));
 
-		var mappedDocs = docs.stream()
-				.peek(it -> validationService.validateDocInsert(dictId, it))
-				.map(it -> mappingService.mapDictDoc(dictId, it))
+		var dictItems = dictDataItems.stream()
+				.peek(dictDataValidationService::validateDictDataItem)
+				.map(dictDataItemDictItemMapper::map)
+				.peek(this::setServiceDictItemFields)
 				.toList();
 
-		var result = mongoDictBackend.createMany(dictId, mappedDocs)
-				.stream()
-				.map(it -> mappingService.mapDictItem(dictId, it))
-				.toList();
+		var result = dictDataBackend.createMany(dictId, dictItems);
 
 		serviceAdviceList.forEach(it -> it.handleAfterCreateMany(dictId, result));
 
 		return result;
 	}
 
-	public DictItem update(String dictId, String itemId, long version, Map<String, Object> doc)
+	@Deprecated(forRemoval = true)
+	public DictItem update(String dictId, String itemId, long version, Map<String, Object> dictData)
 	{
-		return update(dictId, itemId, version, doc, SecurityUtils.getCurrentUserId());
+		return update(itemId, buildDictDataItem(dictId, dictData), version);
 	}
 
-	public DictItem update(String dictId, String itemId, long version, Map<String, Object> doc, String userId)
+	@Deprecated(forRemoval = true)
+	public DictItem update(String dictId, String itemId, long version, Map<String, Object> dictData, String userId)
 	{
-		var dictItem = getById(dictId, itemId);
+		return update(itemId, buildDictDataItem(dictId, dictData), version, userId);
+	}
+
+	public DictItem update(String itemId, DictDataItem dictDataItem, long version)
+	{
+		return update(itemId, dictDataItem, version, SecurityUtils.getCurrentUserId());
+	}
+
+	public DictItem update(String itemId, DictDataItem dictDataItem, long version, String userId)
+	{
+		var dictId = dictDataItem.getDictId();
+
+		var dictItem = getById(dictId, itemId, userId);
 
 		dictPermissionService.checkEditPermission(dictId, userId);
-		serviceAdviceList.forEach(it -> it.handleUpdate(dictId, dictItem, doc));
+		serviceAdviceList.forEach(it -> it.handleUpdate(dictItem, dictDataItem));
 
-		validationService.validateDocInsert(dictId, doc);
+		dictDataValidationService.validateDictDataItem(dictDataItem);
+		var mappedDictItem = dictDataItemDictItemMapper.map(dictDataItem);
 
-		var mappedDoc = mappingService.mapDictDoc(dictId, doc);
+		var result = dictDataBackend.update(dictId, itemId, version, mappedDictItem);
 
-		return mappingService.mapDictItem(dictId, mongoDictBackend.update(dictId, itemId, version, mappedDoc));
+		serviceAdviceList.forEach(it -> it.handleAfterUpdate(dictId, result));
+
+		return result;
 	}
 
 	public void delete(String dictId, String itemId, boolean deleted)
@@ -244,13 +292,13 @@ public class DictDataService
 
 	public void delete(String dictId, String itemId, boolean deleted, String reason, String userId)
 	{
-		var dictItem = getById(dictId, itemId);
+		var dictItem = getById(dictId, itemId, userId);
 
 		dictPermissionService.checkEditPermission(dictId, userId);
 
 		serviceAdviceList.forEach(it -> it.handleDelete(dictId, dictItem, deleted));
 
-		mongoDictBackend.delete(dictId, itemId, deleted, reason);
+		dictDataBackend.delete(dictId, itemId, deleted, reason);
 	}
 
 	public void deleteAll(String dictId, boolean deleted)
@@ -263,6 +311,43 @@ public class DictDataService
 		dictPermissionService.checkEditPermission(dictId, userId);
 		serviceAdviceList.forEach(it -> it.handleDeleteAll(dictId, deleted));
 
-		mongoDictBackend.deleteAll(dictId, deleted);
+		dictDataBackend.deleteAll(dictId, deleted);
+	}
+
+	private DictDataItem buildDictDataItem(String dictId, Map<String, Object> dictData)
+	{
+		return DictDataItem.of(dictId, dictData);
+	}
+
+	private void setServiceDictItemFields(DictItem dictItem)
+	{
+		var dataItemMap = dictItem.getData();
+
+		dataItemMap.put(CREATED, new Date());
+		dataItemMap.put(UPDATED, new Date());
+		dataItemMap.put(DELETED, null);
+		dataItemMap.put(VERSION, 1L);
+
+		setHistoryItemMap(dictItem);
+	}
+
+	private void setHistoryItemMap(DictItem dictItem)
+	{
+		var historyItemMap = dictItem.getData()
+				.entrySet()
+				.stream()
+				.filter(entry -> !entry.getKey().equalsIgnoreCase(ID))
+				.collect(HashMap::new, (m, e) -> m.put(e.getKey(), e.getValue()), HashMap::putAll);
+
+		dictItem.getData().put(HISTORY, List.of(historyItemMap));
+	}
+
+	private FieldDataItem buildFieldDataItem(String selectField)
+	{
+		Supplier<String[]> dictField = () -> selectField.split("\\.");
+
+		return selectField.contains(".")
+				? FieldDataItem.builder().dictId(dictField.get()[0]).fieldItem(dictField.get()[1]).build()
+				: FieldDataItem.builder().fieldItem(selectField).build();
 	}
 }

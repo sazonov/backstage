@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -82,4 +82,15 @@ public class BpmProperties
 	 * Активирует пессимистичные блокировки при обновлении процессов/задач. Не требуется при наличии одного инстанса приложения.
 	 */
 	private boolean pessimisticLocking = false;
+
+	public enum TerminatingEndEventScope
+	{
+		PROCESS, // Узел терминирующего завершения останавливает весь процесс целиком.
+		CONTAINER // Узел терминирующего завершения останавливает только подпроцесс, в котором находится.
+	}
+
+	/**
+	 * Задаёт поведение по умолчанию для узлов терминирующего завершения процессов и подпроцессов.
+	 */
+	private TerminatingEndEventScope defaultTerminatingEndEventScope = TerminatingEndEventScope.PROCESS;
 }

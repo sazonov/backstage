@@ -4,16 +4,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Comparators;
 import com.google.common.collect.ImmutableMap;
 import com.proit.app.common.AbstractTest;
+import com.proit.app.constant.ServiceFieldConstants;
 import com.proit.app.domain.DictItem;
 import com.proit.app.exception.DictionaryConcurrentUpdateException;
 import com.proit.app.exception.ObjectNotFoundException;
+import com.proit.app.model.dictitem.DictDataItem;
 import com.proit.app.model.domain.Attachment;
+import com.proit.app.model.other.date.DateConstants;
 import com.proit.app.model.other.user.UserInfo;
 import com.proit.app.service.attachment.AttachmentService;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.assertj.core.api.ThrowingConsumer;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -23,10 +27,12 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -61,16 +67,12 @@ class DictDataServiceTest extends AbstractTest
 	private Attachment firstAttachment;
 	private Attachment secondAttachment;
 
-
-	public static final Map<String, Object> DOC = Map.of(
+	public static final Map<String, Object> DATA_MAP = Map.of(
 			"stringField", "string",
 			"integerField", 1,
 			"doubleField", 2,
 			"timestampField", List.of("2021-08-15T06:00:00.000Z", "2021-08-15T08:00:00.000Z"),
 			"booleanField", true);
-
-	@Autowired
-	private DictDataService dictDataService;
 
 	@BeforeAll
 	public void setUpAttachment() throws IOException
@@ -98,21 +100,21 @@ class DictDataServiceTest extends AbstractTest
 	void getByFilterCorrect()
 	{
 		var result = dictDataService.getByFilter(DICT_ID, List.of("*"),
-				"integerField = 1 or stringField like 'str' or integerField in (2, 5, 8) and integerField != 10 or integerField <= 2",
+				"integerField = 1 or stringField like 'str' or integerField in (2, 5, 8) and integerField != 10 or integerField <= 2 and doubleField > 1.9 and doubleField < 2.1",
 				PageRequest.of(0, 10));
 
-		assertEquals(result.getContent().get(0).getData().get("stringField"), DOC.get("stringField"));
+		assertEquals(result.getContent().get(0).getData().get("stringField"), DATA_MAP.get("stringField"));
 	}
 
 	@Test
 	void getByFilterWithRefCorrect()
 	{
-		var refId = dictDataService.create(DICT_ID, DOC).getId();
+		var refId = dictDataService.create(buildDictDataItem(DICT_ID, DATA_MAP)).getId();
 
-		var doc = new HashMap<>(DOC);
-		doc.put(DICT_ID, refId);
+		var refDataMap = new HashMap<>(DATA_MAP);
+		refDataMap.put(DICT_ID, refId);
 
-		dictDataService.create(REF_DICT_ID, doc);
+		dictDataService.create(buildDictDataItem(REF_DICT_ID, refDataMap));
 
 		var result = dictDataService.getByFilter(REF_DICT_ID, List.of("*", DICT_ID + ".timestampField"), null, PageRequest.of(0, 10));
 
@@ -142,7 +144,7 @@ class DictDataServiceTest extends AbstractTest
 	@Test
 	void checkAttachmentBindingIfCreateCorrect()
 	{
-		var attachmentFieldDoc = Map.of(
+		var attachmentDataMap = Map.of(
 				"stringField", "string",
 				"integerField", 1L,
 				"doubleField", 2,
@@ -150,7 +152,7 @@ class DictDataServiceTest extends AbstractTest
 				"attachmentField", firstAttachmentId,
 				"booleanField", true);
 
-		var dictItem = dictDataService.create(DICT_ATTACHMENT_ID, attachmentFieldDoc);
+		var dictItem = dictDataService.create(buildDictDataItem(DICT_ATTACHMENT_ID, attachmentDataMap));
 		var attachments = attachmentService.getAttachments(
 				DICTS_ATTACHMENT_TYPE.formatted(DICT_ATTACHMENT_ID, dictItem.getId(), "attachmentField"), dictItem.getId());
 
@@ -161,7 +163,7 @@ class DictDataServiceTest extends AbstractTest
 	@Test
 	void checkAttachmentBindingIfUpdateCorrect()
 	{
-		var attachmentFieldDoc = Map.of(
+		var attachmentDataMap = Map.of(
 				"stringField", "string",
 				"integerField", 1L,
 				"doubleField", 2,
@@ -169,7 +171,7 @@ class DictDataServiceTest extends AbstractTest
 				"attachmentField", firstAttachmentId,
 				"booleanField", true);
 
-		var attachmentFieldDocUpdate = Map.of(
+		var attachmentDataUpdateMap = Map.of(
 				"stringField", "string",
 				"integerField", 1L,
 				"doubleField", 2,
@@ -177,9 +179,9 @@ class DictDataServiceTest extends AbstractTest
 				"attachmentField", secondAttachmentId,
 				"booleanField", false);
 
-		var dictItem = dictDataService.create(DICT_ATTACHMENT_ID, attachmentFieldDoc);
+		var dictItem = dictDataService.create(buildDictDataItem(DICT_ATTACHMENT_ID, attachmentDataMap));
 
-		var updatedDictItem = dictDataService.update(DICT_ATTACHMENT_ID, dictItem.getId(), dictItem.getVersion(), attachmentFieldDocUpdate);
+		var updatedDictItem = dictDataService.update(dictItem.getId(), buildDictDataItem(DICT_ATTACHMENT_ID, attachmentDataUpdateMap), dictItem.getVersion());
 
 		var attachments = attachmentService.getAttachments(
 				DICTS_ATTACHMENT_TYPE.formatted(DICT_ATTACHMENT_ID, updatedDictItem.getId(), "attachmentField"), updatedDictItem.getId());
@@ -191,7 +193,7 @@ class DictDataServiceTest extends AbstractTest
 	@Test
 	void checkAttachmentReleaseIfDeleteCorrect()
 	{
-		var attachmentFieldDoc = Map.of(
+		var attachmentDataMap = Map.of(
 				"stringField", "string",
 				"integerField", 1L,
 				"doubleField", 2,
@@ -199,7 +201,7 @@ class DictDataServiceTest extends AbstractTest
 				"booleanField", true,
 				"attachmentField", firstAttachmentId);
 
-		var dictItem = dictDataService.create(DICT_ATTACHMENT_ID, attachmentFieldDoc);
+		var dictItem = dictDataService.create(buildDictDataItem(DICT_ATTACHMENT_ID, attachmentDataMap));
 
 		dictDataService.delete(DICT_ATTACHMENT_ID, dictItem.getId(), true);
 
@@ -209,14 +211,14 @@ class DictDataServiceTest extends AbstractTest
 	@Test
 	void checkAttachmentBindingIfDeleteCorrect()
 	{
-		var attachmentFieldDoc = Map.of(
+		var attachmentDataMap = Map.of(
 				"stringField", "string",
 				"integerField", 1L,
 				"doubleField", 2,
 				"timestampField", List.of("2021-08-15T06:00:00.000Z", "2021-08-15T08:00:00.000Z"),
 				"attachmentField", firstAttachmentId,
 				"booleanField", true);
-		var dictItem = dictDataService.create(DICT_ATTACHMENT_ID, attachmentFieldDoc);
+		var dictItem = dictDataService.create(buildDictDataItem(DICT_ATTACHMENT_ID, attachmentDataMap));
 
 		dictDataService.delete(DICT_ATTACHMENT_ID, dictItem.getId(), true);
 		assertTrue(attachmentService.getAttachment(firstAttachmentId).getBindings().isEmpty());
@@ -225,66 +227,80 @@ class DictDataServiceTest extends AbstractTest
 		assertFalse(attachmentService.getAttachment(firstAttachmentId).getBindings().isEmpty());
 	}
 
-
 	@Test
 	void createCorrect()
 	{
-		assertNotNull(dictDataService.create(DICT_ID, DOC));
+		assertNotNull(dictDataService.create(buildDictDataItem(DICT_ID, DATA_MAP)));
 	}
 
 	@Test
 	void createWithDifferentTypeCorrect()
 	{
-		var longFieldDoc = Map.of(
+		var longDataMap = Map.of(
 				"stringField", "string",
 				"integerField", 1L,
 				"doubleField", 2,
 				"timestampField", List.of("2021-08-15T06:00:00.000Z", "2021-08-15T08:00:00.000Z"),
 				"booleanField", true);
 
-		var doubleFieldDoc = Map.of(
+		var doubleDataMap = Map.of(
 				"stringField", "string",
 				"integerField", 1.0,
 				"doubleField", 2.50,
 				"timestampField", List.of("2021-08-15T06:00:00.000Z", "2021-08-15T08:00:00.000Z"),
 				"booleanField", Boolean.TRUE);
 
-		assertNotNull(dictDataService.create(DICT_ID, DOC));
-		assertNotNull(dictDataService.create(DICT_ID, longFieldDoc));
-		assertNotNull(dictDataService.create(DICT_ID, doubleFieldDoc));
+		assertNotNull(dictDataService.create(buildDictDataItem(DICT_ID, DATA_MAP)));
+		assertNotNull(dictDataService.create(buildDictDataItem(DICT_ID, longDataMap)));
+		assertNotNull(dictDataService.create(buildDictDataItem(DICT_ID, doubleDataMap)));
+	}
+
+	@Test
+	void createHistoryNotContainIdField()
+	{
+		var dataMap = new HashMap<>(DATA_MAP);
+		dataMap.put(ServiceFieldConstants.ID, "with_id");
+
+		var dictItem = dictDataService.create(buildDictDataItem(DICT_ID, dataMap));
+
+		var createdFieldResult = dictItem.getHistory().stream().findFirst().map(it -> it.get(ServiceFieldConstants.CREATED)).isPresent();
+		var idFieldResult = dictItem.getHistory().stream().findFirst().map(it -> it.get(ServiceFieldConstants.ID)).isPresent();
+
+		assertTrue(createdFieldResult);
+		assertFalse(idFieldResult);
 	}
 
 	@Test
 	void updateCorrect()
 	{
-		var dictItem = dictDataService.create(DICT_ID, DOC);
+		var dictItem = dictDataService.create(buildDictDataItem(DICT_ID, DATA_MAP));
 
-		var updatedDoc = new HashMap<>(DOC);
-		updatedDoc.put("integerField", 3);
-		updatedDoc.put("timestampField", null);
-		updatedDoc.put("booleanField", false);
+		var updatedDataMap = new HashMap<>(DATA_MAP);
+		updatedDataMap.put("integerField", 3);
+		updatedDataMap.put("timestampField", null);
+		updatedDataMap.put("booleanField", false);
 
-		assertNotNull(dictDataService.update(DICT_ID, dictItem.getId(), dictItem.getVersion(), updatedDoc));
+		assertNotNull(dictDataService.update(dictItem.getId(), buildDictDataItem(DICT_ID, updatedDataMap), dictItem.getVersion()));
 	}
 
 	@Test
 	void updateConcurrentExc()
 	{
-		var dictItem = dictDataService.create(DICT_ID, DOC);
+		var dictItem = dictDataService.create(buildDictDataItem(DICT_ID, DATA_MAP));
 
-		var updatedDoc = new HashMap<>(DOC);
-		updatedDoc.put("integerField", 3);
+		var updatedDataMap = new HashMap<>(DATA_MAP);
+		updatedDataMap.put("integerField", 3);
 
-		dictDataService.update(DICT_ID, dictItem.getId(), dictItem.getVersion(), updatedDoc);
+		dictDataService.update(dictItem.getId(), buildDictDataItem(DICT_ID, updatedDataMap), dictItem.getVersion());
 
 		assertThrows(DictionaryConcurrentUpdateException.class,
-				() -> dictDataService.update(DICT_ID, dictItem.getId(), dictItem.getVersion(), updatedDoc));
+				() -> dictDataService.update(dictItem.getId(), buildDictDataItem(DICT_ID, updatedDataMap), dictItem.getVersion()));
 	}
 
 	@Test
 	void deleteCorrect()
 	{
-		var dictItem = dictDataService.create(DICT_ID, DOC);
+		var dictItem = dictDataService.create(buildDictDataItem(DICT_ID, DATA_MAP));
 
 		dictDataService.delete(DICT_ID, dictItem.getId(), true);
 		dictDataService.delete(DICT_ID, dictItem.getId(), false);
@@ -295,7 +311,7 @@ class DictDataServiceTest extends AbstractTest
 	@ValueSource(strings = {"Test reason", "1234"})
 	void delete_withReason(String reason)
 	{
-		var dictItem = dictDataService.create(DICT_ID, DOC);
+		var dictItem = dictDataService.create(buildDictDataItem(DICT_ID, DATA_MAP));
 
 		dictDataService.delete(DICT_ID, dictItem.getId(), true, reason);
 
@@ -311,7 +327,7 @@ class DictDataServiceTest extends AbstractTest
 	@Test
 	void delete_withEmptyReason()
 	{
-		var dictItem = dictDataService.create(DICT_ID, DOC);
+		var dictItem = dictDataService.create(buildDictDataItem(DICT_ID, DATA_MAP));
 
 		var reason = "";
 		dictDataService.delete(DICT_ID, dictItem.getId(), true, reason);
@@ -328,22 +344,19 @@ class DictDataServiceTest extends AbstractTest
 	@Test
 	void createMany()
 	{
-		var dictItems = List.of(DOC, DOC);
-
-		assertNotNull(dictDataService.createMany(DICT_ID, dictItems));
+		assertNotNull(dictDataService.createMany(DICT_ID, List.of(DATA_MAP, DATA_MAP)));
 	}
 
 	@Test
 	void getByIdsCorrect()
 	{
-		var ids = dictDataService.createMany(DICT_ID, List.of(DOC, DOC, DOC, DOC))
+		var ids = dictDataService.createMany(DICT_ID, List.of(DATA_MAP, DATA_MAP, DATA_MAP, DATA_MAP))
 				.stream()
 				.map(DictItem::getId)
 				.toList();
 
 		assertArrayEquals(ids.toArray(String[]::new), dictDataService.getByIds(DICT_ID, ids).stream().map(DictItem::getId).toArray(String[]::new));
 	}
-
 
 	private final ThrowingConsumer<Object> objectWriter = obj -> System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(obj));
 
@@ -358,7 +371,6 @@ class DictDataServiceTest extends AbstractTest
 				.stream()
 				.map(DictItem::getData)
 				.toList();
-
 
 		objectWriter.accept(result);
 
@@ -387,26 +399,86 @@ class DictDataServiceTest extends AbstractTest
 	}
 
 	@Test
+	void getByFilter_dictSortServiceField()
+	{
+		createDictHierarchy();
+
+		var sortedIdFields = dictDataService.getByFilter(DICT_ID, List.of("*"), null,
+						PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, ServiceFieldConstants.ID)))
+				.getContent()
+				.stream()
+				.map(DictItem::getId)
+				.toList();
+
+		var sortedCreatedFields = dictDataService.getByFilter(DICT_ID, List.of("*"), null,
+						PageRequest.of(0, 20, Sort.by(Sort.Direction.ASC, ServiceFieldConstants.CREATED)))
+				.getContent()
+				.stream()
+				.map(DictItem::getCreated)
+				.toList();
+
+		var actualIdFields = Comparators.isInOrder(sortedIdFields, Comparator.reverseOrder());
+		var actualCreatedFields = Comparators.isInOrder(sortedCreatedFields, Comparator.naturalOrder());
+
+		assertTrue(actualIdFields);
+		assertTrue(actualCreatedFields);
+	}
+
+	@Test
+	void getByFilter_dictSortDataField()
+	{
+		var sortedDataField = createDictHierarchy();
+
+		var result = dictDataService.getByFilter(DICT_ID, List.of("*"), null,
+						PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, sortedDataField)))
+				.getContent()
+				.stream()
+				.map(DictItem::getData)
+				.map(map -> (Long) map.get(sortedDataField))
+				.toList();
+
+		var actual = Comparators.isInOrder(result, Comparator.reverseOrder());
+
+		assertTrue(actual);
+	}
+
+	//TODO: При реализации валидации переданных клиентом сервисных для адаптера полей, актуализировать тест.
+	@Test
+	void getByFilter_withServiceSelectField()
+	{
+		createDictHierarchy();
+
+		var result = dictDataService.getByFilter(REF_DICT_ID, List.of(ServiceFieldConstants._ID, ServiceFieldConstants.CREATED),
+				null, PageRequest.of(0, 20))
+				.getContent()
+				.stream()
+				.map(it -> StringUtils.hasText(it.getId()) && it.getCreated() != null)
+				.toList();
+
+		result.forEach(Assertions::assertTrue);
+	}
+
+	@Test
 	void getByFilterWithDifferentDateCorrect()
 	{
 		var now = Date.from(LocalDateTime.of(2021, 8, 15, 6, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
 
-		Map<String, Object> stringDateDoc = Map.of(
+		Map<String, Object> stringDateDataMap = Map.of(
 				"stringField", "string",
 				"integerField", 1.0,
 				"doubleField", 2.50,
 				"timestampField", "2021-08-15T06:00:00.000Z",
 				"booleanField", Boolean.TRUE);
 
-		Map<String, Object> objectDateDoc = Map.of(
+		Map<String, Object> objectDateDataMap = Map.of(
 				"stringField", "string",
 				"integerField", 1.0,
 				"doubleField", 2.50,
 				"timestampField", now,
 				"booleanField", Boolean.FALSE);
 
-		var stringDateItemId = dictDataService.create(DICT_ID, stringDateDoc).getId();
-		var objectDateItemId = dictDataService.create(DICT_ID, objectDateDoc).getId();
+		var stringDateItemId = dictDataService.create(buildDictDataItem(DICT_ID, stringDateDataMap)).getId();
+		var objectDateItemId = dictDataService.create(buildDictDataItem(DICT_ID, objectDateDataMap)).getId();
 
 		var stringDateItem = dictDataService.getById(DICT_ID, stringDateItemId);
 		var objectDateItem = dictDataService.getById(DICT_ID, objectDateItemId);
@@ -423,27 +495,31 @@ class DictDataServiceTest extends AbstractTest
 		final var timestampField = "timestampField";
 		final var booleanField = "booleanField";
 
-		Supplier<Map<String, Object>> testDocFactory = () -> ImmutableMap.of(
+		Supplier<Map<String, Object>> testDataMapFactory = () -> ImmutableMap.of(
 				stringField, RandomStringUtils.randomAlphabetic(10),
 				integerField, RandomUtils.nextInt(0, 128),
 				doubleField, RandomUtils.nextDouble(0.0, 128.0),
-				timestampField, MappingService.DATE_TIME_FORMATTER.format(ZonedDateTime.now()),
+				timestampField, DateConstants.DATE_TIME_FORMATTER.format(ZonedDateTime.now()),
 				booleanField, RandomUtils.nextBoolean());
 
-		Function<String, Map<String, Object>> testRefDocFactory = (String id) ->
+		Function<String, Map<String, Object>> testRefDataMapFactory = (String id) ->
 				ImmutableMap.<String, Object>builder()
-						.putAll(testDocFactory.get())
+						.putAll(testDataMapFactory.get())
 						.put(DICT_ID, id)
 						.build();
 
-
 		IntStream.range(0, 5)
 				.boxed()
-				.map(i -> testDocFactory.get())
-				.map(doc -> dictDataService.create(DICT_ID, doc).getId())
-				.map(testRefDocFactory)
-				.forEach(doc -> dictDataService.create(REF_DICT_ID, doc));
+				.map(i -> testDataMapFactory.get())
+				.map(dataMap -> dictDataService.create(buildDictDataItem(DICT_ID, dataMap)).getId())
+				.map(testRefDataMapFactory)
+				.forEach(dataMap -> dictDataService.create(buildDictDataItem(REF_DICT_ID, dataMap)));
 
 		return integerField;
+	}
+
+	private DictDataItem buildDictDataItem(String dictId, Map<String, Object> dataMap)
+	{
+		return DictDataItem.of(dictId, dataMap);
 	}
 }

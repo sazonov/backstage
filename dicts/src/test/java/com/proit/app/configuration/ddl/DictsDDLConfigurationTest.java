@@ -15,8 +15,6 @@ public class DictsDDLConfigurationTest extends AbstractTest
 	public static final String USERS_DICT_NAME = "users";
 
 	@Autowired
-	private DictService dictService;
-	@Autowired
 	private DictsDDLProvider dictsDDLProvider;
 
 	@Test

@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -12,11 +12,6 @@
  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
- */
-
-/*
- * Интеллектуальная собственность ООО "Про Ай-Ти Ресурс".
- * Использование ограничено прилагаемой лицензией.
  */
 
 package com.proit.bpm.service.jbpm;
@@ -35,6 +30,8 @@ import com.proit.bpm.repository.jbpm.WorkItemInfoRepository;
 import com.proit.bpm.service.ProcessEngine;
 import com.proit.bpm.service.ProcessTimerService;
 import com.proit.bpm.service.TaskManager;
+import com.proit.bpm.service.jbpm.handler.DefaultProcessEventListener;
+import com.proit.bpm.service.jbpm.handler.VariableChangeEventListener;
 import com.proit.bpm.service.jbpm.script.ScriptingExtension;
 import com.proit.bpm.service.jbpm.timer.NoOpProcessTimerService;
 import com.proit.bpm.service.jbpm.timer.QuartzTimerService;
@@ -123,6 +120,7 @@ public class JbpmProcessEngine implements ApplicationContextAware, ProcessEngine
 		}
 		catch (NoSuchBeanDefinitionException ignore)
 		{
+			// no handling
 		}
 
 		try
@@ -237,13 +235,8 @@ public class JbpmProcessEngine implements ApplicationContextAware, ProcessEngine
 		var sessionId = process.getSessionId();
 		var processInstanceId = process.getInstanceId();
 
-		var workItemIds = taskRepository.findAllByProcessId(processId)
-				.stream()
-				.map(Task::getWorkItemId)
-				.toList();
-
 		sessionInfoRepository.deleteById(sessionId);
-		workItemInfoRepository.deleteAllById(workItemIds);
+		workItemInfoRepository.deleteAllByProcessInstanceId(processInstanceId);
 		processInstanceInfoRepository.deleteById(processInstanceId);
 
 		jdbcTemplate.update("""
@@ -382,8 +375,9 @@ public class JbpmProcessEngine implements ApplicationContextAware, ProcessEngine
 	{
 		if (processRepository.getEntityManager().contains(processInstance))
 		{
-			processRepository.lock(processInstance, bpmProperties.isPessimisticLocking() ?
-					LockModeType.PESSIMISTIC_WRITE : LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+			processRepository.lock(processInstance, bpmProperties.isPessimisticLocking()
+					? LockModeType.PESSIMISTIC_WRITE
+					: LockModeType.OPTIMISTIC_FORCE_INCREMENT);
 		}
 
 		Environment env = EnvironmentFactory.newEnvironment();
@@ -411,6 +405,7 @@ public class JbpmProcessEngine implements ApplicationContextAware, ProcessEngine
 		scriptingExtensions.forEach(session::setGlobal);
 
 		session.getWorkItemManager().registerWorkItemHandler("Human Task", new HumanTaskHandler(processInstance, taskManager));
+		session.addEventListener(new VariableChangeEventListener(processInstance));
 
 		session.execute(new DisposeCommand());
 
@@ -429,7 +424,7 @@ public class JbpmProcessEngine implements ApplicationContextAware, ProcessEngine
 		}
 	}
 
-	private void executeProcessScript(Process process, String method, Object ... args)
+	private void executeProcessScript(Process process, String method, Object... args)
 	{
 		var script = workflowService.getWorkflowScript(process.getWorkflowId(), "ProcessHandler");
 

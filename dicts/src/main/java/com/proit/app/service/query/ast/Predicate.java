@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import com.proit.app.service.query.TranslationContext;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
-public class Predicate implements Expression
+public class Predicate implements QueryExpression
 {
 	public enum Type
 	{
@@ -33,7 +33,7 @@ public class Predicate implements Expression
 	}
 
 	public final Field left;
-	public final Operand right;
+	public final QueryOperand right;
 	public final Type type;
 
 	public <T> T process(Visitor<T> visitor, TranslationContext context)

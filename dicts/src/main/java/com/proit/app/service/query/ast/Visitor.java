@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -21,11 +21,18 @@ import com.proit.app.service.query.TranslationContext;
 public interface Visitor<T>
 {
 	T visit(Constant constant, TranslationContext context);
+
 	T visit(Field field, TranslationContext context);
-	T visit(LikeExpression expression, TranslationContext context);
-	T visit(IlikeExpression expression, TranslationContext context);
-	T visit(LogicExpression expression, TranslationContext context);
+
+	T visit(LikeQueryExpression expression, TranslationContext context);
+
+	T visit(IlikeQueryExpression expression, TranslationContext context);
+
+	T visit(LogicQueryExpression expression, TranslationContext context);
+
 	T visit(Predicate predicate, TranslationContext context);
-	T visit(InExpression expression, TranslationContext context);
+
+	T visit(InQueryExpression expression, TranslationContext context);
+
 	T visit(Empty empty, TranslationContext context);
 }

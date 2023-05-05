@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -59,15 +59,15 @@ public class GeolatteExtension extends SessionEventAdapter
 						final Field field = getField(type, attributeName);
 						final Class<?> fieldType = field.getType();
 
-						if (Point.class == fieldType ||
-								Polygon.class == fieldType ||
-								LinearRing.class == fieldType ||
-								LineString.class == fieldType ||
-								MultiPoint.class == fieldType ||
-								MultiPolygon.class == fieldType ||
-								MultiLineString.class == fieldType ||
-								Geometry.class == fieldType ||
-								GeometryCollection.class == fieldType)
+						if (Point.class == fieldType
+								|| Polygon.class == fieldType
+								|| LinearRing.class == fieldType
+								|| LineString.class == fieldType
+								|| MultiPoint.class == fieldType
+								|| MultiPolygon.class == fieldType
+								|| MultiLineString.class == fieldType
+								|| Geometry.class == fieldType
+								|| GeometryCollection.class == fieldType)
 						{
 							final Converter converter = new PostgisConverter();
 							converter.initialize(mapping, session);

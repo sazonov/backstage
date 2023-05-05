@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package com.proit.bpm.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.proit.app.model.api.ApiConstants;
+import com.proit.app.model.other.date.DateConstants;
 import com.proit.bpm.domain.TaskStatus;
 import lombok.Getter;
 import lombok.Setter;
@@ -41,16 +41,16 @@ public class TaskDto
 	private TaskStatus status;
 
 	@JsonInclude(JsonInclude.Include.NON_NULL)
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = ApiConstants.API_TIMESTAMP_FORMAT)
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateConstants.API_TIMESTAMP_FORMAT)
 	private ZonedDateTime deadline;
 
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = ApiConstants.API_TIMESTAMP_FORMAT)
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateConstants.API_TIMESTAMP_FORMAT)
 	private ZonedDateTime created;
 
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = ApiConstants.API_TIMESTAMP_FORMAT)
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateConstants.API_TIMESTAMP_FORMAT)
 	private ZonedDateTime updated;
 
 	@JsonInclude(JsonInclude.Include.NON_NULL)
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = ApiConstants.API_TIMESTAMP_FORMAT)
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateConstants.API_TIMESTAMP_FORMAT)
 	private ZonedDateTime completed;
 }

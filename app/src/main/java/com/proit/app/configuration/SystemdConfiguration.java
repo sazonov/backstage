@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -39,7 +39,8 @@ public class SystemdConfiguration
 	{
 		return new SystemdNotifyStatusProvider() {
 			@Override
-			public @Nonnull String status() {
+			public @Nonnull String status()
+			{
 				return env.getPropertySources().stream()
 						.map(PropertySource::getName)
 						.filter(name -> name.contains(".properties") || name.contains(".yml"))
@@ -55,7 +56,8 @@ public class SystemdConfiguration
 	{
 		return new SystemdNotifyStatusProvider() {
 			@Override
-			public @Nonnull String status() {
+			public @Nonnull String status()
+			{
 				return "Build " + appProperties.getVersion();
 			}
 		};

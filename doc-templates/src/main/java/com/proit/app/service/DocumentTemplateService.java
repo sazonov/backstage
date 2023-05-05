@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -91,11 +91,11 @@ public class DocumentTemplateService
 
 		completeClauses(filter, whereClauses, parameters, pageable);
 
-		var sql = "from document_template dt " +
-				(whereClauses.isEmpty() ? "" : " where " + String.join(" and ", whereClauses));
+		var sql = "from document_template dt "
+				+ (whereClauses.isEmpty() ? "" : " where " + String.join(" and ", whereClauses));
 
-		var idsSql = "select distinct " + String.join(", ", selectClauses) + " " + sql +
-				(pageable.isPaged() ? " offset :offset limit :limit" : "");
+		var idsSql = "select distinct " + String.join(", ", selectClauses) + " " + sql
+				+ (pageable.isPaged() ? " offset :offset limit :limit" : "");
 
 		var countSql = "select count(*) " + sql;
 
@@ -152,20 +152,14 @@ public class DocumentTemplateService
 
 			stamper.stamp(inputStream, context, outputStream);
 
-			var in = new ByteArrayInputStream(outputStream.toByteArray());
-			var document = WordprocessingMLPackage.load(in);
-
-			document.save(outputStream);
-
 			var filename = StringUtils.isNotBlank(context.getFilename()) ? context.getFilename() : attachment.getFileName();
-
 			var generatedAttachment = attachmentService.addAttachment(filename, attachment.getMimeType(), currentUserId, outputStream.toByteArray());
 
 			log.info("Создание печатной формы {} по шаблону {}.", generatedAttachment.getId(), attachment.getId());
 
 			return generatedAttachment.getId();
 		}
-		catch (IOException | Docx4JException e)
+		catch (IOException e)
 		{
 			throw new AppException(ApiStatusCodeImpl.DOCUMENT_TEMPLATE_GENERATE_ERROR, e);
 		}

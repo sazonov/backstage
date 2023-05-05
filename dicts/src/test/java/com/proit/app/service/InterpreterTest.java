@@ -20,10 +20,7 @@ class InterpreterTest extends AbstractTest
 	@Autowired
 	private Interpreter interpreter;
 
-	@Autowired
-	private DictDataService dictDataService;
-
-	private final static String QUERY = """
+	private static final String QUERY = """
 			create table document['Документ']
 			(
 				name['Название'] 			text	not null,
@@ -100,7 +97,6 @@ class InterpreterTest extends AbstractTest
 		assertEquals(2, actual);
 	}
 
-
 	@Test
 	void parse_deleteNegativeCondition()
 	{
@@ -113,7 +109,6 @@ class InterpreterTest extends AbstractTest
 
 		assertEquals(1, actual);
 	}
-
 
 	@Test
 	void parse_deleteWithoutCondition()

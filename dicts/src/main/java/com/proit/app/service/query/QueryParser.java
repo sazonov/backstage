@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.proit.app.service.query;
 
 import com.proit.app.exception.QuerySyntaxError;
 import com.proit.app.service.query.ast.*;
+import org.apache.commons.lang3.StringUtils;
 import org.jparsec.*;
 
 import java.util.List;
@@ -32,7 +33,7 @@ public class QueryParser
 
 	final Terminals TERMS = Terminals.operators(OPERATORS).words(Scanners.IDENTIFIER).caseInsensitiveKeywords(KEYWORDS).build();
 
-	final Parser<?> TOKENIZER = Parsers.or(Terminals.IntegerLiteral.TOKENIZER, Terminals.StringLiteral.DOUBLE_QUOTE_TOKENIZER, Terminals.StringLiteral.SINGLE_QUOTE_TOKENIZER, TERMS.tokenizer());
+	final Parser<?> TOKENIZER = Parsers.or(Terminals.DecimalLiteral.TOKENIZER, Terminals.IntegerLiteral.TOKENIZER, Terminals.StringLiteral.DOUBLE_QUOTE_TOKENIZER, Terminals.StringLiteral.SINGLE_QUOTE_TOKENIZER, TERMS.tokenizer());
 
 	Parser<?> term(String term)
 	{
@@ -45,6 +46,8 @@ public class QueryParser
 	 *
 	 */
 
+	final Parser<Constant> DECIMAL_CONSTANT = Terminals.DecimalLiteral.PARSER.map(str -> new Constant(str, Constant.Type.DECIMAL));
+
 	final Parser<Constant> INT_CONSTANT = Terminals.IntegerLiteral.PARSER.map(str -> new Constant(str, Constant.Type.INTEGER));
 
 	final Parser<Constant> STRING_CONSTANT = Terminals.StringLiteral.PARSER.map(str -> new Constant(str, Constant.Type.STRING));
@@ -56,7 +59,7 @@ public class QueryParser
 
 	final Parser<Constant> NULL_CONSTANT = term("null").retn(new Constant(null, Constant.Type.NULL));
 
-	final Parser<Constant> SIMPLE_CONSTANT = Parsers.or(INT_CONSTANT, STRING_CONSTANT, BOOLEAN_CONSTANT, NULL_CONSTANT);
+	final Parser<Constant> SIMPLE_CONSTANT = Parsers.or(DECIMAL_CONSTANT, INT_CONSTANT, STRING_CONSTANT, BOOLEAN_CONSTANT, NULL_CONSTANT);
 	final Parser<Constant> CASTED_CONSTANT = Parsers.sequence(SIMPLE_CONSTANT, term("::"), Terminals.identifier(), (constant, kw, targetType) -> new Constant(constant, targetType));
 	final Parser<Constant> CONSTANT = Parsers.or(CASTED_CONSTANT, SIMPLE_CONSTANT);
 
@@ -74,27 +77,27 @@ public class QueryParser
 		term("<>").retn(Predicate.Type.NEQ)
 	);
 
-	final Parser<InExpression> IN_EXPR = Parsers.sequence(FIELD, term("in"), CONSTANT_LIST, (field, kw, constants) -> new InExpression(field, constants));
+	final Parser<InQueryExpression> IN_EXPR = Parsers.sequence(FIELD, term("in"), CONSTANT_LIST, (field, kw, constants) -> new InQueryExpression(field, constants));
 
-	final Parser<LikeExpression> LIKE_EXPR = Parsers.sequence(FIELD, term("like"), STRING_CONSTANT, (field, kw, regExp) -> new LikeExpression(field, regExp));
+	final Parser<LikeQueryExpression> LIKE_EXPR = Parsers.sequence(FIELD, term("like"), STRING_CONSTANT, (field, kw, regExp) -> new LikeQueryExpression(field, regExp));
 
-	final Parser<IlikeExpression> ILIKE_EXPR = Parsers.sequence(FIELD, term("ilike"), STRING_CONSTANT, (field, kw, regExp) -> new IlikeExpression(field, regExp));
+	final Parser<IlikeQueryExpression> ILIKE_EXPR = Parsers.sequence(FIELD, term("ilike"), STRING_CONSTANT, (field, kw, regExp) -> new IlikeQueryExpression(field, regExp));
 
 	final Parser<Predicate> COMPARE_EXPR = Parsers.sequence(FIELD, CompOp, CONSTANT, (lhs, type, rhs) -> new Predicate(lhs, rhs, type));
 
-	final Parser<Expression> PREDICATE = Parsers.or(COMPARE_EXPR, LIKE_EXPR, IN_EXPR, ILIKE_EXPR);
+	final Parser<QueryExpression> PREDICATE = Parsers.or(COMPARE_EXPR, LIKE_EXPR, IN_EXPR, ILIKE_EXPR);
 
-	final UnaryOperator<Expression> NOT = expr -> new LogicExpression(expr, null, LogicExpression.Type.NOT);
-	final BinaryOperator<Expression> AND = (lhs, rhs) -> new LogicExpression(lhs, rhs, LogicExpression.Type.AND);
-	final BinaryOperator<Expression> OR = (lhs, rhs) -> new LogicExpression(lhs, rhs, LogicExpression.Type.OR);
+	final UnaryOperator<QueryExpression> NOT = expr -> new LogicQueryExpression(expr, null, LogicQueryExpression.Type.NOT);
+	final BinaryOperator<QueryExpression> AND = (lhs, rhs) -> new LogicQueryExpression(lhs, rhs, LogicQueryExpression.Type.AND);
+	final BinaryOperator<QueryExpression> OR = (lhs, rhs) -> new LogicQueryExpression(lhs, rhs, LogicQueryExpression.Type.OR);
 
-	final Parser.Reference<Expression> QUERY_REF = Parser.newReference();
+	final Parser.Reference<QueryExpression> QUERY_REF = Parser.newReference();
 
-	Parser<Expression> LogicalExpr(Parser<Expression> predicate)
+	Parser<QueryExpression> LogicalExpr(Parser<QueryExpression> predicate)
 	{
-		Parser.Reference<Expression> ref = Parser.newReference();
+		Parser.Reference<QueryExpression> ref = Parser.newReference();
 
-		Parser<Expression> parser = new OperatorTable<Expression>()
+		Parser<QueryExpression> parser = new OperatorTable<QueryExpression>()
 				.prefix(term("not").retn(NOT), 30)
 				.infixl(term("and").retn(AND), 20)
 				.infixl(term("or").retn(OR),   10)
@@ -105,23 +108,23 @@ public class QueryParser
 		return parser;
 	}
 
-	final Parser<Expression> QUERY = LogicalExpr(PREDICATE);
+	final Parser<QueryExpression> QUERY = LogicalExpr(PREDICATE);
 
 	{
 		QUERY_REF.set(QUERY);
 	}
 
-	final Parser<Expression> GRAMMAR = QUERY.or(Parsers.EOF.retn(new Empty()));
+	final Parser<QueryExpression> GRAMMAR = QUERY.or(Parsers.EOF.retn(new Empty()));
 
-	public Expression parse(String input) throws QuerySyntaxError
+	public QueryExpression parse(String input) throws QuerySyntaxError
 	{
 		try
 		{
-			return GRAMMAR.from(TOKENIZER, Scanners.SQL_DELIMITER).parse(input);
+			return GRAMMAR.from(TOKENIZER, Scanners.SQL_DELIMITER).parse(input != null ? input : StringUtils.EMPTY);
 		}
-		catch (Exception pe)
+		catch (Exception ex)
 		{
-			throw new QuerySyntaxError(pe);
+			throw new QuerySyntaxError(ex);
 		}
 	}
 }

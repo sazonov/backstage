@@ -42,13 +42,13 @@ javadoc {
 	}
 }
 
-task sourceJar(type: Jar) {
-	classifier 'sources'
+tasks.register('sourceJar', Jar) {
+	archiveClassifier = 'sources'
 	from sourceSets.main.allJava
 }
 
-task javadocJar(type: Jar) {
-	classifier = 'javadoc'
+tasks.register('javadocJar', Jar) {
+	archiveClassifier = 'javadoc'
 	from javadoc
 }
 

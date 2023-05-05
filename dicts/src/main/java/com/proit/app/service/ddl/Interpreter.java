@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,8 +16,11 @@
 
 package com.proit.app.service.ddl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.proit.app.domain.*;
 import com.proit.app.exception.EnumNotFoundException;
+import com.proit.app.model.dictitem.DictDataItem;
 import com.proit.app.service.DictDataService;
 import com.proit.app.service.DictService;
 import com.proit.app.service.ddl.ast.*;
@@ -29,6 +32,7 @@ import com.proit.app.service.ddl.ast.expression.table.DeleteIndexExpression;
 import com.proit.app.service.ddl.ast.expression.table.operation.*;
 import com.proit.app.service.ddl.ast.value.*;
 import com.proit.app.service.query.ast.Predicate;
+import com.proit.app.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -46,6 +50,8 @@ import static java.util.function.Predicate.not;
 @RequiredArgsConstructor
 public class Interpreter
 {
+	private final ObjectMapper objectMapper;
+
 	private final DictService dictService;
 	private final DictDataService dictDataService;
 
@@ -120,10 +126,13 @@ public class Interpreter
 
 		var items = insert.getValues()
 				.stream()
-				.map(it -> buildItem(it, fieldIds))
+				.map(it -> buildDataItemMap(it, fieldIds))
+				.map(it -> buildDictDataItem(dictId, it))
 				.toList();
 
-		dictDataService.createMany(dictId, items);
+		//TODO: после перевода всех вызовов createMany на параметр DictDataItem вместо мапы
+		// убрать SecurityUtils.getCurrentUserId()
+		dictDataService.createMany(dictId, items, SecurityUtils.getCurrentUserId());
 	}
 
 	private void execute(AlterTable alterTable)
@@ -238,7 +247,7 @@ public class Interpreter
 		var filtersQuery = buildFilterQuery(delete.getColumn());
 
 		dictDataService.getByFilter(delete.getTable().getName(), List.of("*"), filtersQuery, Pageable.unpaged())
-			.forEach(item -> dictDataService.delete(delete.getTable().getName(), item.getId(), true));
+				.forEach(item -> dictDataService.delete(delete.getTable().getName(), item.getId(), true));
 	}
 
 	private void execute(Drop drop)
@@ -261,7 +270,9 @@ public class Interpreter
 				.map(Id::getName)
 				.filter(not(fields::contains))
 				.findFirst()
-				.ifPresent((it) -> {throw new RuntimeException("Колонка %s отсутствует.".formatted(it));});
+				.ifPresent((it) -> {
+					throw new RuntimeException("Колонка %s отсутствует.".formatted(it));
+				});
 
 		var filtersQuery = buildFilterQuery(update.getRow());
 
@@ -283,7 +294,7 @@ public class Interpreter
 
 					dictItem.setData(updMap);
 				})
-				.forEach(dictItem -> dictDataService.update(dictId, dictItem.getId(), dictItem.getVersion(), dictItem.getData()));
+				.forEach(dictItem -> dictDataService.update(dictItem.getId(), DictDataItem.of(dictId, dictItem.getData()), dictItem.getVersion()));
 	}
 
 	private void execute(CreateIndexExpression createIndex)
@@ -353,7 +364,7 @@ public class Interpreter
 		}
 	}
 
-	private Map<String, Object> buildItem(List<Value<?>> values, List<String> fieldIds)
+	private Map<String, Object> buildDataItemMap(List<Value<?>> values, List<String> fieldIds)
 	{
 		var item = new HashMap<String, Object>();
 
@@ -389,12 +400,25 @@ public class Interpreter
 				continue;
 			}
 
+			if (value instanceof JsonValue jsonValue)
+			{
+				try
+				{
+					var map = objectMapper.readValue(jsonValue.getValue(), Map.class);
+
+					item.put(fieldIds.get(i), map);
+				}
+				catch (JsonProcessingException e)
+				{
+					throw new RuntimeException("Некорректный формат json поля.");
+				}
+			}
+
 			item.put(fieldIds.get(i), value.getValue());
 		}
 
 		return item;
 	}
-
 
 	public String getOperator(Predicate.Type type)
 	{
@@ -420,9 +444,9 @@ public class Interpreter
 		{
 			return "%s %s '%s'".formatted(column.getId().getName(), getOperator(column.getPredicateType()), column.getValue().getValue());
 		}
-		else if (column.getValue() instanceof BooleanValue ||
-				 column.getValue() instanceof DecimalValue ||
-				 column.getValue() instanceof NullValue)
+		else if (column.getValue() instanceof BooleanValue
+				|| column.getValue() instanceof DecimalValue
+				|| column.getValue() instanceof NullValue)
 		{
 			return "%s %s %s".formatted(column.getId().getName(), getOperator(column.getPredicateType()), column.getValue().getValue());
 		}
@@ -430,5 +454,10 @@ public class Interpreter
 		{
 			throw new RuntimeException("Недопустимое выражение в where. Ожидалось StringValue, BooleanValue, DecimalValue или NullValue.");
 		}
+	}
+
+	private DictDataItem buildDictDataItem(String dictId, Map<String, Object> dataItemMap)
+	{
+		return DictDataItem.of(dictId, dataItemMap);
 	}
 }

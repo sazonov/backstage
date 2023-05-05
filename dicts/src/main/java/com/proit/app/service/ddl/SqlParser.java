@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ public class SqlParser
 	};
 
 	static final String[] OPERATORS = {
-			"=", "!=", "<", ">", "<=", ">=", ".", "*", ",", "(", ")", "+", "-", "/", ";", "[]", "[", "]", "\"", "<>"
+			"=", "!=", "<", ">", "<=", ">=", ".", "*", ",", "(", ")", "+", "-", "/", ";", "[]", "[", "]", "\"", "<>", "::"
 	};
 
 	final Terminals TERMS = Terminals.operators(OPERATORS).words(Scanners.IDENTIFIER).caseInsensitiveKeywords(KEYWORDS).build();
@@ -77,17 +77,20 @@ public class SqlParser
 
 	final Parser<Value<?>> COLUMN_VALUE = Terminals.Identifier.PARSER.map(Id::new).map(ColumnValue::new);
 
+	//fixme KGH-4492 костыль. Исправить, чтобы была возможность обрабатывать только ::json, игнорируя другие касты
+	final Parser<JsonValue> JSON_VALUE = Parsers.sequence(STRING_VALUE, term("::"), Terminals.Identifier.PARSER, (value, kw, targetType) -> new JsonValue(value.getValue()));
+
 	final Parser<Id> ID = Parsers.or(Terminals.Identifier.PARSER, Terminals.Identifier.PARSER.between(term("\""), term("\""))).map(Id::new);
 	final Parser<IdWithName> ID_WITH_NAME = Parsers.sequence(ID, STRING_VALUE.between(term("["), term("]")).optional(new StringValue(null)), IdWithName::new);
 
 	final Parser<ArrayValue> ARRAY_VALUE = Parsers.sequence(
 			term("array"),
-			Parsers.or(DECIMAL_VALUE, STRING_VALUE, BOOLEAN_VALUE, NULL_VALUE).sepBy1(term(","))
+			Parsers.or(JSON_VALUE, DECIMAL_VALUE, STRING_VALUE, BOOLEAN_VALUE, NULL_VALUE).sepBy1(term(","))
 					.between(term("["), term("]"))
 					.optional(List.of()),
 			(t, p) -> new ArrayValue(p));
 
-	final Parser<Value<?>> VALUE = Parsers.or(DECIMAL_VALUE, STRING_VALUE, BOOLEAN_VALUE, NULL_VALUE, ARRAY_VALUE);
+	final Parser<Value<?>> VALUE = Parsers.or(JSON_VALUE, DECIMAL_VALUE, STRING_VALUE, BOOLEAN_VALUE, NULL_VALUE, ARRAY_VALUE);
 
 	final Parser<Expression> CREATE_ENUM_EXPR = Parsers.sequence(
 			phrase("create", "enum").next(ID),

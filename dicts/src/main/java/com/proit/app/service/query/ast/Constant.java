@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,54 +16,66 @@
 
 package com.proit.app.service.query.ast;
 
-import com.proit.app.model.api.ApiConstants;
+import com.proit.app.model.other.date.DateConstants;
 import com.proit.app.service.query.TranslationContext;
-import org.apache.commons.lang3.time.DateUtils;
+import org.bson.types.Decimal128;
 
-import java.util.Arrays;
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 
-public class Constant implements Operand
+public class Constant implements QueryOperand
 {
-	private static final String[] DATE_PATTERNS = { ApiConstants.API_TIMESTAMP_FORMAT, "yyyy-MM-dd'T'HH:mm:ssXXX", ApiConstants.API_DATE_FORMAT };
-
 	public enum Type
 	{
 		INTEGER,
+		DECIMAL,
 		STRING,
 		BOOLEAN,
+		DATE,
 		TIMESTAMP,
 		NULL
 	}
 
 	public final Type type;
 	public final String value;
-	public final Date dateValue;
+	public final LocalDate dateValue;
+	public final LocalDateTime dateTimeValue;
 
 	public Constant(String value, Type type)
 	{
 		this.value = value;
 		this.type = type;
 		this.dateValue = null;
+		this.dateTimeValue = null;
 	}
 
 	public Constant(Constant source, String targetType)
 	{
-		if (!targetType.equals("date"))
-		{
-			throw new RuntimeException("supported types for cast: date, timestamp");
-		}
-
 		this.value = source.value;
-		this.type = Type.TIMESTAMP;
 
 		try
 		{
-			this.dateValue = DateUtils.parseDate(value, DATE_PATTERNS);
+			switch (targetType)
+			{
+				case "date" -> {
+					this.dateValue = LocalDate.parse(value, DateConstants.UNIVERSAL_DATE_FORMATTER);
+					this.type = Type.DATE;
+					this.dateTimeValue = null;
+				}
+
+				case "timestamp" -> {
+					this.dateTimeValue = LocalDateTime.parse(value, DateConstants.UNIVERSAL_DATE_TIME_FORMATTER);
+					this.type = Type.TIMESTAMP;
+					this.dateValue = null;
+				}
+
+				default -> throw new RuntimeException("supported types for cast: date, timestamp");
+			}
 		}
-		catch (Exception e)
+		catch (DateTimeParseException e)
 		{
-			throw new RuntimeException("supported date patterns: %s".formatted(Arrays.asList(DATE_PATTERNS)));
+			throw new RuntimeException("supported date patterns: %s".formatted(DateConstants.AVAILABLE_DATE_PATTERNS), e);
 		}
 	}
 
@@ -74,19 +86,18 @@ public class Constant implements Operand
 			return null;
 		}
 
-		Object result;
+		return switch (type)
+				{
+					case INTEGER -> Long.parseLong(value);
+					case DECIMAL -> Decimal128.parse(value);
+					case STRING -> value;
+					case BOOLEAN -> Boolean.parseBoolean(value);
+					case DATE -> dateValue;
+					case TIMESTAMP -> dateTimeValue;
+					case NULL -> null;
 
-		switch (type)
-		{
-			case INTEGER -> result = Long.parseLong(value);
-			case STRING -> result = value;
-			case BOOLEAN -> result = Boolean.parseBoolean(value);
-			case TIMESTAMP -> result = dateValue;
-
-			default -> result = null;
-		}
-
-		return result;
+					default -> throw new RuntimeException("unsupported type: %s".formatted(type));
+				};
 	}
 
 	public <T> T process(Visitor<T> visitor, TranslationContext context)

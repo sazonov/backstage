@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -19,12 +19,12 @@ package com.proit.app.service.export;
 import com.proit.app.constant.ExportedDictFormat;
 import com.proit.app.exception.AppException;
 import com.proit.app.model.api.ApiStatusCodeImpl;
+import com.proit.app.model.export.ExportedResource;
 import com.proit.app.service.DictDataService;
 import com.proit.app.service.DictPermissionService;
 import com.proit.app.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -44,12 +44,12 @@ public class DictExportService
 	private final DictDataService dictDataService;
 	private final DictPermissionService dictPermissionService;
 
-	public Resource exportToResource(String dictId, ExportedDictFormat format, List<String> itemIds)
+	public ExportedResource exportToResource(String dictId, ExportedDictFormat format, List<String> itemIds)
 	{
 		return exportToResource(dictId, format, itemIds, SecurityUtils.getCurrentUserId());
 	}
 
-	public Resource exportToResource(String dictId, ExportedDictFormat format, List<String> itemIds, String userId)
+	public ExportedResource exportToResource(String dictId, ExportedDictFormat format, List<String> itemIds, String userId)
 	{
 		dictPermissionService.checkViewPermission(dictId, userId);
 
@@ -59,8 +59,10 @@ public class DictExportService
 
 		byte[] exportedData = getExportService(format).export(dictId, items, userId);
 
-		return new InputStreamResource(new ByteArrayInputStream(exportedData),
-				generateFilename(dictId, format, itemIds));
+		return ExportedResource.builder()
+				.resource(new InputStreamResource(new ByteArrayInputStream(exportedData)))
+				.filename(generateFilename(dictId, format, itemIds))
+				.build();
 	}
 
 	private ExportService getExportService(ExportedDictFormat format)

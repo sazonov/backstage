@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -17,7 +17,8 @@
 package com.proit.app.service;
 
 import com.proit.app.domain.VersionScheme;
-import com.proit.app.repository.VersionSchemeRepository;
+import com.proit.app.exception.MigrationAppliedException;
+import com.proit.app.service.backend.VersionSchemeBackend;
 import com.proit.app.service.ddl.Interpreter;
 import com.proit.app.service.ddl.SqlParser;
 import com.proit.app.util.MigrationUtils;
@@ -37,39 +38,41 @@ import static com.proit.app.configuration.ddl.DictsDDLProvider.SEPARATOR;
 @RequiredArgsConstructor
 public class MigrationService
 {
-	private final VersionSchemeRepository versionSchemeRepository;
-
-	private final Interpreter interpreter;
 	private final SqlParser sqlParser;
+	private final Interpreter interpreter;
 
-	private final DictService dictService;
+	private final VersionSchemeBackend versionSchemeBackend;
 
 	public void migrate(Map.Entry<String, String> migration)
 	{
+		var appliedMigration = MIGRATIONS_PATH + SEPARATOR + migration.getKey();
+
 		try
 		{
-			dictService.beginTransaction();
+			versionSchemeBackend.beginDDL();
 
 			interpreter.execute(sqlParser.parse(migration.getValue()));
 
-			versionSchemeRepository.save(
+			versionSchemeBackend.create(
 					VersionScheme.builder()
 							.id(String.valueOf(UUID.randomUUID().getLeastSignificantBits()))
 							.checksum(MigrationUtils.getFileHash(migration.getValue()))
 							.installed(LocalDateTime.now())
-							.script(MIGRATIONS_PATH + SEPARATOR + migration.getKey())
-							.version(MigrationUtils.parseVersion(MIGRATIONS_PATH + SEPARATOR + migration.getKey()))
+							.script(appliedMigration)
+							.version(MigrationUtils.parseVersion(appliedMigration))
 							.build());
 
-			dictService.commit();
+			versionSchemeBackend.commitDDL();
 
 			log.info("Применение миграции {} завершено успешно.", migration.getKey());
 		}
 		catch (Exception e)
 		{
-			dictService.rollback(e);
+			versionSchemeBackend.rollbackDDL();
 
-			log.error("Ошибка применения миграции: {}", MIGRATIONS_PATH + SEPARATOR + migration.getKey());
+			log.error("Ошибка применения миграции: {}", appliedMigration);
+
+			throw new MigrationAppliedException(appliedMigration, e);
 		}
 	}
 }

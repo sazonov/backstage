@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import com.proit.app.domain.DictField;
 import com.proit.app.domain.DictFieldName;
 import com.proit.app.domain.DictFieldType;
 import com.proit.app.domain.DictItem;
+import com.proit.app.model.dictitem.DictDataItem;
 import com.proit.app.service.DictDataService;
 import com.proit.app.service.DictPermissionService;
 import com.proit.app.service.DictService;
@@ -38,6 +39,8 @@ import java.util.stream.Collectors;
 import static com.proit.app.constant.ServiceFieldConstants.ID;
 import static com.proit.app.constant.ServiceFieldConstants._ID;
 
+//TODO: перевести импорт на вызов методов DictDataService
+// с параметром DictDataItem вместо мапы
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -60,9 +63,7 @@ public class ImportJsonService implements ImportService
 
 		Set<String> innerDictIds = getInnerDictIds(dictId);
 
-		Map<String, List<Map<String, Object>>> dicts = jsonReader.readFromStream(inputStream, new TypeReference<>()
-		{
-		});
+		Map<String, List<Map<String, Object>>> dicts = jsonReader.readFromStream(inputStream, new TypeReference<>() { });
 
 		return Optional.ofNullable(dicts.get(dictId))
 				.map(dict -> saveDict(dictId, innerDictIds, dict, userId))
@@ -83,17 +84,23 @@ public class ImportJsonService implements ImportService
 	{
 		var innerDicts = readInnerDicts(innerDictIds, dict);
 
-		saveInnerDicts(innerDicts);
+		saveInnerDicts(innerDicts, userId);
 
 		return dict.stream()
-				.peek(doc -> innerDictIds.forEach(doc::remove))
-				.map(doc -> dictDataService.create(dictId, mapDoc(doc), userId))
+				.peek(dictData -> innerDictIds.forEach(dictData::remove))
+				.map(dictData -> dictDataService.create(DictDataItem.of(dictId, mapDoc(dictData)), userId))
 				.toList();
 	}
 
-	private void saveInnerDicts(Map<String, List<Map<String, Object>>> innerDicts)
+	private void saveInnerDicts(Map<String, List<Map<String, Object>>> innerDicts, String userId)
 	{
-		innerDicts.forEach(dictDataService::createMany);
+		innerDicts.forEach((dictId, dictDataList) -> {
+			var dictDataItems = dictDataList.stream()
+					.map(it -> DictDataItem.of(dictId, it))
+					.toList();
+
+			dictDataService.createMany(dictId, dictDataItems, userId);
+		});
 	}
 
 	private Map<String, List<Map<String, Object>>> readInnerDicts(Set<String> innerDictIds, List<Map<String, Object>> dict)

@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package com.proit.app.service.job;
 
+import com.proit.app.model.dto.job.EmptyJobParams;
+import com.proit.app.model.dto.job.JobParams;
 import com.proit.app.model.other.JobResult;
 import lombok.Getter;
 import lombok.Setter;
@@ -28,8 +30,10 @@ import java.util.concurrent.ScheduledFuture;
 @Getter
 @Setter
 @Slf4j
-public abstract class AbstractJob implements Runnable
+public abstract class AbstractJob<T extends JobParams> implements Runnable
 {
+	private T defaultParams = createDefaultParams();
+
 	private JobEventListener eventListener;
 
 	protected Trigger trigger;
@@ -75,8 +79,37 @@ public abstract class AbstractJob implements Runnable
 	}
 
 	/**
+	 * Весь код задачи должен быть реализован в этой процедуре,
+	 * если не предполагается использование параметров.
+	 * В ином случае будет вызван {@link AbstractJob#execute(T)} c параметрами,
+	 * определенными в {@link AbstractJob#createDefaultParams()}
+	 */
+	protected JobResult execute()
+	{
+		return execute(defaultParams);
+	}
+
+	/**
 	 * Весь код задачи должен быть реализован в этой процедуре.
+	 * @param params объект изменяемых параметров для задачи,
+	 *                  должен быть наследником {@link JobParams}
+	 *
 	 * @return Результаты задачи, которые будут доступны в health индикаторе.
 	 */
-	protected abstract JobResult execute();
+	protected JobResult execute(T params)
+	{
+		return JobResult.failed();
+	}
+
+	/**
+	 * Создает объект параметров по умолчанию.
+	 * Необходимо переопределять для задач, использующих изменяемый набор параметров при запуске.
+	 *
+	 * @return объект параметров, который будет использован при обращении к {@link AbstractJob#execute()}
+	 */
+	@SuppressWarnings("unchecked")
+	protected T createDefaultParams()
+	{
+		return (T) new EmptyJobParams();
+	}
 }

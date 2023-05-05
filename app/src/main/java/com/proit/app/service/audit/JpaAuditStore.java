@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -92,8 +92,8 @@ public class JpaAuditStore implements AuditStore
 			whereClauses.add("user_id = :userId");
 		}
 
-		var sql = "from audit " +
-				(whereClauses.isEmpty() ? "" : "where " + String.join(" and ", whereClauses));
+		var sql = "from audit "
+				+ (whereClauses.isEmpty() ? "" : "where " + String.join(" and ", whereClauses));
 
 		var idsSql = "select id " + sql + " order by date desc" + (pageable != null && pageable.isPaged() ? " limit :limit offset :offset" : "");
 		var countSql = "select count(id) " + sql;

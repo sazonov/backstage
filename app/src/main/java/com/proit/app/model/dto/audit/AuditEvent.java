@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@
 package com.proit.app.model.dto.audit;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.proit.app.model.api.ApiConstants;
 import com.proit.app.model.domain.audit.AuditPropertiesField;
 import com.proit.app.model.domain.audit.AuditPropertiesProperty;
+import com.proit.app.model.other.date.DateConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -41,7 +41,7 @@ public class AuditEvent implements Serializable
 	private String userId;
 
 	@Schema(description = "Дата фиксации")
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = ApiConstants.API_TIMESTAMP_FORMAT)
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateConstants.API_TIMESTAMP_FORMAT)
 	private ZonedDateTime date;
 
 	@Schema(description = "Успешность действия, связанного с событием")

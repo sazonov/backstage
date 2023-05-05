@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -17,9 +17,12 @@
 package com.proit.app.configuration.ddl;
 
 import com.proit.app.domain.VersionScheme;
+import com.proit.app.exception.MigrationProcessException;
+import com.proit.app.exception.MigrationFileReadException;
+import com.proit.app.exception.MigrationHasSameVersionException;
 import com.proit.app.exception.ObjectNotFoundException;
-import com.proit.app.repository.VersionSchemeRepository;
 import com.proit.app.service.MigrationService;
+import com.proit.app.service.backend.VersionSchemeBackend;
 import com.proit.app.util.MigrationUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -55,9 +58,9 @@ public class DictsDDLProvider implements BeanNameAware
 	public static final String SQL_EXTENSION = "sql";
 	public static final String MIGRATIONS_PATH = "db/migration/dicts";
 
-	private final VersionSchemeRepository versionSchemeRepository;
-
 	private final MigrationService migrationService;
+
+	private final VersionSchemeBackend versionSchemeBackend;
 
 	@Setter
 	private String beanName;
@@ -98,7 +101,7 @@ public class DictsDDLProvider implements BeanNameAware
 								}
 								catch (IOException e)
 								{
-									throw new RuntimeException("Ошибка чтения миграции: %s.".formatted(name), e);
+									throw new MigrationFileReadException(name, e);
 								}
 							});
 				}
@@ -114,7 +117,7 @@ public class DictsDDLProvider implements BeanNameAware
 								}
 								catch (IOException e)
 								{
-									throw new RuntimeException("Ошибка чтения миграции: %s.".formatted(file.getName()), e);
+									throw new MigrationFileReadException(file.getName(), e);
 								}
 							});
 				}
@@ -130,11 +133,9 @@ public class DictsDDLProvider implements BeanNameAware
 				versions.values().stream()
 						.filter(it -> it.size() > 1)
 						.findFirst()
-						.ifPresent(it -> {
-							throw new RuntimeException("Миграции %s имеют одинаковую версию.".formatted(String.join(", ")));
-						});
+						.ifPresent(MigrationHasSameVersionException::new);
 
-				var appliedMigrations = versionSchemeRepository.findAll()
+				var appliedMigrations = versionSchemeBackend.findAll()
 						.stream()
 						.collect(Collectors.toMap(VersionScheme::getScript, Function.identity()));
 
@@ -162,19 +163,19 @@ public class DictsDDLProvider implements BeanNameAware
 		}
 		catch (Exception e)
 		{
-			throw new RuntimeException("Ошибка обработки миграций", e);
+			throw new MigrationProcessException(e);
 		}
 	}
 
 	//	FIXME: реализовано в рамках CPEITP-1017
 	private void repairChecksum(String script, String fullName)
 	{
-		var appliedMigration = versionSchemeRepository.findByScript(fullName)
+		var appliedMigration = versionSchemeBackend.findByScript(fullName)
 				.orElseThrow(() -> new ObjectNotFoundException(VersionScheme.class, fullName));
 
 		appliedMigration.setChecksum(MigrationUtils.getFileHash(script));
 
-		versionSchemeRepository.save(appliedMigration);
+		versionSchemeBackend.create(appliedMigration);
 	}
 
 	private boolean isMigrationHashEquals(Map<String, VersionScheme> migrations, String migrationName, String script)

@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -40,7 +40,8 @@ import java.util.Optional;
 @UtilityClass
 public class ProcessUtils
 {
-	private static final String PROCESS_VARIABLE_PROCESS_ID = "__processId";
+	public static final String PROCESS_PRIVATE_VARIABLE_PREFIX = "__";
+	private static final String PROCESS_VARIABLE_PROCESS_ID = PROCESS_PRIVATE_VARIABLE_PREFIX + "processId";
 
 	private static final String NODE_METADATA_UNIQUE_ID = "UniqueId";
 

@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -17,8 +17,10 @@
 package com.proit.app.service.job;
 
 import com.proit.app.exception.ObjectNotFoundException;
+import com.proit.app.model.dto.job.JobParams;
 import com.proit.app.model.other.JobResult;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.DependsOn;
@@ -36,46 +38,60 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@DependsOn("healthContributor")
+@DependsOn("scheduledJobsHealthContributor")
 public class JobManager
 {
 	private final ThreadPoolTaskScheduler taskScheduler;
 
 	@Getter
-	private final Map<String, AbstractJob> jobs;
+	private final Map<String, AbstractJob<? extends JobParams>> jobs;
 
 	@PostConstruct
-	public void scheduledJobs()
+	public void init()
 	{
 		jobs.values().forEach(this::scheduleJob);
 	}
 
 	public Map<String, String> getJobList()
 	{
-		return jobs.entrySet().stream()
+		return jobs.entrySet()
+				.stream()
 				.map(this::getJobDescription)
 				.sorted(Map.Entry.comparingByKey())
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (o, n) -> n, LinkedHashMap::new));
 	}
 
-	private Map.Entry<String, String> getJobDescription(Map.Entry<String, AbstractJob> entry)
+	private Map.Entry<String, String> getJobDescription(Map.Entry<String, AbstractJob<? extends JobParams>> entry)
 	{
 		var annotation = AnnotationUtils.findAnnotation(entry.getValue().getClass(), JobDescription.class);
-		var value = Optional.ofNullable(annotation).map(JobDescription::value).orElse("");
+		var value = Optional.ofNullable(annotation)
+				.map(JobDescription::value)
+				.orElse("");
 
 		return Map.entry(entry.getKey(), value);
 	}
 
 	public JobResult executeJobAndWait(Class<? extends AbstractJob> jobClass)
 	{
-		log.info("Executing scheduled job by class name '{}' manually.", jobClass.getSimpleName());
-
-		var job = jobs.values().stream().filter(jobClass::isInstance).findFirst().orElseThrow(() -> new ObjectNotFoundException(AbstractJob.class, jobClass.getSimpleName()));
-
-		return job.execute();
+		return executeJobAndWait(jobClass, null);
 	}
 
-	public void executeJob(String jobName)
+	public <P extends JobParams> JobResult executeJobAndWait(Class<? extends AbstractJob> jobClass, P params)
+	{
+		log.info("Executing scheduled job by class name '{}' manually.", jobClass.getSimpleName());
+
+		var job = jobs.values()
+				.stream()
+				.filter(jobClass::isInstance)
+				.findFirst()
+				.map(it -> (AbstractJob<P>) it)
+				.orElseThrow(() -> new ObjectNotFoundException(AbstractJob.class, jobClass.getSimpleName()));
+
+		return params == null ? job.execute() : job.execute(params);
+	}
+
+	@SuppressWarnings("unchecked")
+	public <P extends JobParams> void executeJob(@NonNull String jobName, P params)
 	{
 		log.info("Executing scheduled job '{}' manually.", jobName);
 
@@ -84,10 +100,29 @@ public class JobManager
 			throw new ObjectNotFoundException(AbstractJob.class, jobName);
 		}
 
-		taskScheduler.execute(jobs.get(jobName));
+		if (params == null)
+		{
+			taskScheduler.execute(jobs.get(jobName));
+		}
+		else
+		{
+			taskScheduler.execute(new JobExecutionContext<>((AbstractJob<P>) jobs.get(jobName), params));
+		}
 	}
 
-	public void rescheduleJob(String jobName, Trigger trigger)
+	public JobParams getParams(@NonNull String jobName)
+	{
+		log.info("Executing scheduled job '{}' manually.", jobName);
+
+		if (!jobs.containsKey(jobName))
+		{
+			throw new ObjectNotFoundException(AbstractJob.class, jobName);
+		}
+
+		return jobs.get(jobName).getDefaultParams();
+	}
+
+	public void rescheduleJob(@NonNull String jobName, Trigger trigger)
 	{
 		var job = jobs.get(jobName);
 
@@ -102,7 +137,7 @@ public class JobManager
 		scheduleJob(job);
 	}
 
-	private void scheduleJob(AbstractJob job)
+	private void scheduleJob(AbstractJob<?> job)
 	{
 		job.beforeScheduled();
 

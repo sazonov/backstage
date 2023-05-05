@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -39,9 +39,11 @@ import java.util.List;
 @ConditionalOnProperty(CaptchaProperties.ACTIVATION_PROPERTY)
 public class CaptchaRequestBodyAdvise implements RequestBodyAdvice
 {
-	@Autowired(required = false) private List<CaptchaServiceAdvise> advises = new ArrayList<>();
+	@Autowired(required = false)
+	private List<CaptchaServiceAdvise> advises = new ArrayList<>();
 
-	@Autowired private CaptchaService captchaService;
+	@Autowired
+	private CaptchaService captchaService;
 
 	@Override
 	public boolean supports(MethodParameter methodParameter, Type targetType, Class<? extends HttpMessageConverter<?>> converterType)

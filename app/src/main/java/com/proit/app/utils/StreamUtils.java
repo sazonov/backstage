@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -32,10 +32,10 @@ public class StreamUtils
 	 * Типовой сценарий - запросили из репозитория список сущностей по идентификаторам, отсортировали в порядке,
 	 * в котором мы их запрашивали.
 	 * @param ids - упорядоченный список идентификаторов сущностей, которых планируем отсортировать
-	 * @param <ID> - тип идентификатора сущности
+	 * @param <I> - тип идентификатора сущности
 	 * @param <T> - тип сущности
 	 */
-	public static <ID, T extends Identity<ID>> Comparator<T> listOrderComparator(List<ID> ids)
+	public static <I, T extends Identity<I>> Comparator<T> listOrderComparator(List<I> ids)
 	{
 		return Comparator.comparingInt(it -> ids.indexOf(it.getId()));
 	}

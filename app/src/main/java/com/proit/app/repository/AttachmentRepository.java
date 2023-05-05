@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -24,12 +24,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @ConditionalOnProperty(AttachmentProperties.ACTIVATION_PROPERTY)
 public interface AttachmentRepository extends CustomJpaRepository<Attachment, String>
 {
-	@Query("select distinct a from Attachment a left outer join a.bindings ab where ab.attachment is null and a.created < :date")
-	List<Attachment> findExpiredUnbounded(@Param("date") Date expirationDate, Pageable pageable);
+	@Query("select distinct a.id from Attachment a left outer join a.bindings ab where ab.attachment is null and a.created < :date")
+	List<String> findExpiredUnbounded(@Param("date") LocalDateTime expirationDate, Pageable pageable);
 }

@@ -6,35 +6,38 @@ import com.proit.app.service.export.DictExportService;
 import com.proit.app.service.imp.ImportJsonService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DictExportServiceTest extends AbstractTest
 {
 	public static final String INDEBTEDNESS_ID = "indebtedness";
 
 	@Autowired
-	DictService dictService;
-	@Autowired ImportJsonService importJsonService;
-	@Autowired DictExportService dictExportService;
+	private ImportJsonService importJsonService;
+	@Autowired
+	private DictExportService dictExportService;
 
 	@Test
 	void export_cvsNotNullItemsIdsTest()
 	{
-		Resource stringField = dictExportService.exportToResource(DICT_ID, ExportedDictFormat.CSV, List.of("stringField"));
+		var exportedResource = dictExportService.exportToResource(DICT_ID, ExportedDictFormat.CSV, List.of("stringField"));
 
-		assertTrue(stringField.exists());
+		assertTrue(exportedResource.getResource().exists());
+		assertTrue(StringUtils.hasText(exportedResource.getFilename()));
 	}
 
 	@Test
 	void export_cvsNullItemsIdsTest()
 	{
-		Resource stringField = dictExportService.exportToResource(DICT_ID, ExportedDictFormat.CSV, null);
+		var exportedResource = dictExportService.exportToResource(DICT_ID, ExportedDictFormat.CSV, null);
 
-		assertTrue(stringField.exists());
+		assertTrue(exportedResource.getResource().exists());
+		assertTrue(StringUtils.hasText(exportedResource.getFilename()));
 	}
 
 	//todo: предусмотреть возможность создавать inner dict с указанными идентификаторами.
@@ -54,22 +57,42 @@ class DictExportServiceTest extends AbstractTest
 	@Test
 	void export_jsonNotNullItemsIdsTest()
 	{
-		Resource stringField = dictExportService.exportToResource(DICT_ID, ExportedDictFormat.JSON, List.of("stringField"));
+		var exportedResource = dictExportService.exportToResource(DICT_ID, ExportedDictFormat.JSON, List.of("stringField"));
 
-		assertTrue(stringField.exists());
+		assertTrue(exportedResource.getResource().exists());
+		assertTrue(StringUtils.hasText(exportedResource.getFilename()));
 	}
 
 	@Test
 	void export_jsonNullItemsIdsTest()
 	{
-		Resource stringField = dictExportService.exportToResource(DICT_ID, ExportedDictFormat.JSON, null);
+		var exportedResource = dictExportService.exportToResource(DICT_ID, ExportedDictFormat.JSON, null);
 
-		assertTrue(stringField.exists());
+		assertTrue(exportedResource.getResource().exists());
+		assertTrue(StringUtils.hasText(exportedResource.getFilename()));
 	}
 
 	@Test
 	void export_jsonNullDictIdNullItemsIdsTest()
 	{
 		assertThrows(IllegalArgumentException.class, () -> dictExportService.exportToResource(null, ExportedDictFormat.JSON, null));
+	}
+
+	@Test
+	void export_sqlNotNullItemsIdsTest()
+	{
+		var exportedResource = dictExportService.exportToResource(DICT_ID, ExportedDictFormat.SQL, List.of("stringField"));
+
+		assertTrue(exportedResource.getResource().exists());
+		assertTrue(StringUtils.hasText(exportedResource.getFilename()));
+	}
+
+	@Test
+	void export_sqlNullItemsIdsTest()
+	{
+		var exportedResource = dictExportService.exportToResource(DICT_ID, ExportedDictFormat.SQL, null);
+
+		assertTrue(exportedResource.getResource().exists());
+		assertTrue(StringUtils.hasText(exportedResource.getFilename()));
 	}
 }

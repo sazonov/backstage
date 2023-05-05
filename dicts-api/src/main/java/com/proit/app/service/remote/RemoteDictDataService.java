@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.cloud.openfeign.SpringQueryMap;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -85,11 +86,12 @@ public interface RemoteDictDataService
 	@Operation(summary = "Импорт CSV в справочник.")
 	@PostMapping(value = "/{dictId}/import", consumes = "text/csv")
 	OkResponse importCsv(@PathVariable String dictId, @RequestBody InputStream inputStream, @RequestParam String userId);
+
 	@Operation(summary = "Импорт JSON в справочник.")
 	@PostMapping(value = "/{dictId}/import", consumes = MediaType.APPLICATION_JSON_VALUE)
 	OkResponse importJson(@PathVariable String dictId, @RequestBody InputStream inputStream, @RequestParam String userId);
 
 	@Operation(summary = "Экспорт элементов справочника.")
 	@PostMapping("/{dictId}/export")
-	ResponseEntity<?> export(@PathVariable String dictId, @RequestBody @Valid ExportDictRequest request, @RequestParam String userId);
+	ResponseEntity<Resource> export(@PathVariable String dictId, @RequestBody @Valid ExportDictRequest request, @RequestParam String userId);
 }

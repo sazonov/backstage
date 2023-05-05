@@ -27,7 +27,7 @@ class JobManagerTest extends AbstractTests
 	@Test
 	void getJobList_checkCountTest()
 	{
-		assertEquals(6, jobManager.getJobList().size());
+		assertEquals(7, jobManager.getJobList().size());
 	}
 
 	@Test
@@ -113,7 +113,8 @@ class JobManagerTest extends AbstractTests
 	}
 
 	@Test
-	void rescheduleJob_notExistedJob() {
+	void rescheduleJob_notExistedJob()
+	{
 		var jobName = "testJobs.notExistedJob";
 
 		AppException thrown = assertThrows(AppException.class, () -> jobManager.rescheduleJob(jobName, JobTriggerType.CRON.createTrigger(TestJobs.TEST_UPDATED_CRON)));
@@ -122,7 +123,8 @@ class JobManagerTest extends AbstractTests
 	}
 
 	@Test
-	void rescheduleJob_badCronExpression() {
+	void rescheduleJob_badCronExpression()
+	{
 		var jobName = "testJobs.TestManualJobRescheduling";
 
 		AppException thrown = assertThrows(AppException.class, () -> jobManager.rescheduleJob(jobName, JobTriggerType.INTERVAL.createTrigger("*")));
@@ -131,12 +133,55 @@ class JobManagerTest extends AbstractTests
 	}
 
 	@Test
-	void rescheduleJob_badDelayExpression() {
+	void rescheduleJob_badDelayExpression()
+	{
 		var jobName = "testJobs.TestManualJobRescheduling";
 
 		AppException thrown = assertThrows(AppException.class, () -> jobManager.rescheduleJob(jobName, JobTriggerType.CRON.createTrigger("*")));
 
 		assertEquals(ApiStatusCodeImpl.ILLEGAL_INPUT, thrown.getStatus());
+	}
+
+	@Test
+	void execute_withoutParams_success()
+	{
+		var actualResult = jobManager.executeJobAndWait(TestJobs.TestManualJobWithParams.class, null)
+				.getProperties()
+				.get("result");
+
+		assertEquals("defaultValue", actualResult);
+	}
+
+	@Test
+	void execute_withParams_success()
+	{
+		var params = new TestJobs.TestManualJobParams("testValue");
+
+		var actualResult = jobManager.executeJobAndWait(TestJobs.TestManualJobWithParams.class, params)
+				.getProperties()
+				.get("result");
+
+		assertEquals(params.getTestParam(), actualResult);
+	}
+
+	@Test
+	void getParams_success()
+	{
+		var jobName = "testJobs.TestManualJobWithParams";
+
+		var actualResult = jobManager.getParams(jobName);
+
+		assertEquals(new TestJobs.TestManualJobParams("defaultValue"), actualResult);
+	}
+
+	@Test
+	void getParams_notExistedJob()
+	{
+		var jobName = "testJobs.notExistedJob";
+
+		AppException thrown = assertThrows(AppException.class, () -> jobManager.getParams(jobName));
+
+		assertEquals(ApiStatusCodeImpl.OBJECT_NOT_FOUND, thrown.getStatus());
 	}
 
 	private Date getNextExecutionDate(String cronExpression)

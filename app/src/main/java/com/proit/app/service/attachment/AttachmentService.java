@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -304,5 +304,14 @@ public class AttachmentService
 		return attachmentStores.stream().filter(it -> storeType.equals(it.getType())).findFirst().orElseThrow(
 				() -> new AppException(ApiStatusCodeImpl.ATTACHMENT_STORE_INIT_FAILED, "Не доступно хранилище вложений с типом '%s'.".formatted(storeType))
 		);
+	}
+
+	@Transactional
+	void deleteAttachment(String attachmentId)
+	{
+		var attachment = attachmentRepository.findByIdEx(attachmentId);
+
+		attachmentStore.deleteAttachment(attachment);
+		attachmentRepository.delete(attachment);
 	}
 }

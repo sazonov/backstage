@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import com.proit.app.conversion.dto.DictConverter;
 import com.proit.app.conversion.dto.data.DictItemConverter;
 import com.proit.app.model.api.ApiResponse;
 import com.proit.app.model.api.OkResponse;
+import com.proit.app.model.dictitem.DictDataItem;
 import com.proit.app.model.dto.DictDto;
 import com.proit.app.model.dto.data.DictItemDto;
 import com.proit.app.model.dto.data.request.CreateDictItemRequest;
@@ -34,11 +35,11 @@ import com.proit.app.service.imp.ImportCsvService;
 import com.proit.app.service.imp.ImportJsonService;
 import com.proit.app.service.remote.RemoteDictDataService;
 import com.proit.app.utils.AttachmentUtils;
-import com.proit.app.utils.MimeTypeUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
@@ -101,7 +102,7 @@ public class RemoteDictDataEndpoint implements RemoteDictDataService
 	@PostMapping("/{dictId}/create")
 	public ApiResponse<DictItemDto> create(@PathVariable String dictId, @RequestBody @Valid CreateDictItemRequest request, @RequestParam String userId)
 	{
-		var result = dictDataService.create(dictId, request.getData(), userId);
+		var result = dictDataService.create(DictDataItem.of(dictId, request.getData()), userId);
 
 		return ApiResponse.of(dictItemConverter.convert(result));
 	}
@@ -112,7 +113,7 @@ public class RemoteDictDataEndpoint implements RemoteDictDataService
 	@PostMapping("/{dictId}/update")
 	public ApiResponse<DictItemDto> update(@PathVariable String dictId, @RequestBody @Valid UpdateDictItemRequest request, @RequestParam String userId)
 	{
-		var result = dictDataService.update(dictId, request.getItemId(), request.getVersion(), request.getData(), userId);
+		var result = dictDataService.update(request.getItemId(), DictDataItem.of(dictId, request.getData()), request.getVersion(), userId);
 
 		return ApiResponse.of(dictItemConverter.convert(result));
 	}
@@ -175,13 +176,12 @@ public class RemoteDictDataEndpoint implements RemoteDictDataService
 	@Override
 	@Operation(summary = "Экспорт элементов справочника.")
 	@PostMapping("/{dictId}/export")
-	public ResponseEntity<?> export(@PathVariable String dictId, @RequestBody @Valid ExportDictRequest request, @RequestParam String userId)
+	public ResponseEntity<Resource> export(@PathVariable String dictId, @RequestBody @Valid ExportDictRequest request, @RequestParam String userId)
 	{
-		var data = dictExportService.exportToResource(dictId, request.getFormat(), request.getItemIds(), userId);
+		var exportedResource = dictExportService.exportToResource(dictId, request.getFormat(), request.getItemIds(), userId);
 
 		return ResponseEntity.ok()
-				.header(HttpHeaders.CONTENT_DISPOSITION, AttachmentUtils.buildContentDisposition(false, data.getDescription(), data.getDescription()))
-				.contentType(MediaType.parseMediaType(MimeTypeUtils.getMimeTypeByFilename(data.getDescription())))
-				.body(data);
+				.header(HttpHeaders.CONTENT_DISPOSITION, AttachmentUtils.buildContentDisposition(false, exportedResource.getFilename(), exportedResource.getFilename()))
+				.body(exportedResource.getResource());
 	}
 }

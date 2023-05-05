@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -64,10 +64,11 @@ public class AttachmentProperties
 		private String bucket;
 	}
 
+	@Getter
+	@Setter
 	public static class DirectoryProperties
 	{
 		public static final String ACTIVATION_PROPERTY = "app.attachments.directory.path";
-		public static final String DEPRECATED_ACTIVATION_PROPERTY = "app.attachments.store-path";
 
 		private String path;
 	}

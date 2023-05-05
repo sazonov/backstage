@@ -6,12 +6,13 @@ app:
     attachments:
         enabled: true
         store-type: directory
-        store-path: uploads
         minio:
             endpoint: http://minio.dnit:9090/
             access-key: dev
             secret-key: barbecue
             bucket: uploads
+        directory:
+            path: uploads
     audit.enabled: false
     dicts:
         storage: mongoDB

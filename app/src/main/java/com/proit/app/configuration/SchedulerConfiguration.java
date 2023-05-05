@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ public class SchedulerConfiguration implements SchedulingConfigurer
 	@Bean
 	public ThreadPoolTaskScheduler taskScheduler()
 	{
-		ThreadPoolTaskScheduler sch = new ThreadPoolTaskScheduler();
+		var sch = new ThreadPoolTaskScheduler();
 		sch.setPoolSize(schedulerProperties.getPoolSize());
 
 		return sch;
@@ -61,11 +61,13 @@ public class SchedulerConfiguration implements SchedulingConfigurer
 	}
 
 	@Bean
-	public HealthContributor healthContributor(Map<String, AbstractJob> jobs)
+	public HealthContributor scheduledJobsHealthContributor(Map<String, AbstractJob> jobs)
 	{
 		log.info("Scheduled jobs found: {}.", jobs.keySet());
 
-		var healthIndicators = jobs.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, it -> new JobHealthIndicator(it.getValue())));
+		var healthIndicators = jobs.entrySet()
+				.stream()
+				.collect(Collectors.toMap(Map.Entry::getKey, it -> new JobHealthIndicator(it.getValue())));
 
 		return ActuatorUtils.createHealthComposite(healthIndicators);
 	}

@@ -6,4 +6,4 @@ include 'dicts-api'
 include 'dicts'
 include 'dependencies'
 include 'doc-templates'
-
+include 'starter-feign-session'

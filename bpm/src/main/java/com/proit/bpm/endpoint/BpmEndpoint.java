@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.proit.bpm.endpoint;
 
 import com.proit.app.model.api.ApiResponse;
+import com.proit.bpm.model.dto.KillProcessRequest;
 import com.proit.bpm.model.dto.MigrateProcessRequest;
 import com.proit.bpm.model.dto.StartProcessRequest;
 import com.proit.bpm.model.dto.StopProcessRequest;
@@ -25,7 +26,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 
@@ -53,11 +57,11 @@ public class BpmEndpoint
 		return ApiResponse.ok();
 	}
 
-	@PostMapping("/kill/{processId}")
+	@PostMapping("/kill")
 	@Operation(summary = "Убивает процесс.")
-	public ApiResponse<?> killProcess(@PathVariable String processId)
+	public ApiResponse<?> killProcess(@Valid @RequestBody KillProcessRequest request)
 	{
-		processService.killProcess(processId);
+		processService.killProcess(request.getProcessId());
 
 		return ApiResponse.ok();
 	}

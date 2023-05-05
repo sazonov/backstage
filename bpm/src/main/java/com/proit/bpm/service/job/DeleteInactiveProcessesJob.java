@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.proit.bpm.service.job;
 
+import com.proit.app.model.dto.job.EmptyJobParams;
 import com.proit.app.model.other.JobResult;
 import com.proit.app.service.job.AbstractCronJob;
 import com.proit.app.service.job.JobDescription;
@@ -36,7 +37,7 @@ import java.util.Map;
 @ConditionalOnProperty("app.bpm.delete-inactive-processes-delay")
 @JobDescription("Удаляет неактивные (остановленные) процессы после истечения указанного в конфиге времени")
 @RequiredArgsConstructor
-public class DeleteInactiveProcessesJob extends AbstractCronJob
+public class DeleteInactiveProcessesJob extends AbstractCronJob<EmptyJobParams>
 {
 	private final ProcessRepository processRepository;
 

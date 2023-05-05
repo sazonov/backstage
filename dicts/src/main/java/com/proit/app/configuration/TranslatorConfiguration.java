@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package com.proit.app.configuration;
 
 import com.proit.app.service.ddl.SqlParser;
 import com.proit.app.service.query.QueryParser;
-import com.proit.app.service.query.Translator;
+import com.proit.app.service.query.MongoTranslator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -32,9 +32,9 @@ public class TranslatorConfiguration
 	}
 
 	@Bean
-	public Translator translator()
+	public MongoTranslator translator()
 	{
-		return new Translator();
+		return new MongoTranslator();
 	}
 
 	@Bean

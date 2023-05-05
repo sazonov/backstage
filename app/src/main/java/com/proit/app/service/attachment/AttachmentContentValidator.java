@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -41,7 +41,8 @@ public class AttachmentContentValidator implements AttachmentServiceAdvice
 
 	private static final Map<String, List<Pair<Integer, byte[]>>> MAGIC_NUMBERS = new HashMap<>();
 
-	static {
+	static
+	{
 		List<Pair<Integer, byte[]>> zipSignatures = List.of(
 				ImmutablePair.of(0, new byte[] {0x50, 0x4b, 0x03, 0x04}),
 				ImmutablePair.of(0, new byte[] {0x50, 0x4b, 0x05, 0x06}),

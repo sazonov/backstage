@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.proit.bpm.service.jbpm;
 
+import com.proit.bpm.configuration.properties.BpmProperties;
 import com.proit.bpm.exception.BpmException;
 import com.proit.bpm.model.Workflow;
 import com.proit.bpm.model.event.WorkflowsUpdatedEvent;
@@ -58,6 +59,8 @@ import java.util.List;
 public class KnowledgeService implements ApplicationListener<WorkflowsUpdatedEvent>
 {
 	private final WorkflowService workflowService;
+
+	private final BpmProperties bpmProperties;
 
 	@Value(value = "classpath:/globals.drl")
 	private Resource globalRulesSource;
@@ -182,6 +185,11 @@ public class KnowledgeService implements ApplicationListener<WorkflowsUpdatedEve
 
 			processNode.setAttribute("id", workflow.getFullId());
 
+			if (bpmProperties.getDefaultTerminatingEndEventScope() == BpmProperties.TerminatingEndEventScope.PROCESS)
+			{
+				handleTerminatingEndEventInSubProcesses(processNode);
+			}
+
 			ByteArrayOutputStream resultStream = new ByteArrayOutputStream();
 
 			Transformer transformer = TransformerFactory.newInstance().newTransformer();
@@ -195,6 +203,37 @@ public class KnowledgeService implements ApplicationListener<WorkflowsUpdatedEve
 		catch (Exception e)
 		{
 			throw new BpmException("failed to patch workflow definition");
+		}
+	}
+
+	private void handleTerminatingEndEventInSubProcesses(Element node)
+	{
+		// Обновления флага терминирующего завершения для подпроцессов.
+		var subProcessList = node.getElementsByTagName("bpmn2:subProcess");
+
+		for (int i = 0; i < subProcessList.getLength(); i++)
+		{
+			var subProcessNode = (Element) subProcessList.item(i);
+
+			handleTerminatingEndEventInSubProcesses(subProcessNode);
+
+			// Проходим по всем завершающим процесс элементам.
+			var endNodeList = subProcessNode.getElementsByTagName("bpmn2:endEvent");
+
+			for (int j = 0; j < endNodeList.getLength(); j++)
+			{
+				var endNode = ((Element) endNodeList.item(j));
+				var terminatingEndNode = (Element) endNode.getElementsByTagName("bpmn2:terminateEventDefinition").item(0);
+
+				// Проходим завершение терминирующее, то отмечаем, то завершается весь процесс целиком, а не только подпроцесс.
+				if (terminatingEndNode != null)
+				{
+					if (!terminatingEndNode.hasAttribute("scope"))
+					{
+						terminatingEndNode.setAttribute("scope", "process");
+					}
+				}
+			}
 		}
 	}
 }

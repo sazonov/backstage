@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -30,8 +30,8 @@ public interface ProcessRepository extends CustomJpaRepository<Process, String>,
 {
 	Optional<Process> findByInstanceId(Long instanceId);
 
-	@Query("select p from Process p where p.active = :isActive and function('jsonb_extract_path_text', p.parameters, :paramName1) = :paramValue1")
-	List<Process> findByParameters(@Param("isActive") Boolean isActive, @Param("paramName1") String paramName1, @Param("paramValue1") Object paramValue1);
+	@Query(nativeQuery = true, value = "select * from process p where p.active = ?1 and p.parameters @> jsonb_build_object(?2, ?3)")
+	List<Process> findByParameters(Boolean isActive, String paramName1, String paramValue1);
 
 	@Query("select p.id from Process p where p.workflowId in :workflowIds and p.active = true")
 	List<String> findProcessIdsByWorkflowIds(List<String> workflowIds);

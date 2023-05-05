@@ -4,13 +4,16 @@ import com.proit.app.utils.TimeUtils;
 import com.proit.bpm.domain.TaskStatus;
 import com.proit.bpm.helper.TransactionHelper;
 import com.proit.bpm.model.TaskFilter;
+import com.proit.bpm.repository.jbpm.WorkItemInfoRepository;
 import com.proit.bpm.service.ProcessService;
+import com.proit.bpm.service.TaskManager;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -23,24 +26,31 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BpmTests extends AbstractTests
 {
+	static final String WORKFLOW_ID = "test";
+	static final String PROCESS_DOCUMENT_ID = "documentId";
+
 	@Autowired private AsyncTaskExecutor taskExecutor;
 
 	@Autowired private TransactionHelper transactionHelper;
 	@Autowired private ProcessService processService;
 
+	@Autowired private TaskManager taskManager;
+
+	@Autowired private WorkItemInfoRepository workItemInfoRepository;
+
 	@Test
-	public void runNestedProcesses()
+	void runNestedProcesses()
 	{
 		var processIds = new ArrayList<String>();
 
 		transactionHelper.runInTransaction(() -> {
-			processIds.add(processService.startProcess("test", Map.of(
-					"documentId", "doc1"
+			processIds.add(processService.startProcess(WORKFLOW_ID, Map.of(
+					PROCESS_DOCUMENT_ID, "doc1"
 			)).getId());
 
 			transactionHelper.runInNewTransaction(() -> {
-				processIds.add(processService.startProcess("test", Map.of(
-						"documentId", "doc2"
+				processIds.add(processService.startProcess(WORKFLOW_ID, Map.of(
+						PROCESS_DOCUMENT_ID, "doc2"
 				)).getId());
 			});
 		});
@@ -51,7 +61,31 @@ class BpmTests extends AbstractTests
 	}
 
 	@Test
-	public void boundaryTimerTest()
+	void terminatingSubProcessTest()
+	{
+		var process = processService.startProcess("terminatingSubProcess");
+
+		assertFalse(process.isActive());
+	}
+
+	@Test
+	void nonTerminatingSubProcessTest()
+	{
+		var process = processService.startProcess("nonTerminatingSubProcess");
+
+		assertTrue(process.isActive());
+	}
+
+	@Test
+	void stopProcessWithPendingTimerTest()
+	{
+		var process = processService.startProcess("boundaryTimer");
+
+		processService.stopProcess(process.getId());
+	}
+
+	@Test
+	void boundaryTimerTest()
 	{
 		var process = processService.startProcess("boundaryTimer");
 		var timers = processService.getProcessTimers(process.getId());
@@ -72,7 +106,7 @@ class BpmTests extends AbstractTests
 	}
 
 	@Test
-	public void eventDrivenStart()
+	void eventDrivenStart()
 	{
 		var paramName = "objectId";
 		var paramValue = 1;
@@ -95,15 +129,29 @@ class BpmTests extends AbstractTests
 	}
 
 	@Test
-	public void runProcess()
+	void syncProcessParams()
 	{
-		var process = processService.startProcess("test", Map.of(
-				"documentId", "123"
+		var paramName = "processVar1";
+
+		var process = processService.startProcess("processParams", Map.of(paramName, false));
+		process = processService.getProcess(process.getId()).orElse(null);
+
+		assertNotNull(process);
+		assertTrue((Boolean) process.getParameters().get(paramName));
+	}
+
+	@Test
+	void runProcess()
+	{
+		var documentId = UUID.randomUUID().toString();
+
+		var process = processService.startProcess(WORKFLOW_ID, Map.of(
+				PROCESS_DOCUMENT_ID, documentId
 		));
 
 		var timers = processService.getProcessTimers(process.getId());
 
-		assertEquals(timers.size(), 1);
+		assertEquals(1, timers.size());
 
 		var timerName = "Задача 1#1";
 		var timeNewFireTime = LocalDateTime.now().plusHours(1).truncatedTo(ChronoUnit.MILLIS);
@@ -121,8 +169,8 @@ class BpmTests extends AbstractTests
 		var filter = TaskFilter.builder()
 				.process(process)
 				.userId("john")
-				.statuses(Collections.singletonList(TaskStatus.PENDING))
-				.processParameters(Map.of("documentId", "123"))
+				.statuses(List.of(TaskStatus.PENDING))
+				.processParameters(Map.of(PROCESS_DOCUMENT_ID, documentId))
 				.build();
 
 		var task = processService.getTasks(filter, PageRequest.of(0, 10)).getContent().get(0);
@@ -148,13 +196,31 @@ class BpmTests extends AbstractTests
 
 		TimeUtils.sleep(5 * 1000);
 
-		process = processService.getProcess("documentId", "123").get();
+		process = processService.getProcess(PROCESS_DOCUMENT_ID, documentId).get();
 
 		processService.sendEvent(process.getId(), "timerWaitForFeedback");
 	}
 
 	@Test
-	public void runProcessWithTimers()
+	void stopProcess()
+	{
+		var process = processService.startProcess(WORKFLOW_ID, Map.of(
+				PROCESS_DOCUMENT_ID, UUID.randomUUID().toString()
+		));
+
+		processService.stopProcess(process.getId());
+
+		var filter = TaskFilter.builder()
+				.statuses(List.of(TaskStatus.PENDING))
+				.build();
+
+		var tasks = taskManager.getTasks(filter, Pageable.unpaged()).getContent();
+
+		tasks.forEach(task -> assertEquals(TaskStatus.CANCELED, task.getStatus()));
+	}
+
+	@Test
+	void runProcessWithTimers()
 	{
 		var process = processService.startProcess("test2", Map.of());
 
@@ -166,7 +232,7 @@ class BpmTests extends AbstractTests
 	}
 
 	@Test
-	public void runParallelProcesses() throws Exception
+	void runParallelProcesses() throws Exception
 	{
 		List<Future<?>> futures = new LinkedList<>();
 
@@ -184,15 +250,33 @@ class BpmTests extends AbstractTests
 	}
 
 	@Test
-	public void testKillProcess()
+	void killProcess()
 	{
-		var process = processService.startProcess("test", Map.of(
-				"documentId", UUID.randomUUID().toString()
+		var process = processService.startProcess(WORKFLOW_ID, Map.of(
+				PROCESS_DOCUMENT_ID, UUID.randomUUID().toString()
 		));
 
 		processService.killProcess(process.getId());
 
 		assertTrue(processService.getProcess(process.getId()).isEmpty());
+	}
+
+	@Test
+	void killProcessWithMissingWorkItem()
+	{
+		var process = processService.startProcess(WORKFLOW_ID, Map.of(
+				PROCESS_DOCUMENT_ID, UUID.randomUUID().toString()
+		));
+
+		var instanceId = process.getInstanceId();
+
+		transactionHelper.runInTransaction(() ->
+				workItemInfoRepository.deleteAllByProcessInstanceId(instanceId));
+
+		processService.killProcess(process.getId());
+
+		assertTrue(processService.getProcess(process.getId()).isEmpty());
+		assertTrue(workItemInfoRepository.findAllByProcessInstanceId(instanceId).isEmpty());
 	}
 
 	private void executeParallelProcess(int processNumber)

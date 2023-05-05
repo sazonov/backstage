@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.proit.app.conversion.jpa;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.eclipse.persistence.mappings.DatabaseMapping;
 import org.eclipse.persistence.mappings.converters.Converter;
@@ -40,7 +41,7 @@ public abstract class AbstractJsonConverter<T> implements Converter
 		{
 			PGobject pgObject = new PGobject();
 			pgObject.setType("jsonb");
-			pgObject.setValue(mapper.writeValueAsString(objectValue));
+			pgObject.setValue(createObjectWriter().writeValueAsString(objectValue));
 
 			return pgObject;
 		}
@@ -70,6 +71,11 @@ public abstract class AbstractJsonConverter<T> implements Converter
 	public boolean isMutable()
 	{
 		return false;
+	}
+
+	protected ObjectWriter createObjectWriter()
+	{
+		return mapper.writerFor(createTypeReference());
 	}
 
 	protected abstract TypeReference<T> createTypeReference();

@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -28,24 +28,24 @@ import java.util.Collection;
 import java.util.List;
 
 @NoRepositoryBean
-public interface CustomJpaRepository<T, ID extends Serializable> extends JpaRepository<T, ID>
+public interface CustomJpaRepository<T, I extends Serializable> extends JpaRepository<T, I>
 {
 	/**
 	 * То же, что и {@link #findById(Object)}, но кидает исключение, если объект не найден.
 	 */
-	T findByIdEx(ID id);
+	T findByIdEx(I id);
 
 	/**
 	 * То же, что и {@link #findById(Object)}, но возвращает null, если объект не найден.
 	 */
-	T findByIdNoEx(ID id);
+	T findByIdNoEx(I id);
 
-	List<T> findAll(Collection<ID> ids);
+	List<T> findAll(Collection<I> ids);
 
 	/**
 	 * Получение списка всех идентификаторов объектов в репозитории.
 	 */
-	List<ID> findAllIds();
+	List<I> findAllIds();
 
 	/**
 	 * Возвращает используемый {@link EntityManager}.

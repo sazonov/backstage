@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -29,6 +29,12 @@ import java.util.concurrent.Callable;
 @UtilityClass
 public final class SecurityUtils
 {
+	@FunctionalInterface
+	public interface RunnableEx
+	{
+		void run() throws Exception;
+	}
+
 	public String getCurrentUserId()
 	{
 		return getCurrentUser().getId();
@@ -70,6 +76,16 @@ public final class SecurityUtils
 		{
 			SecurityContextHolder.getContext().setAuthentication(currentAuth);
 		}
+	}
+
+	@SneakyThrows
+	public void runForUser(Principal user, RunnableEx runnable)
+	{
+		runForUser(user, () -> {
+			runnable.run();
+
+			return true;
+		});
 	}
 
 	public <R> Callable<R> callableForUser(Principal user, Callable<R> callable)

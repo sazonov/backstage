@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -29,7 +29,11 @@ public class TaskUtils
 
 	public static void executeWithTryCount(int tryCount, long delay, VoidTask task) throws Exception
 	{
-		executeWithTryCount(tryCount, delay, () -> { task.execute(); return true; }, (c, e) -> true);
+		executeWithTryCount(tryCount, delay,
+				() -> {
+					task.execute();
+					return true;
+				}, (c, e) -> true);
 	}
 
 	public static <T> T executeWithTryCount(int tryCount, long delay, Supplier<T> task) throws Exception

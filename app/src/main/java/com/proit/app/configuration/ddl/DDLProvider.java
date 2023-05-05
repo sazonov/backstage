@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ package com.proit.app.configuration.ddl;
 /**
  * Класс, обновляющий структуру данных приложения. Для управления порядком применения изменений необходимо использовать
  * аннотацию {@link org.springframework.core.annotation.Order} или {@link javax.annotation.Priority}.
- * Все системные компоненты должны приоритет ниже, чем {@link DDLConfiguration#DDL_PRECEDENCE_SYSTEM}.
- * Все компоненты приложения должны иметь приоритет ниже, чем {@link DDLConfiguration#DDL_PRECEDENCE_APP}.
+ * Все системные компоненты, должны иметь приоритет ниже, чем {@link DDLConfiguration#DDL_PRECEDENCE_SYSTEM}.
+ * Все компоненты приложения, должны иметь приоритет ниже, чем {@link DDLConfiguration#DDL_PRECEDENCE_APP}.
  */
 public interface DDLProvider
 {

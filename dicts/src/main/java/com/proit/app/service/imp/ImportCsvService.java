@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.proit.app.service.imp;
 
 import com.proit.app.constant.ServiceFieldConstants;
 import com.proit.app.domain.DictItem;
+import com.proit.app.model.dictitem.DictDataItem;
 import com.proit.app.service.DictDataService;
 import com.proit.app.service.DictPermissionService;
 import com.proit.app.utils.SecurityUtils;
@@ -53,7 +54,7 @@ public class ImportCsvService implements ImportService
 	{
 		dictPermissionService.checkEditPermission(dictId, userId);
 
-		var result = new ArrayList<Map<String, Object>>();
+		var result = new ArrayList<DictDataItem>();
 
 		try (var reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8))
 		{
@@ -80,7 +81,7 @@ public class ImportCsvService implements ImportService
 					recordMap.put(headerMap.get(i), record.get(i));
 				}
 
-				result.add(recordMap);
+				result.add(DictDataItem.of(dictId, recordMap));
 			}
 		}
 		catch (IOException e)

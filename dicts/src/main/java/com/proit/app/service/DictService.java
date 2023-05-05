@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import com.proit.app.constant.ServiceFieldConstants;
 import com.proit.app.domain.*;
 import com.proit.app.exception.*;
 import com.proit.app.service.backend.DictBackend;
+import com.proit.app.service.validation.DictValidationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -33,9 +34,9 @@ import static com.proit.app.constant.ServiceFieldConstants.*;
 @RequiredArgsConstructor
 public class DictService
 {
-	private final ValidationService validationService;
-
 	private final DictBackend dictBackend;
+
+	private final DictValidationService dictValidationService;
 
 	public Dict getById(String id)
 	{
@@ -62,7 +63,7 @@ public class DictService
 
 	public Dict create(Dict dict)
 	{
-		validationService.validateScheme(dict);
+		dictValidationService.validateDictScheme(dict);
 
 		return dictBackend.createDict(buildScheme(dict, new Dict()));
 	}
@@ -75,7 +76,7 @@ public class DictService
 
 	public Dict update(String dictId, Dict dict)
 	{
-		validationService.validateScheme(dict);
+		dictValidationService.validateDictScheme(dict);
 
 		return dictBackend.updateDict(dictId, buildScheme(dict, getById(dictId)));
 	}
@@ -202,21 +203,6 @@ public class DictService
 		dictBackend.deleteEnum(dict, enumId);
 	}
 
-	public void beginTransaction()
-	{
-		dictBackend.beginDDL();
-	}
-
-	public void commit()
-	{
-		dictBackend.commitDDL();
-	}
-
-	public void rollback(Exception e)
-	{
-		dictBackend.rollbackDDL(e);
-	}
-
 	private Dict buildScheme(Dict source, Dict target)
 	{
 		addServiceFields(source.getFields());
@@ -234,14 +220,6 @@ public class DictService
 
 	private void addServiceFields(List<DictField> dictFields)
 	{
-		dictFields.add(0, DictField.builder()
-				.id(_ID)
-				.name("Идентификатор")
-				.type(DictFieldType.STRING)
-				.required(false)
-				.multivalued(false)
-				.build());
-
 		dictFields.add(
 				DictField.builder()
 						.id(CREATED)

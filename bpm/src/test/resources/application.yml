@@ -16,7 +16,8 @@ app:
     attachments:
         enabled: true
         store-type: directory
-        store-path: uploads
+        directory:
+            path: uploads
 
     bpm:
         delete-inactive-processes-delay: 1s

@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -32,14 +32,14 @@ import java.util.Collection;
 import java.util.List;
 
 @SuppressWarnings("unchecked")
-public class CustomJpaRepositoryImpl<T, ID extends Serializable> extends SimpleJpaRepository<T, ID> implements CustomJpaRepository<T, ID>
+public class CustomJpaRepositoryImpl<T, I extends Serializable> extends SimpleJpaRepository<T, I> implements CustomJpaRepository<T, I>
 {
 	private final EntityManager em;
 	private final Class<T> domainClass;
 	private final String selectAllIdsQuery;
-	private final Class<ID> idClass;
+	private final Class<I> idClass;
 
-	public CustomJpaRepositoryImpl(JpaEntityInformation<T, ID> entityInformation, EntityManager entityManager)
+	public CustomJpaRepositoryImpl(JpaEntityInformation<T, I> entityInformation, EntityManager entityManager)
 	{
 		super(entityInformation, entityManager);
 
@@ -53,33 +53,33 @@ public class CustomJpaRepositoryImpl<T, ID extends Serializable> extends SimpleJ
 			throw new RuntimeException("failed to get id attribute");
 		}
 
-		this.idClass = (Class<ID>) idAttribute.getJavaType();
+		this.idClass = (Class<I>) idAttribute.getJavaType();
 		this.selectAllIdsQuery = String.format("select t.%s from %s t", idAttribute.getName(), entityInformation.getEntityName());
 	}
 
-	public T findByIdEx(ID id)
+	public T findByIdEx(I id)
 	{
 		return findById(id).orElseThrow(() -> new ObjectNotFoundException(domainClass, id));
 	}
 
-	public T findByIdNoEx(ID id)
+	public T findByIdNoEx(I id)
 	{
 		return findById(id).orElse(null);
 	}
 
-	public List<ID> findAllIds()
+	public List<I> findAllIds()
 	{
 		return em.createQuery(selectAllIdsQuery, idClass).getResultList();
 	}
 
-	public List<T> findAll(Collection<ID> ids)
+	public List<T> findAll(Collection<I> ids)
 	{
 		return findAll((root, query, cb) -> root.get("id").in(ids));
 	}
 
 	@Transactional
 	@Override
-	public void deleteById(@NonNull ID id)
+	public void deleteById(@NonNull I id)
 	{
 		delete(findById(id).orElseThrow(() -> new ObjectNotFoundException(domainClass, id)));
 	}

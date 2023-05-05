@@ -25,6 +25,7 @@ sonarqube {
 subprojects {
 	apply plugin: 'java'
 	apply plugin: 'idea'
+	apply plugin: 'proit-checkstyle'
 
 	group 'com.proit'
 	version "$appVersion"
@@ -34,7 +35,7 @@ subprojects {
 	}
 
 	wrapper {
-		gradleVersion = '7.6'
+		gradleVersion = '8.0.2'
 		distributionType = Wrapper.DistributionType.BIN
 	}
 

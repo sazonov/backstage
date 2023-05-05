@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -36,7 +36,8 @@ public enum ColumnType
 	TIMESTAMP("timestamp"),
 	ENUM("anything"),
 	JSON("json"),
-	ATTACHMENT("attachment");
+	ATTACHMENT("attachment"),
+	GEO_JSON("geo_json");
 
 	private final Set<String> aliases;
 
@@ -60,18 +61,20 @@ public enum ColumnType
 
 	public DictFieldType toDictFieldType()
 	{
-		return switch (this) {
-			case INT -> DictFieldType.INTEGER;
-			case DECIMAL -> DictFieldType.DECIMAL;
-			case TEXT -> DictFieldType.STRING;
-			case BOOL -> DictFieldType.BOOLEAN;
-			case DATE -> DictFieldType.DATE;
-			case TIMESTAMP -> DictFieldType.TIMESTAMP;
-			case JSON -> DictFieldType.JSON;
-			case ENUM -> DictFieldType.ENUM;
-			case ATTACHMENT -> DictFieldType.ATTACHMENT;
+		return switch (this)
+			{
+				case INT -> DictFieldType.INTEGER;
+				case DECIMAL -> DictFieldType.DECIMAL;
+				case TEXT -> DictFieldType.STRING;
+				case BOOL -> DictFieldType.BOOLEAN;
+				case DATE -> DictFieldType.DATE;
+				case TIMESTAMP -> DictFieldType.TIMESTAMP;
+				case JSON -> DictFieldType.JSON;
+				case ENUM -> DictFieldType.ENUM;
+				case ATTACHMENT -> DictFieldType.ATTACHMENT;
+				case GEO_JSON -> DictFieldType.GEO_JSON;
 
-			default -> throw new RuntimeException("Отсутствует соответствие типа %s с типом поля справочника.".formatted(this));
-		};
+				default -> throw new RuntimeException("Отсутствует соответствие типа %s с типом поля справочника.".formatted(this));
+			};
 	}
 }

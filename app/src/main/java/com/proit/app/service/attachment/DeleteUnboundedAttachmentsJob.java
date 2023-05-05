@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,10 +16,9 @@
 
 package com.proit.app.service.attachment;
 
-import com.proit.app.model.domain.Attachment;
+import com.proit.app.model.dto.job.EmptyJobParams;
 import com.proit.app.model.other.JobResult;
 import com.proit.app.repository.AttachmentRepository;
-import com.proit.app.service.attachment.store.AttachmentStore;
 import com.proit.app.service.job.AbstractFixedDelayJob;
 import com.proit.app.service.job.JobDescription;
 import lombok.RequiredArgsConstructor;
@@ -28,18 +27,18 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.Map;
 
 @Slf4j
 @Component
 @ConditionalOnProperty("app.attachments.deleteUnbounded")
 @JobDescription("Удаление мусорных вложений, для которых нет связей с объектами системы")
 @RequiredArgsConstructor
-public class DeleteUnboundedAttachmentsJob extends AbstractFixedDelayJob
+public class DeleteUnboundedAttachmentsJob extends AbstractFixedDelayJob<EmptyJobParams>
 {
 	private final AttachmentRepository attachmentRepository;
-	private final AttachmentStore attachmentStore;
+	private final AttachmentService attachmentService;
 
 	@Override
 	public long getFixedDelay()
@@ -52,29 +51,27 @@ public class DeleteUnboundedAttachmentsJob extends AbstractFixedDelayJob
 	{
 		log.info("Deleting unbounded attachments...");
 
-		Date expirationDate = new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24);
+		var expirationDate = LocalDateTime.now().minusDays(1);
 
-		List<Attachment> expiredAttachments = attachmentRepository.findExpiredUnbounded(expirationDate, PageRequest.of(0, 500));
+		var expiredAttachmentIds = attachmentRepository.findExpiredUnbounded(expirationDate, PageRequest.of(0, 500));
 
-		for (Attachment attachment : expiredAttachments)
+		for (var attachmentId : expiredAttachmentIds)
 		{
 			try
 			{
-				attachmentStore.deleteAttachment(attachment);
-
-				attachmentRepository.delete(attachment);
+				attachmentService.deleteAttachment(attachmentId);
 			}
 			catch (Exception e)
 			{
-				log.info(String.format("Failed to delete unbounded attachment '%s'.", attachment.getId()), e);
+				log.info(String.format("Failed to delete unbounded attachment '%s'.", attachmentId), e);
 			}
 		}
 
-		if (!expiredAttachments.isEmpty())
+		if (!expiredAttachmentIds.isEmpty())
 		{
-			log.info("'{}' unbounded attachment(s) processed.", expiredAttachments.size());
+			log.info("'{}' unbounded attachment(s) processed.", expiredAttachmentIds.size());
 		}
 
-		return JobResult.ok();
+		return JobResult.ok(Map.of("processed", expiredAttachmentIds.size()));
 	}
 }

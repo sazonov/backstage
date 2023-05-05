@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2022 the original author or authors.
+ *    Copyright 2019-2023 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -17,52 +17,21 @@
 package com.proit.app.service.backend;
 
 import com.proit.app.domain.*;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 public interface DictBackend
 {
-	void beginDDL();
-
-	void commitDDL();
-
-	// TODO: зачем тут исключение?
-	void rollbackDDL(Exception e);
-
-	// TODO: почему не DictItem возвращается?
-	List<Object> getByIds(String dictId, List<String> ids, List<DictFieldName> requiredFields);
-
-	// TODO: почему не DictItem возвращается?
-	Page<Object> getByFilter(Dict dict, List<DictFieldName> requiredFields, String filtersQuery, Pageable pageable);
-
-	boolean existsById(String dictId, String itemId);
-
-	boolean existsByFilter(String dictId, String filtersQuery);
-
-	// TODO: почему не DictItem передаётся/возвращается? Доки - это в монго, используем item.
-	Map<String, Object> create(String dictId, Map<String, Object> mappedDoc);
-
-	// TODO: почему не DictItem передаётся/возвращается?
-	List<Map<String, Object>> createMany(String dictId, List<Map<String, Object>> docs);
-
-	// TODO: почему не DictItem передаётся/возвращается?
-	Object update(String dictId, String itemId, long version, Map<String, Object> mappedDoc);
-
-	void delete(String dictId, String itemId, boolean deleted);
-
 	Dict getDictById(String id);
 
 	List<Dict> getAllDicts();
 
 	Dict createDict(Dict dict);
 
-	void deleteDict(String id, LocalDateTime deleted);
-
 	Dict updateDict(String dictId, Dict updatedDict);
+
+	void deleteDict(String id, LocalDateTime deleted);
 
 	DictField renameDictField(Dict dict, String oldFieldId, DictField field);
 
@@ -80,8 +49,4 @@ public interface DictBackend
 	DictEnum updateEnum(Dict dict, DictEnum oldEnum, DictEnum newEnum);
 
 	void deleteEnum(Dict dict, String enumId);
-
-	void deleteAll(String dictId, boolean deleted);
-
-	long countByFilter(String dictId, String filtersQuery);
 }
