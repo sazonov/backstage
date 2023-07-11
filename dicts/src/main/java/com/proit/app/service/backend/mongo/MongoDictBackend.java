@@ -20,12 +20,14 @@ package com.proit.app.service.backend.mongo;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoNamespace;
+import com.proit.app.configuration.properties.DictsProperties;
 import com.proit.app.domain.*;
-import com.proit.app.exception.DictionaryAlreadyExistsException;
-import com.proit.app.exception.DictionaryDeletedException;
-import com.proit.app.exception.DictionaryNotFoundException;
-import com.proit.app.exception.EnumNotFoundException;
+import com.proit.app.exception.dictionary.DictAlreadyExistsException;
+import com.proit.app.exception.dictionary.DictDeletedException;
+import com.proit.app.exception.dictionary.DictNotFoundException;
+import com.proit.app.exception.dictionary.enums.EnumNotFoundException;
 import com.proit.app.service.backend.DictBackend;
+import com.proit.app.service.backend.Storage;
 import lombok.RequiredArgsConstructor;
 import org.bson.Document;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -42,24 +44,33 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.proit.app.constant.ServiceFieldConstants.*;
+import static com.proit.app.constant.ServiceFieldConstants.ID;
+import static com.proit.app.constant.ServiceFieldConstants._ID;
 import static java.util.function.Predicate.not;
 import static org.springframework.data.mongodb.core.schema.JsonSchemaProperty.*;
 
 @Component
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "app.dicts.storage", havingValue = "mongoDB")
+@ConditionalOnProperty(name = DictsProperties.STORAGE_PROPERTY, havingValue = MongoStorage.MONGO_STORAGE)
 public class MongoDictBackend extends CommonMongoBackend implements DictBackend
 {
+	private final MongoStorage mongoStorage;
+
+	@Override
+	public Storage getStorage()
+	{
+		return mongoStorage;
+	}
+
 	@Override
 	public Dict getDictById(String id)
 	{
 		var dict = mongoDictRepository.findById(id)
-				.orElseThrow(() -> new DictionaryNotFoundException(id));
+				.orElseThrow(() -> new DictNotFoundException(id));
 
 		if (dict.getDeleted() != null)
 		{
-			throw new DictionaryDeletedException(id);
+			throw new DictDeletedException(id);
 		}
 
 		convertMongoServiceFields(dict);
@@ -86,7 +97,7 @@ public class MongoDictBackend extends CommonMongoBackend implements DictBackend
 
 		if (mongoDictRepository.existsById(id))
 		{
-			throw new DictionaryAlreadyExistsException(id);
+			throw new DictAlreadyExistsException(id);
 		}
 
 		addMongoServiceFields(dict.getFields());
@@ -139,7 +150,7 @@ public class MongoDictBackend extends CommonMongoBackend implements DictBackend
 		addToTransactionData(id, true);
 
 		var scheme = mongoDictRepository.findById(id)
-				.orElseThrow(() -> new DictionaryNotFoundException(id));
+				.orElseThrow(() -> new DictNotFoundException(id));
 
 		scheme.setDeleted(deleted);
 

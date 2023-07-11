@@ -1,4 +1,77 @@
 # Change Log
+
+## 4.5.21 - 2023-07-10
+### Starter Feign
+- Понизили приоритет вызова Interceptor-а и убрали прерывание запроса при отсутствии авторизации.
+### Dicts
+- Добавили вторые версии эндпоинтов RemoteDictDataEndpoint и RemoteDictDataService без передачи userId параметром.
+
+## 4.5.20 - 2023-07-06
+### App
+- Добавлен параметр конфигурации app.transaction.template для управления созданием TransactionTemplate.
+
+## 4.5.19 - 2023-07-03
+### App
+- Изменена обязательность поля objectId в audit.
+
+## 4.5.18 - 2023-06-27
+### Dependency Upgrades
+- Spring Boot 2.7.13
+- MinIO 8.4.6
+- Guava 32.0.1-jre
+- Commons-io 2.13.0
+- Commons-codec 1.16.0
+
+## 4.5.17 - 2023-06-19
+### Dicts
+- Добавлен метод для получения списка id элементов справочника без пагинации.
+
+# Change Log
+## 4.5.16 - 2023-06-08
+### Dicts
+- Исправлена ошибка валидации Date/LocalDate/LocalDateTime при миграции DictItem с типом поля DATE/TIMESTAMP.
+
+## 4.5.15 - 2023-06-02
+### Dicts
+- Исправлена ошибка удаления таблиц при откате миграции.
+
+## 4.5.14 - 2023-05-31
+### App
+- Исправлено отображение _java.util.Map_ для SpringDoc.
+
+## 4.5.13 - 2023-05-31
+### App
+- Исправлена ошибка с десериализацией JobParams в ScheduledJobsEndpoint.
+
+## 4.5.12 - 2023-05-30
+### Dicts
+- Добавлен принудительный маппинг Date к LocalDate или LocalDateTime при получении DictItem.
+
+## 4.5.11 - 2023-05-30
+### Dependency Upgrades
+- Spring Boot 2.7.12
+- Spring Cloud 3.1.5
+- Groovy 3.0.17
+- Spring Doc 1.6.15
+- Flyway 9.19.1
+- Hazelcast 5.2.3
+- Guava 32.0.0-jre
+
+### App
+- Добавлена возможность менять порядок менеджеров транзакций при объединении в цепочки через параметр конфигурации app.transaction.chaining.
+
+## 4.5.9 - 2023-05-10
+### Dicts
+- Проведена финальная реорганизация кода: маппинг DictData перенесен в слой Backend, пакет exception структурирован, единная точка входа для DictDataBackend создана в виде DictDataBackendProvider.
+
+## 4.5.8 - 2023-05-10
+### Dicts
+- В миграциях исправлена ошибка обновления при использовании JsonValue внутри массивов.
+
+## 4.5.7 - 2023-05-10
+### Dicts
+- Проброшен id пользователя в валидацию DictDataItem при создании справочника с внешним ключем на другой справочник.
+
 ## 4.5.6 - 2023-04-24
 ### Dicts
 - Добавлен вызов метода после обновления записи в DictDataServiceAdvice.

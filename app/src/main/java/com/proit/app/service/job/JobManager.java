@@ -16,6 +16,7 @@
 
 package com.proit.app.service.job;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.proit.app.exception.ObjectNotFoundException;
 import com.proit.app.model.dto.job.JobParams;
 import com.proit.app.model.other.JobResult;
@@ -42,6 +43,10 @@ import java.util.stream.Collectors;
 public class JobManager
 {
 	private final ThreadPoolTaskScheduler taskScheduler;
+
+	private final JobParametersValidator parametersValidator;
+
+	private final ObjectMapper mapper;
 
 	@Getter
 	private final Map<String, AbstractJob<? extends JobParams>> jobs;
@@ -76,6 +81,7 @@ public class JobManager
 		return executeJobAndWait(jobClass, null);
 	}
 
+	@SuppressWarnings("unchecked")
 	public <P extends JobParams> JobResult executeJobAndWait(Class<? extends AbstractJob> jobClass, P params)
 	{
 		log.info("Executing scheduled job by class name '{}' manually.", jobClass.getSimpleName());
@@ -91,7 +97,7 @@ public class JobManager
 	}
 
 	@SuppressWarnings("unchecked")
-	public <P extends JobParams> void executeJob(@NonNull String jobName, P params)
+	public void executeJob(@NonNull String jobName, Map<String, Object> params)
 	{
 		log.info("Executing scheduled job '{}' manually.", jobName);
 
@@ -100,14 +106,26 @@ public class JobManager
 			throw new ObjectNotFoundException(AbstractJob.class, jobName);
 		}
 
-		if (params == null)
+		var job = (AbstractJob<JobParams>) jobs.get(jobName);
+
+		if (params == null || params.isEmpty())
 		{
-			taskScheduler.execute(jobs.get(jobName));
+			taskScheduler.execute(job);
 		}
 		else
 		{
-			taskScheduler.execute(new JobExecutionContext<>((AbstractJob<P>) jobs.get(jobName), params));
+			var jobParams = cast(job, params);
+			parametersValidator.validate(jobParams);
+
+			taskScheduler.execute(new JobExecutionContext<>(job, jobParams));
 		}
+	}
+
+	public JobParams cast(AbstractJob<JobParams> job, Map<String, Object> params)
+	{
+		var paramsType = job.getDefaultParams().getClass();
+
+		return mapper.convertValue(params, paramsType);
 	}
 
 	public JobParams getParams(@NonNull String jobName)

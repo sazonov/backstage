@@ -17,8 +17,8 @@
 package com.proit.app.configuration;
 
 import com.proit.app.service.ddl.SqlParser;
-import com.proit.app.service.query.QueryParser;
 import com.proit.app.service.query.MongoTranslator;
+import com.proit.app.service.query.QueryParser;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

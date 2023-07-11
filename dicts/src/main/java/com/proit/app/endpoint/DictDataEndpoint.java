@@ -26,6 +26,7 @@ import com.proit.app.model.dto.data.DictItemDto;
 import com.proit.app.model.dto.data.request.CreateDictItemRequest;
 import com.proit.app.model.dto.data.request.DeleteDictItemRequest;
 import com.proit.app.model.dto.data.request.UpdateDictItemRequest;
+import com.proit.app.model.dto.request.BasicSearchRequest;
 import com.proit.app.model.dto.request.ExportDictRequest;
 import com.proit.app.model.dto.request.SearchRequest;
 import com.proit.app.service.DictDataService;
@@ -81,6 +82,15 @@ public class DictDataEndpoint
 		var result = dictDataService.getByFilter(dictId, request.getFields(), request.getQuery(), pageable);
 
 		return ApiResponse.of(dictItemConverter.convert(result));
+	}
+
+	@Operation(summary = "Получение списка ИД справочника по фильтру без пагинации.")
+	@PostMapping("/{dictId}/ids")
+	public ApiResponse<List<String>> getIdsByFilter(@PathVariable String dictId, @RequestBody @Valid BasicSearchRequest request)
+	{
+		var result = dictDataService.getIdsByFilter(dictId, request.getQuery());
+
+		return ApiResponse.of(result.getContent());
 	}
 
 	@Operation(summary = "Получение записей справочника по списку id.")

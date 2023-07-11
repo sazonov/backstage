@@ -17,7 +17,7 @@
 package com.proit.app.service;
 
 import com.proit.app.domain.VersionScheme;
-import com.proit.app.exception.MigrationAppliedException;
+import com.proit.app.exception.migration.MigrationAppliedException;
 import com.proit.app.service.backend.VersionSchemeBackend;
 import com.proit.app.service.ddl.Interpreter;
 import com.proit.app.service.ddl.SqlParser;

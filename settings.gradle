@@ -1,4 +1,4 @@
-rootProject.name = 'backstage'
+rootProject.name = 'components'
 
 include 'app'
 include 'bpm'

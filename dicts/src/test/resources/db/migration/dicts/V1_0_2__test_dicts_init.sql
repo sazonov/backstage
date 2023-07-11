@@ -4,7 +4,8 @@ create table user['Пользователи']
     last_name['Фамилия'] text,
     first_name['Имя'] text,
     middle_name['Отчество'] text,
-    contract['Договор'] attachment
+    contract['Договор'] attachment,
+    birth_date['Дата рождения'] date
 );
 
 create table indebtedness['Задолженности']

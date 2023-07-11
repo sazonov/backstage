@@ -6,8 +6,8 @@ import com.google.common.collect.ImmutableMap;
 import com.proit.app.common.AbstractTest;
 import com.proit.app.constant.ServiceFieldConstants;
 import com.proit.app.domain.DictItem;
-import com.proit.app.exception.DictionaryConcurrentUpdateException;
 import com.proit.app.exception.ObjectNotFoundException;
+import com.proit.app.exception.dictionary.DictConcurrentUpdateException;
 import com.proit.app.model.dictitem.DictDataItem;
 import com.proit.app.model.domain.Attachment;
 import com.proit.app.model.other.date.DateConstants;
@@ -27,7 +27,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -104,6 +103,14 @@ class DictDataServiceTest extends AbstractTest
 				PageRequest.of(0, 10));
 
 		assertEquals(result.getContent().get(0).getData().get("stringField"), DATA_MAP.get("stringField"));
+	}
+
+	@Test
+	void getIdsByFilterCorrect()
+	{
+		var result = dictDataService.getIdsByFilter(DICT_ID, "integerField = 1 or stringField like 'str' or integerField in (2, 5, 8) and integerField != 10 or integerField <= 2 and doubleField > 1.9 and doubleField < 2.1");
+
+		assertNotNull(result.getContent().get(0));
 	}
 
 	@Test
@@ -293,7 +300,7 @@ class DictDataServiceTest extends AbstractTest
 
 		dictDataService.update(dictItem.getId(), buildDictDataItem(DICT_ID, updatedDataMap), dictItem.getVersion());
 
-		assertThrows(DictionaryConcurrentUpdateException.class,
+		assertThrows(DictConcurrentUpdateException.class,
 				() -> dictDataService.update(dictItem.getId(), buildDictDataItem(DICT_ID, updatedDataMap), dictItem.getVersion()));
 	}
 

@@ -65,7 +65,7 @@ public class ScheduledJobsEndpoint
 
 	@PostMapping("/{jobName}/execute")
 	@Operation(summary = "Позволяет выполнить асинхронно указанную периодическую задачу, изменив значение параметров задачи.")
-	public ApiResponse<?> execute(@PathVariable String jobName, @RequestBody(required = false) JobParams params)
+	public ApiResponse<?> execute(@PathVariable String jobName, @RequestBody(required = false) Map<String, Object> params)
 	{
 		jobManager.executeJob(jobName, params);
 

@@ -19,7 +19,7 @@
 package com.proit.app.service.validation;
 
 import com.proit.app.common.AbstractValidationServiceTest;
-import com.proit.app.exception.ForbiddenFieldNameException;
+import com.proit.app.exception.dictionary.field.ForbiddenFieldNameException;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -29,16 +29,16 @@ public class DictValidationServiceTest extends AbstractValidationServiceTest
 	@Test
 	void validateSchemeCorrect()
 	{
-		dictScheme.setFields(fields);
+		DICT_SCHEME.setFields(FIELDS);
 
-		dictValidationService.validateDictScheme(dictScheme);
+		dictValidationService.validateDictScheme(DICT_SCHEME);
 	}
 
 	@Test
 	void validateSchemeForbiddenField()
 	{
-		dictScheme.setFields(incorrectFields);
+		DICT_SCHEME.setFields(INCORRECT_FIELDS);
 
-		assertThrows(ForbiddenFieldNameException.class, () -> dictValidationService.validateDictScheme(dictScheme));
+		assertThrows(ForbiddenFieldNameException.class, () -> dictValidationService.validateDictScheme(DICT_SCHEME));
 	}
 }

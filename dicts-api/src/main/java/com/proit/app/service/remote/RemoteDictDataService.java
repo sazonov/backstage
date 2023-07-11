@@ -24,6 +24,7 @@ import com.proit.app.model.dto.data.DictItemDto;
 import com.proit.app.model.dto.data.request.CreateDictItemRequest;
 import com.proit.app.model.dto.data.request.DeleteDictItemRequest;
 import com.proit.app.model.dto.data.request.UpdateDictItemRequest;
+import com.proit.app.model.dto.request.BasicSearchRequest;
 import com.proit.app.model.dto.request.ExportDictRequest;
 import com.proit.app.model.dto.request.SearchRequest;
 import io.swagger.v3.oas.annotations.Operation;
@@ -42,6 +43,7 @@ import javax.validation.Valid;
 import java.io.InputStream;
 import java.util.List;
 
+@Deprecated(forRemoval = true)
 @Tag(name = "remote-dict-data-service", description = "Методы для работы с данными справочников")
 @FeignClient(value = RemoteServices.DICTS, path = "/api/remote/dicts", contextId = "remoteDictDataService")
 public interface RemoteDictDataService
@@ -54,6 +56,10 @@ public interface RemoteDictDataService
 	@PostMapping("/{dictId}/list")
 	ApiResponse<List<DictItemDto>> getByFilter(@PathVariable String dictId, @RequestBody SearchRequest request,
 	                                           @SpringQueryMap Pageable pageable, @RequestParam String userId);
+
+	@Schema(description = "Получение списка ИД справочника по фильтру без пагинации.")
+	@PostMapping("/{dictId}/ids")
+	ApiResponse<List<String>> getIdsByFilter(@PathVariable String dictId, @RequestBody BasicSearchRequest request, @RequestParam String userId);
 
 	@Schema(description = "Получение записей справочника по списку id.")
 	@PostMapping("/{dictId}/byIds")

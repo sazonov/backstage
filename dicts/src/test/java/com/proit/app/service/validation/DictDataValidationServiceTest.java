@@ -20,7 +20,11 @@ package com.proit.app.service.validation;
 
 import com.proit.app.common.AbstractValidationServiceTest;
 import com.proit.app.domain.DictFieldName;
-import com.proit.app.exception.*;
+import com.proit.app.exception.dictionary.DictNotFoundException;
+import com.proit.app.exception.dictionary.UnavailableDictRefException;
+import com.proit.app.exception.dictionary.field.FieldNotFoundException;
+import com.proit.app.exception.dictionary.field.FieldValidationException;
+import com.proit.app.exception.dictionary.field.ForbiddenFieldNameException;
 import com.proit.app.model.dictitem.DictDataItem;
 import org.bson.types.Decimal128;
 import org.junit.jupiter.api.Test;
@@ -59,7 +63,7 @@ public class DictDataValidationServiceTest extends AbstractValidationServiceTest
 	@Test
 	void validateSelectFieldsDictNotExisted()
 	{
-		assertThrows(DictionaryNotFoundException.class, () -> dictDataValidationService.validateSelectFields("incorrect", List.of()));
+		assertThrows(DictNotFoundException.class, () -> dictDataValidationService.validateSelectFields("incorrect", List.of()));
 	}
 
 	@Test
@@ -79,8 +83,8 @@ public class DictDataValidationServiceTest extends AbstractValidationServiceTest
 				"timestampField", new Date(),
 				"booleanField", Boolean.TRUE);
 
-		dictDataValidationService.validateDictDataItem(buildDictDataItem(DICT_ID, stringDateMap));
-		dictDataValidationService.validateDictDataItem(buildDictDataItem(DICT_ID, objectDateMap));
+		dictDataValidationService.validateDictDataItem(buildDictDataItem(DICT_ID, stringDateMap), USER_ID);
+		dictDataValidationService.validateDictDataItem(buildDictDataItem(DICT_ID, objectDateMap), USER_ID);
 	}
 
 	@Test
@@ -91,7 +95,7 @@ public class DictDataValidationServiceTest extends AbstractValidationServiceTest
 				"integerField", 1,
 				"timestampField", "2021-08-15T06:00:00.000Z");
 
-		assertThrows(DictionaryNotFoundException.class, () -> dictDataValidationService.validateDictDataItem(buildDictDataItem("incorect", map)));
+		assertThrows(DictNotFoundException.class, () -> dictDataValidationService.validateDictDataItem(buildDictDataItem("incorect", map), USER_ID));
 	}
 
 	@Test
@@ -99,7 +103,7 @@ public class DictDataValidationServiceTest extends AbstractValidationServiceTest
 	{
 		Map<String, Object> map = Map.of("stringField", "string");
 
-		var e = assertThrows(FieldValidationException.class, () -> dictDataValidationService.validateDictDataItem(buildDictDataItem(DICT_ID, map)));
+		var e = assertThrows(FieldValidationException.class, () -> dictDataValidationService.validateDictDataItem(buildDictDataItem(DICT_ID, map), USER_ID));
 		assertEquals(e.getMessage(), "Отсутствует обязательное поле: integerField.");
 	}
 
@@ -110,7 +114,7 @@ public class DictDataValidationServiceTest extends AbstractValidationServiceTest
 				"stringField11", "text",
 				"timestampField", "2021-08-15T06:00:00.000Z");
 
-		assertThrows(ForbiddenFieldNameException.class, () -> dictDataValidationService.validateDictDataItem(buildDictDataItem(DICT_ID, duplicatedFiled)));
+		assertThrows(ForbiddenFieldNameException.class, () -> dictDataValidationService.validateDictDataItem(buildDictDataItem(DICT_ID, duplicatedFiled), USER_ID));
 	}
 
 	@Test
@@ -121,7 +125,7 @@ public class DictDataValidationServiceTest extends AbstractValidationServiceTest
 				"integerField", List.of(1, 2),
 				"timestampField", "2021-08-15T06:00:00.000Z");
 
-		var e = assertThrows(FieldValidationException.class, () -> dictDataValidationService.validateDictDataItem(buildDictDataItem(DICT_ID, map)));
+		var e = assertThrows(FieldValidationException.class, () -> dictDataValidationService.validateDictDataItem(buildDictDataItem(DICT_ID, map), USER_ID));
 		assertEquals(e.getMessage(), "Не может быть массивом: integerField.");
 	}
 
@@ -134,7 +138,7 @@ public class DictDataValidationServiceTest extends AbstractValidationServiceTest
 				"doubleField", Decimal128.parse("2.0"),
 				"timestampField", "incorrect");
 
-		var e = assertThrows(FieldValidationException.class, () -> dictDataValidationService.validateDictDataItem(buildDictDataItem(DICT_ID, map)));
+		var e = assertThrows(FieldValidationException.class, () -> dictDataValidationService.validateDictDataItem(buildDictDataItem(DICT_ID, map), USER_ID));
 		assertEquals(e.getMessage(), "Некорректный формат данных: timestampField.");
 	}
 
@@ -147,7 +151,7 @@ public class DictDataValidationServiceTest extends AbstractValidationServiceTest
 				"integerField", 1,
 				"timestampField", "2021-08-15T06:00:00.000Z");
 
-		assertThrows(ForbiddenFieldNameException.class, () -> dictDataValidationService.validateDictDataItem(buildDictDataItem(DICT_ID, map)));
+		assertThrows(ForbiddenFieldNameException.class, () -> dictDataValidationService.validateDictDataItem(buildDictDataItem(DICT_ID, map), USER_ID));
 	}
 
 	private DictDataItem buildDictDataItem(String dictId, Map<String, Object> dataMap)

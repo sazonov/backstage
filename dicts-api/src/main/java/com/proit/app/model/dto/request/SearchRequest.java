@@ -21,6 +21,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,13 +29,10 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@SuperBuilder
 @Schema(description = "Поисковый запрос для записей справочника")
-public class SearchRequest
+public class SearchRequest extends BasicSearchRequest
 {
-	@Schema(description = "Строка поиска (QL)")
-	private String query;
-
 	@Builder.Default
 	@Schema(description = "Список полей для получения")
 	private List<String> fields = new ArrayList<>();

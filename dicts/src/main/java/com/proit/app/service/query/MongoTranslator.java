@@ -17,7 +17,7 @@
 package com.proit.app.service.query;
 
 import com.proit.app.domain.Dict;
-import com.proit.app.exception.FieldNotFoundException;
+import com.proit.app.exception.dictionary.field.FieldNotFoundException;
 import com.proit.app.service.query.ast.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.mongodb.core.query.Criteria;

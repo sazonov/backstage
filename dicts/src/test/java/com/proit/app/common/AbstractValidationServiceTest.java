@@ -23,6 +23,7 @@ import com.proit.app.domain.DictField;
 import com.proit.app.domain.DictFieldType;
 import com.proit.app.service.validation.DictDataValidationService;
 import com.proit.app.service.validation.DictValidationService;
+import com.proit.app.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
@@ -30,13 +31,15 @@ import java.util.List;
 
 public class AbstractValidationServiceTest extends AbstractTest
 {
-	protected static final List<DictField> fields = new ArrayList<>();
-	protected static final List<DictField> incorrectFields = new ArrayList<>();
+	protected static final List<DictField> FIELDS = new ArrayList<>();
+	protected static final List<DictField> INCORRECT_FIELDS = new ArrayList<>();
 
-	protected static final Dict dictScheme = Dict.builder()
+	protected static final Dict DICT_SCHEME = Dict.builder()
 			.id("test1")
 			.name("тест")
 			.build();
+
+	protected static final String USER_ID = SecurityUtils.getCurrentUserId();
 
 	@Autowired
 	protected DictValidationService dictValidationService;
@@ -45,7 +48,7 @@ public class AbstractValidationServiceTest extends AbstractTest
 
 	public AbstractValidationServiceTest()
 	{
-		fields.add(
+		FIELDS.add(
 				DictField.builder()
 						.id("stringField")
 						.name("строка")
@@ -55,7 +58,7 @@ public class AbstractValidationServiceTest extends AbstractTest
 						.build()
 		);
 
-		fields.add(
+		FIELDS.add(
 				DictField.builder()
 						.id("integerField")
 						.name("число")
@@ -65,7 +68,7 @@ public class AbstractValidationServiceTest extends AbstractTest
 						.build()
 		);
 
-		fields.add(
+		FIELDS.add(
 				DictField.builder()
 						.id("timestampField")
 						.name("Дата и время")
@@ -75,7 +78,7 @@ public class AbstractValidationServiceTest extends AbstractTest
 						.build()
 		);
 
-		incorrectFields.add(DictField.builder()
+		INCORRECT_FIELDS.add(DictField.builder()
 				.id("created")
 				.name("Дата и время")
 				.type(DictFieldType.TIMESTAMP)

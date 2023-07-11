@@ -23,6 +23,8 @@ import java.util.List;
 
 public interface DictBackend
 {
+	Storage getStorage();
+
 	Dict getDictById(String id);
 
 	List<Dict> getAllDicts();

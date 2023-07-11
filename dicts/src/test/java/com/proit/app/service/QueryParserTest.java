@@ -1,7 +1,7 @@
 package com.proit.app.service;
 
 import com.proit.app.common.AbstractTest;
-import com.proit.app.exception.QuerySyntaxError;
+import com.proit.app.exception.dictionary.query.QuerySyntaxException;
 import com.proit.app.service.query.QueryParser;
 import com.proit.app.service.query.ast.Constant;
 import com.proit.app.service.query.ast.InQueryExpression;
@@ -58,6 +58,6 @@ class QueryParserTest extends AbstractTest
 	@Test
 	public void parse_invalidQuery()
 	{
-		assertThrows(QuerySyntaxError.class, () -> queryParser.parse("stringField = stringField"));
+		assertThrows(QuerySyntaxException.class, () -> queryParser.parse("stringField = stringField"));
 	}
 }

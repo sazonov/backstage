@@ -16,7 +16,7 @@
 
 package com.proit.app.service.ddl;
 
-import com.proit.app.exception.DDLSyntaxError;
+import com.proit.app.exception.DDLSyntaxException;
 import com.proit.app.service.ddl.ast.*;
 import com.proit.app.service.ddl.ast.expression.*;
 import com.proit.app.service.ddl.ast.expression.table.AlterTable;
@@ -226,7 +226,7 @@ public class SqlParser
 		}
 		catch (Exception e)
 		{
-			throw new DDLSyntaxError(e);
+			throw new DDLSyntaxException(input, e);
 		}
 	}
 }

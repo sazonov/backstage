@@ -16,43 +16,70 @@
 
 package com.proit.app.configuration;
 
+import com.proit.app.configuration.properties.TransactionProperties;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.transaction.ChainedTransactionManager;
-import org.springframework.jms.connection.JmsTransactionManager;
-import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.ArrayList;
-import java.util.Optional;
 
+@Slf4j
 @Configuration
-public class TransactionConfiguration
+@EnableConfigurationProperties(TransactionProperties.class)
+@RequiredArgsConstructor
+public class TransactionConfiguration implements ApplicationContextAware
 {
-	@Primary
-	@Bean("transactionManager")
-	public PlatformTransactionManager chainedTransactionManager(Optional<JpaTransactionManager> jpaTransactionManager, Optional<JmsTransactionManager> jmsTransactionManager)
+	@Setter
+	private ApplicationContext applicationContext;
+
+	private final TransactionProperties transactionProperties;
+
+	@ConditionalOnProperty(value = TransactionProperties.CHAIN_ACTIVATION_PROPERTY, matchIfMissing = true)
+	public class ChainInitializer
 	{
-		var transactionManagers = new ArrayList<PlatformTransactionManager>(2);
-
-		jmsTransactionManager.ifPresent(transactionManagers::add);
-		jpaTransactionManager.ifPresent(transactionManagers::add);
-
-		if (transactionManagers.isEmpty())
+		@Primary
+		@Bean("transactionManager")
+		public PlatformTransactionManager chainedTransactionManager()
 		{
-			return null;
-		}
-		else if (transactionManagers.size() == 1)
-		{
-			return transactionManagers.get(0);
-		}
+			var transactionManagers = new ArrayList<PlatformTransactionManager>(transactionProperties.getChaining().size());
 
-		return new ChainedTransactionManager(transactionManagers.toArray(new PlatformTransactionManager[0]));
+			for (String transactionManagerName : transactionProperties.getChaining())
+			{
+				try
+				{
+					transactionManagers.add(applicationContext.getBean(transactionManagerName, PlatformTransactionManager.class));
+				}
+				catch (Exception ignore)
+				{
+					log.warn("Failed to create a transaction manager chain. No transaction manager: {}.", transactionManagerName);
+				}
+			}
+
+			if (transactionManagers.isEmpty())
+			{
+				return null;
+			}
+			else if (transactionManagers.size() == 1)
+			{
+				return transactionManagers.get(0);
+			}
+
+			return new ChainedTransactionManager(transactionManagers.toArray(new PlatformTransactionManager[0]));
+		}
 	}
 
 	@Bean
+	@ConditionalOnProperty(value = TransactionProperties.TEMPLATE_ACTIVATION_PROPERTY, matchIfMissing = true)
 	public TransactionTemplate transactionTemplate(PlatformTransactionManager transactionManager)
 	{
 		return new TransactionTemplate(transactionManager);

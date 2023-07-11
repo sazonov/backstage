@@ -17,10 +17,10 @@
 package com.proit.app.configuration.ddl;
 
 import com.proit.app.domain.VersionScheme;
-import com.proit.app.exception.MigrationProcessException;
-import com.proit.app.exception.MigrationFileReadException;
-import com.proit.app.exception.MigrationHasSameVersionException;
 import com.proit.app.exception.ObjectNotFoundException;
+import com.proit.app.exception.migration.MigrationFileReadException;
+import com.proit.app.exception.migration.MigrationHasSameVersionException;
+import com.proit.app.exception.migration.MigrationProcessException;
 import com.proit.app.service.MigrationService;
 import com.proit.app.service.backend.VersionSchemeBackend;
 import com.proit.app.util.MigrationUtils;

@@ -16,17 +16,19 @@
 
 package com.proit.app.service;
 
+import com.proit.app.configuration.DictDataBackendProvider;
+import com.proit.app.configuration.properties.DictsProperties;
 import com.proit.app.domain.DictFieldType;
 import com.proit.app.domain.DictItem;
 import com.proit.app.exception.AppException;
 import com.proit.app.exception.ObjectNotFoundException;
 import com.proit.app.model.api.ApiStatusCodeImpl;
 import com.proit.app.model.dictitem.DictDataItem;
-import com.proit.app.model.dictitem.FieldDataItem;
+import com.proit.app.model.domain.Identity;
 import com.proit.app.service.advice.DictDataServiceAdvice;
 import com.proit.app.service.backend.DictDataBackend;
-import com.proit.app.service.mapping.DictDataItemDictItemMapper;
-import com.proit.app.service.mapping.FieldDataItemDictFieldNameMapper;
+import com.proit.app.service.mapping.DictFieldNameMappingService;
+import com.proit.app.service.mapping.DictItemMappingService;
 import com.proit.app.service.query.QueryParser;
 import com.proit.app.service.validation.DictDataValidationService;
 import com.proit.app.utils.SecurityUtils;
@@ -37,11 +39,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
 
 import static com.proit.app.constant.ServiceFieldConstants.*;
 
@@ -53,15 +55,24 @@ public class DictDataService
 	private final DictPermissionService dictPermissionService;
 	private final DictDataValidationService dictDataValidationService;
 
-	private final DictDataItemDictItemMapper dictDataItemDictItemMapper;
-	private final FieldDataItemDictFieldNameMapper fieldDataItemDictFieldNameMapper;
-
-	private final DictDataBackend dictDataBackend;
+	private final DictItemMappingService dictItemMappingService;
+	private final DictFieldNameMappingService dictFieldNameMappingService;
 
 	private final QueryParser queryParser;
 
+	private final DictDataBackendProvider dictDataBackendProvider;
+
 	@Getter
 	private final List<DictDataServiceAdvice> serviceAdviceList;
+
+	private DictDataBackend dictDataBackend;
+
+	@PostConstruct
+	public void init()
+	{
+		//TODO: убрать инициализацию dictDataBackend после ввода engine
+		dictDataBackend = dictDataBackendProvider.dictDataBackend(DictsProperties.DEFAULT_STORAGE);
+	}
 
 	//TODO: Провести рефакторинг
 	// создать апи для getById с проверкой секьюрити и валидацией.
@@ -99,8 +110,7 @@ public class DictDataService
 		}
 
 		var requiredFields = selectFields.stream()
-				.map(this::buildFieldDataItem)
-				.map(fieldDataItemDictFieldNameMapper::map)
+				.map(dictFieldNameMappingService::mapDictFieldName)
 				.toList();
 
 		dictDataValidationService.validateSelectFields(dictId, requiredFields);
@@ -132,13 +142,23 @@ public class DictDataService
 		serviceAdviceList.forEach(it -> it.handleGetByFilter(dictId, selectFields, filtersQuery, pageable));
 
 		var requiredFields = selectFields.stream()
-				.map(this::buildFieldDataItem)
-				.map(fieldDataItemDictFieldNameMapper::map)
+				.map(dictFieldNameMappingService::mapDictFieldName)
 				.toList();
 
 		dictDataValidationService.validateSelectFields(dictId, requiredFields);
 
 		return dictDataBackend.getByFilter(dictId, requiredFields, queryParser.parse(filtersQuery), pageable);
+	}
+
+	public Page<String> getIdsByFilter(String dictId, String filtersQuery)
+	{
+		return getIdsByFilter(dictId, filtersQuery, SecurityUtils.getCurrentUserId());
+	}
+
+	public Page<String> getIdsByFilter(String dictId, String filtersQuery, String userId)
+	{
+		return getByFilter(dictId, List.of("id"), filtersQuery, Pageable.unpaged(), userId)
+				.map(Identity::getId);
 	}
 
 	public boolean existsById(String dictId, String itemId)
@@ -207,10 +227,10 @@ public class DictDataService
 		dictPermissionService.checkEditPermission(dictId, userId);
 		serviceAdviceList.forEach(it -> it.handleBeforeCreate(dictDataItem));
 
-		dictDataValidationService.validateDictDataItem(dictDataItem);
-		var dictItem = dictDataItemDictItemMapper.map(dictDataItem);
+		dictDataValidationService.validateDictDataItem(dictDataItem, userId);
+		var dictItem = dictItemMappingService.mapDictItem(dictDataItem);
 
-		setServiceDictItemFields(dictItem);
+		setupServiceDictItemFields(dictItem);
 
 		var result = dictDataBackend.create(dictId, dictItem);
 
@@ -232,9 +252,9 @@ public class DictDataService
 		serviceAdviceList.forEach(it -> it.handleBeforeCreateMany(dictDataItems));
 
 		var dictItems = dictDataItems.stream()
-				.peek(dictDataValidationService::validateDictDataItem)
-				.map(dictDataItemDictItemMapper::map)
-				.peek(this::setServiceDictItemFields)
+				.peek(it -> dictDataValidationService.validateDictDataItem(it, userId))
+				.map(dictItemMappingService::mapDictItem)
+				.peek(this::setupServiceDictItemFields)
 				.toList();
 
 		var result = dictDataBackend.createMany(dictId, dictItems);
@@ -270,8 +290,8 @@ public class DictDataService
 		dictPermissionService.checkEditPermission(dictId, userId);
 		serviceAdviceList.forEach(it -> it.handleUpdate(dictItem, dictDataItem));
 
-		dictDataValidationService.validateDictDataItem(dictDataItem);
-		var mappedDictItem = dictDataItemDictItemMapper.map(dictDataItem);
+		dictDataValidationService.validateDictDataItem(dictDataItem, userId);
+		var mappedDictItem = dictItemMappingService.mapDictItem(dictDataItem);
 
 		var result = dictDataBackend.update(dictId, itemId, version, mappedDictItem);
 
@@ -319,7 +339,7 @@ public class DictDataService
 		return DictDataItem.of(dictId, dictData);
 	}
 
-	private void setServiceDictItemFields(DictItem dictItem)
+	private void setupServiceDictItemFields(DictItem dictItem)
 	{
 		var dataItemMap = dictItem.getData();
 
@@ -328,10 +348,10 @@ public class DictDataService
 		dataItemMap.put(DELETED, null);
 		dataItemMap.put(VERSION, 1L);
 
-		setHistoryItemMap(dictItem);
+		setupHistoryItemMap(dictItem);
 	}
 
-	private void setHistoryItemMap(DictItem dictItem)
+	private void setupHistoryItemMap(DictItem dictItem)
 	{
 		var historyItemMap = dictItem.getData()
 				.entrySet()
@@ -340,14 +360,5 @@ public class DictDataService
 				.collect(HashMap::new, (m, e) -> m.put(e.getKey(), e.getValue()), HashMap::putAll);
 
 		dictItem.getData().put(HISTORY, List.of(historyItemMap));
-	}
-
-	private FieldDataItem buildFieldDataItem(String selectField)
-	{
-		Supplier<String[]> dictField = () -> selectField.split("\\.");
-
-		return selectField.contains(".")
-				? FieldDataItem.builder().dictId(dictField.get()[0]).fieldItem(dictField.get()[1]).build()
-				: FieldDataItem.builder().fieldItem(selectField).build();
 	}
 }

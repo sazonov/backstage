@@ -27,7 +27,7 @@ class JobManagerTest extends AbstractTests
 	@Test
 	void getJobList_checkCountTest()
 	{
-		assertEquals(7, jobManager.getJobList().size());
+		assertEquals(8, jobManager.getJobList().size());
 	}
 
 	@Test

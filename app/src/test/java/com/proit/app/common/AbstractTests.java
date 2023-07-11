@@ -3,6 +3,7 @@ package com.proit.app.common;
 import com.proit.app.TestApplication;
 import org.junit.ClassRule;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.boot.autoconfigure.jms.JmsAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.util.TestPropertyValues;
@@ -13,7 +14,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 
 @SpringBootTest
 @ContextConfiguration(classes = TestApplication.class, initializers = {AbstractTests.Initializer.class})
-@ImportAutoConfiguration(JmsAutoConfiguration.class)
+@ImportAutoConfiguration(classes = {JmsAutoConfiguration.class, JacksonAutoConfiguration.class})
 public abstract class AbstractTests
 {
 	@ClassRule

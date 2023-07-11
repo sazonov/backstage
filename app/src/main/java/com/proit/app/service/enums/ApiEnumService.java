@@ -120,6 +120,7 @@ public class ApiEnumService
 		catch (Exception ex)
 		{
 			ReflectionUtils.handleReflectionException(ex);
+
 			return null;
 		}
 	}

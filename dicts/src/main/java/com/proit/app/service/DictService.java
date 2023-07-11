@@ -18,7 +18,13 @@ package com.proit.app.service;
 
 import com.proit.app.constant.ServiceFieldConstants;
 import com.proit.app.domain.*;
-import com.proit.app.exception.*;
+import com.proit.app.exception.dictionary.constraint.ConstraintAlreadyExistsException;
+import com.proit.app.exception.dictionary.constraint.ConstraintNotFoundException;
+import com.proit.app.exception.dictionary.enums.EnumAlreadyExistsException;
+import com.proit.app.exception.dictionary.enums.EnumNotFoundException;
+import com.proit.app.exception.dictionary.field.FieldNotFoundException;
+import com.proit.app.exception.dictionary.index.IndexAlreadyExistsException;
+import com.proit.app.exception.dictionary.index.IndexNotFoundException;
 import com.proit.app.service.backend.DictBackend;
 import com.proit.app.service.validation.DictValidationService;
 import lombok.RequiredArgsConstructor;
@@ -68,7 +74,7 @@ public class DictService
 		return dictBackend.createDict(buildScheme(dict, new Dict()));
 	}
 
-//	TODO: История изменений схемы, даты создания/обновления схемы?
+	//	TODO: История изменений схемы, даты создания/обновления схемы?
 	public void delete(String id, boolean deleted)
 	{
 		dictBackend.deleteDict(id, deleted ? LocalDateTime.now() : null);
@@ -93,7 +99,7 @@ public class DictService
 					it.setName(newFieldName == null ? it.getName() : newFieldName);
 				})
 				.findFirst()
-				.orElseThrow(() -> new RuntimeException("Поле не найдено: %s.".formatted(fieldId)));
+				.orElseThrow(() -> new FieldNotFoundException(dictId, fieldId));
 
 		return dictBackend.renameDictField(dict, fieldId, field);
 	}

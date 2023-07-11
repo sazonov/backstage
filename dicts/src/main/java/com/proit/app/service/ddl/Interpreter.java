@@ -19,7 +19,7 @@ package com.proit.app.service.ddl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.proit.app.domain.*;
-import com.proit.app.exception.EnumNotFoundException;
+import com.proit.app.exception.dictionary.enums.EnumNotFoundException;
 import com.proit.app.model.dictitem.DictDataItem;
 import com.proit.app.service.DictDataService;
 import com.proit.app.service.DictService;
@@ -31,7 +31,6 @@ import com.proit.app.service.ddl.ast.expression.table.CreateTable;
 import com.proit.app.service.ddl.ast.expression.table.DeleteIndexExpression;
 import com.proit.app.service.ddl.ast.expression.table.operation.*;
 import com.proit.app.service.ddl.ast.value.*;
-import com.proit.app.service.query.ast.Predicate;
 import com.proit.app.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -113,7 +112,7 @@ public class Interpreter
 					dictService.getDataFieldsByDictId(dictId)
 							.stream()
 							.map(DictField::getId)
-							.collect(Collectors.toList()));
+							.toList());
 		}
 
 		insert.getValues()
@@ -258,17 +257,21 @@ public class Interpreter
 	private void execute(Update update)
 	{
 		var dictId = update.getTable().getName();
-		var fields = dictService.getById(dictId).getFields().stream()
+
+		var fieldIds = dictService.getById(dictId)
+				.getFields()
+				.stream()
 				.map(DictField::getId)
 				.toList();
 
-		update.getColumns().stream()
+		update.getColumns()
+				.stream()
 				.map(ColumnWithValue::getValue)
 				.filter(it -> it instanceof ColumnValue)
 				.map(it -> (ColumnValue) it)
 				.map(ColumnValue::getValue)
 				.map(Id::getName)
-				.filter(not(fields::contains))
+				.filter(not(fieldIds::contains))
 				.findFirst()
 				.ifPresent((it) -> {
 					throw new RuntimeException("Колонка %s отсутствует.".formatted(it));
@@ -278,23 +281,28 @@ public class Interpreter
 
 		dictDataService.getByFilter(dictId, List.of("*"), filtersQuery, Pageable.unpaged()).stream()
 				.peek(dictItem -> {
-					var updMap = new HashMap<>(dictItem.getData());
+					var updatedMap = new HashMap<>(dictItem.getData());
 
 					update.getColumns()
 							.forEach(column -> {
 								if (column.getValue() instanceof ColumnValue columnValue)
 								{
-									updMap.put(column.getId().getName(), updMap.get(columnValue.getValue().getName()));
+									var columnName = column.getId().getName();
+									var value = updatedMap.get(columnValue.getValue().getName());
+
+									updatedMap.put(columnName, value);
 								}
 								else
 								{
-									updMap.put(column.getId().getName(), column.getValue().getValue());
+									var dataItemMap = buildDataItemMap(column.getValue(), column.getId().getName());
+
+									updatedMap.putAll(dataItemMap);
 								}
 							});
 
-					dictItem.setData(updMap);
+					dictItem.setData(updatedMap);
 				})
-				.forEach(dictItem -> dictDataService.update(dictItem.getId(), DictDataItem.of(dictId, dictItem.getData()), dictItem.getVersion()));
+				.forEach(dictItem -> dictDataService.update(dictItem.getId(), buildDictDataItem(dictId, dictItem.getData()), dictItem.getVersion()));
 	}
 
 	private void execute(CreateIndexExpression createIndex)
@@ -364,6 +372,11 @@ public class Interpreter
 		}
 	}
 
+	private Map<String, Object> buildDataItemMap(Value<?> value, String fieldId)
+	{
+		return buildDataItemMap(List.of(value), List.of(fieldId));
+	}
+
 	private Map<String, Object> buildDataItemMap(List<Value<?>> values, List<String> fieldIds)
 	{
 		var item = new HashMap<String, Object>();
@@ -396,11 +409,8 @@ public class Interpreter
 						.collect(Collectors.toList());
 
 				item.put(fieldIds.get(i), v);
-
-				continue;
 			}
-
-			if (value instanceof JsonValue jsonValue)
+			else if (value instanceof JsonValue jsonValue)
 			{
 				try
 				{
@@ -413,24 +423,13 @@ public class Interpreter
 					throw new RuntimeException("Некорректный формат json поля.");
 				}
 			}
-
-			item.put(fieldIds.get(i), value.getValue());
+			else
+			{
+				item.put(fieldIds.get(i), value.getValue());
+			}
 		}
 
 		return item;
-	}
-
-	public String getOperator(Predicate.Type type)
-	{
-		return switch (type)
-				{
-					case EQ -> "=";
-					case GT -> ">";
-					case LS -> "<";
-					case LEQ -> "<=";
-					case GEQ -> ">=";
-					case NEQ -> "!=";
-				};
 	}
 
 	private String buildFilterQuery(ComparingValueColumn column)
@@ -442,13 +441,13 @@ public class Interpreter
 
 		if (column.getValue() instanceof StringValue)
 		{
-			return "%s %s '%s'".formatted(column.getId().getName(), getOperator(column.getPredicateType()), column.getValue().getValue());
+			return "%s %s '%s'".formatted(column.getId().getName(), column.getPredicateType().getValue(), column.getValue().getValue());
 		}
 		else if (column.getValue() instanceof BooleanValue
 				|| column.getValue() instanceof DecimalValue
 				|| column.getValue() instanceof NullValue)
 		{
-			return "%s %s %s".formatted(column.getId().getName(), getOperator(column.getPredicateType()), column.getValue().getValue());
+			return "%s %s %s".formatted(column.getId().getName(), column.getPredicateType().getValue(), column.getValue().getValue());
 		}
 		else
 		{

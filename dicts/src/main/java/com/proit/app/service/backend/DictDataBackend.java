@@ -18,7 +18,6 @@
 
 package com.proit.app.service.backend;
 
-import com.proit.app.domain.Dict;
 import com.proit.app.domain.DictFieldName;
 import com.proit.app.domain.DictItem;
 import com.proit.app.service.query.ast.QueryExpression;
@@ -29,6 +28,8 @@ import java.util.List;
 
 public interface DictDataBackend
 {
+	Engine getEngine();
+
 	DictItem getById(String dictId, String id, List<DictFieldName> requiredFields);
 
 	List<DictItem> getByIds(String dictId, List<String> ids, List<DictFieldName> requiredFields);

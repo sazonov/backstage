@@ -20,14 +20,21 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.util.Map;
+
 @Getter
 @Setter
 @ConfigurationProperties("app.dicts")
 public class DictsProperties
 {
+	public static final String STORAGE_PROPERTY = "app.dicts.storage";
 	public static final String ACTIVATION_PROPERTY = "app.dicts.enabled";
+	public static final String DEFAULT_ENGINE = "mongo";
+	public static final String DEFAULT_STORAGE = "mongo";
 
 	private boolean enabled = false;
 
-	private String storage;
+	private String storage = DEFAULT_STORAGE;
+
+	private Map<String, Boolean> engines = Map.of(DEFAULT_ENGINE, true);
 }

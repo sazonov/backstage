@@ -16,7 +16,7 @@
 
 package com.proit.app.service.query;
 
-import com.proit.app.exception.QuerySyntaxError;
+import com.proit.app.exception.dictionary.query.QuerySyntaxException;
 import com.proit.app.service.query.ast.*;
 import org.apache.commons.lang3.StringUtils;
 import org.jparsec.*;
@@ -116,7 +116,7 @@ public class QueryParser
 
 	final Parser<QueryExpression> GRAMMAR = QUERY.or(Parsers.EOF.retn(new Empty()));
 
-	public QueryExpression parse(String input) throws QuerySyntaxError
+	public QueryExpression parse(String input) throws QuerySyntaxException
 	{
 		try
 		{
@@ -124,7 +124,7 @@ public class QueryParser
 		}
 		catch (Exception ex)
 		{
-			throw new QuerySyntaxError(ex);
+			throw new QuerySyntaxException(ex);
 		}
 	}
 }

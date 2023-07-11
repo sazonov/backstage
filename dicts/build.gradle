@@ -34,8 +34,6 @@ dependencies {
 	compileOnly "org.springframework.boot:spring-boot-starter-web"
 	compileOnly "org.springframework.boot:spring-boot-starter-validation"
 	compileOnly "org.springframework.boot:spring-boot-starter-security"
-	compileOnly "org.springframework.boot:spring-boot-starter-cache"
-	compileOnly "org.springframework.boot:spring-boot-starter-activemq"
 	compileOnly "org.springframework.boot:spring-boot-starter-quartz"
 	compileOnly "org.springframework.boot:spring-boot-starter-data-mongodb"
 	compileOnly ("org.springframework.data:spring-data-jpa") {
@@ -43,21 +41,10 @@ dependencies {
 	}
 	compileOnly "org.springframework.cloud:spring-cloud-starter-netflix-eureka-client:$springCloudVersion"
 
-	compileOnly "org.freemarker:freemarker"
-
-	compileOnly "org.apache.activemq:activemq-kahadb-store"
-	compileOnly "net.sf.ehcache:ehcache"
-	compileOnly "com.hazelcast:hazelcast-spring"
 	compileOnly "com.fasterxml.jackson.core:jackson-annotations"
-	compileOnly "org.flywaydb:flyway-core"
-
-	compileOnly "net.postgis:postgis-jdbc:$postgisVersion"
-	compileOnly "org.geolatte:geolatte-geom:$geolatteVersion"
-
-	compileOnly "org.postgresql:postgresql"
 
 	api "org.jparsec:jparsec:3.1"
-	api 'org.apache.commons:commons-csv:1.9.0'
+	api "org.apache.commons:commons-csv:1.9.0"
 	api "com.opencsv:opencsv:5.5"
 
 	testImplementation project(":app")
@@ -69,19 +56,11 @@ dependencies {
 	testImplementation "org.springframework.boot:spring-boot-starter-aop"
 	testImplementation "org.springframework.boot:spring-boot-starter-security"
 	testImplementation "org.springframework.boot:spring-boot-starter-web"
-	testImplementation "org.springframework.boot:spring-boot-starter-quartz"
-	testImplementation "org.springframework.boot:spring-boot-starter-activemq"
 	testImplementation "org.springframework.boot:spring-boot-starter-data-mongodb"
 	testImplementation ("org.springframework.data:spring-data-jpa") {
 		exclude(group: "org.hibernate")
 	}
 	testImplementation "org.springframework.cloud:spring-cloud-starter-netflix-eureka-client:$springCloudVersion"
-
-	testImplementation "org.apache.activemq:activemq-client"
-	testImplementation "org.apache.activemq:activemq-broker"
-	testImplementation "org.apache.activemq:activemq-kahadb-store"
-	testImplementation "org.apache.activemq:activemq-pool"
-	testImplementation "org.apache.activemq:activemq-spring"
 
 	testImplementation "org.flywaydb:flyway-core"
 	testImplementation "com.zaxxer:HikariCP"

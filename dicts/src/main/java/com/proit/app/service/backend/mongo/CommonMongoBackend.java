@@ -20,49 +20,35 @@ package com.proit.app.service.backend.mongo;
 
 import com.mongodb.BasicDBObject;
 import com.proit.app.repository.mongo.MongoDictRepository;
-import lombok.Getter;
+import com.proit.app.service.backend.DictTransactionProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.OutOperation;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 public abstract class CommonMongoBackend
 {
 	protected static final String SCHEME_COLLECTION_ID = "dict";
 
-	@Autowired
-	protected MongoTemplate mongoTemplate;
-	@Autowired
-	protected MongoDictRepository mongoDictRepository;
+	@Autowired protected MongoTemplate mongoTemplate;
+	@Autowired protected MongoDictRepository mongoDictRepository;
 
-	protected final AtomicBoolean activeTransaction = new AtomicBoolean(false);
-
-	protected TransactionData transactionData;
-
-	@Getter
-	protected static class TransactionData
-	{
-		private final Map<String, String> affectedDictIds = new LinkedHashMap<>();
-	}
+	@Autowired protected DictTransactionProvider dictTransactionProvider;
 
 	protected void addToTransactionData(String dictId, boolean schemeUsed)
 	{
-		if (activeTransaction.get())
+		if (dictTransactionProvider.isActiveTransaction())
 		{
-			if (schemeUsed && !transactionData.getAffectedDictIds().containsKey(SCHEME_COLLECTION_ID))
+			if (schemeUsed && !dictTransactionProvider.getAffectedDictIds().containsKey(SCHEME_COLLECTION_ID))
 			{
 				var dictCopyId = copyDict(SCHEME_COLLECTION_ID);
-				transactionData.getAffectedDictIds().put(SCHEME_COLLECTION_ID, dictCopyId);
+				dictTransactionProvider.addAffectedDictId(SCHEME_COLLECTION_ID, dictCopyId);
 			}
 
-			if (dictId != null && !transactionData.getAffectedDictIds().containsKey(dictId))
+			if (dictId != null && !dictTransactionProvider.getAffectedDictIds().containsKey(dictId))
 			{
 				var dictCopyId = copyDict(dictId);
-				transactionData.getAffectedDictIds().put(dictId, dictCopyId);
+				dictTransactionProvider.addAffectedDictId(dictId, dictCopyId);
 			}
 		}
 	}

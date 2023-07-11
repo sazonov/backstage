@@ -17,7 +17,7 @@ import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.util.*;
 
-import static com.proit.app.constant.ServiceFieldConstants.*;
+import static com.proit.app.constant.ServiceFieldConstants._ID;
 
 @SpringBootTest
 @ContextConfiguration(initializers = {AppDataSourceInitializer.class, MongoInitializer.class})

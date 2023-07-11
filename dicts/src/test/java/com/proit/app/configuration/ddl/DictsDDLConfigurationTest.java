@@ -1,7 +1,6 @@
 package com.proit.app.configuration.ddl;
 
 import com.proit.app.common.AbstractTest;
-import com.proit.app.service.DictService;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;

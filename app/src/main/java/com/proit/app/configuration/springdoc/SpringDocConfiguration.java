@@ -71,6 +71,9 @@ public class SpringDocConfiguration implements BeanPostProcessor
 	@Bean
 	public OpenAPI apiDocumentation()
 	{
+		SpringDocUtils.getConfig()
+				.removeRequestWrapperToIgnore(java.util.Map.class);
+
 		return new OpenAPI()
 				.info(new Info()
 						.title(appProperties.getModule())

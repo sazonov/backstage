@@ -20,9 +20,8 @@ package com.proit.app.service.mapping;
 
 import com.proit.app.common.AbstractTest;
 import com.proit.app.constant.ServiceFieldConstants;
-import com.proit.app.exception.DictionaryNotFoundException;
+import com.proit.app.exception.dictionary.DictNotFoundException;
 import com.proit.app.model.dictitem.DictDataItem;
-import com.proit.app.model.dictitem.FieldDataItem;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -31,15 +30,16 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class MappingTest extends AbstractTest
 {
 	@Autowired
-	private DictDataItemDictItemMapper dictDataItemDictItemMapper;
+	private DictItemMappingService dictItemMappingService;
 
 	@Autowired
-	private FieldDataItemDictFieldNameMapper fieldDataItemDictFieldNameMapper;
+	private DictFieldNameMappingService dictFieldNameMappingService;
 
 	@Test
 	void mapDictDataCorrect()
@@ -50,7 +50,7 @@ class MappingTest extends AbstractTest
 				"timestampField", List.of("2021-08-15T06:00:00.000Z", "2021-08-15T07:00:00.000Z"),
 				"doubleField", BigDecimal.valueOf(12.78));
 
-		dictDataItemDictItemMapper.map(buildDictDataItem(DICT_ID, map));
+		dictItemMappingService.mapDictItem(buildDictDataItem(DICT_ID, map));
 	}
 
 	@Test
@@ -61,7 +61,7 @@ class MappingTest extends AbstractTest
 				"integerField", 1,
 				"timestampField", "2021-08-15T06:00:00.000Z");
 
-		assertThrows(DictionaryNotFoundException.class, () -> dictDataItemDictItemMapper.map(buildDictDataItem("incorrect", map)));
+		assertThrows(DictNotFoundException.class, () -> dictItemMappingService.mapDictItem(buildDictDataItem("incorrect", map)));
 	}
 
 	@Test
@@ -70,18 +70,18 @@ class MappingTest extends AbstractTest
 		Map<String, Object> stringDateMap = Map.of("timestampField", "2021-08-15T06:00:00.000Z");
 		Map<String, Object> objectDateMap = Map.of("timestampField", new Date());
 
-		dictDataItemDictItemMapper.map(buildDictDataItem(DICT_ID, stringDateMap));
-		dictDataItemDictItemMapper.map(buildDictDataItem(DICT_ID, objectDateMap));
+		dictItemMappingService.mapDictItem(buildDictDataItem(DICT_ID, stringDateMap));
+		dictItemMappingService.mapDictItem(buildDictDataItem(DICT_ID, objectDateMap));
 	}
 
 	@Test
 	void map_dictFieldNameCorrect()
 	{
-		var integerField = FieldDataItem.builder().fieldItem("integerField").build();
-		var allField = FieldDataItem.builder().fieldItem("*").build();
+		var integerField = "integerField";
+		var allField = "*";
 
-		var integerFieldName = fieldDataItemDictFieldNameMapper.map(integerField);
-		var allFieldName = fieldDataItemDictFieldNameMapper.map(allField);
+		var integerFieldName = dictFieldNameMappingService.mapDictFieldName(integerField);
+		var allFieldName = dictFieldNameMappingService.mapDictFieldName(allField);
 
 		assertEquals("integerField", integerFieldName.getFieldId());
 		assertEquals("*", allFieldName.getFieldId());
@@ -92,9 +92,9 @@ class MappingTest extends AbstractTest
 	@Test
 	void map_serviceDictFieldNameCorrect()
 	{
-		var serviceField = FieldDataItem.builder().fieldItem(ServiceFieldConstants._ID).build();
+		var serviceField = ServiceFieldConstants._ID;
 
-		var actual = fieldDataItemDictFieldNameMapper.map(serviceField);
+		var actual = dictFieldNameMappingService.mapDictFieldName(serviceField);
 
 		assertEquals(ServiceFieldConstants.ID, actual.getFieldId());
 	}
@@ -104,12 +104,9 @@ class MappingTest extends AbstractTest
 	@Test
 	void map_innerDictServiceDictFieldNameCorrect()
 	{
-		var serviceField = FieldDataItem.builder()
-				.dictId(DICT_ID)
-				.fieldItem(ServiceFieldConstants._ID)
-				.build();
+		var serviceField = DICT_ID + "." + ServiceFieldConstants._ID;
 
-		var actual = fieldDataItemDictFieldNameMapper.map(serviceField);
+		var actual = dictFieldNameMappingService.mapDictFieldName(serviceField);
 
 		assertEquals(ServiceFieldConstants.ID, actual.getFieldId());
 	}

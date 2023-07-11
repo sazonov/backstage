@@ -35,7 +35,7 @@ public class Audit extends UuidGeneratedEntity
 	@Column(length = 512, nullable = false)
 	private String type;
 
-	@Column(name = "object_id", length = 40, nullable = false)
+	@Column(name = "object_id", length = 40)
 	private String objectId;
 
 	@Column(name = "user_id", length = 40)

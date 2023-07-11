@@ -5,11 +5,10 @@ import com.proit.app.constant.ServiceFieldConstants;
 import com.proit.app.domain.Dict;
 import com.proit.app.domain.DictField;
 import com.proit.app.domain.DictIndex;
-import com.proit.app.exception.DictionaryAlreadyExistsException;
-import com.proit.app.exception.DictionaryDeletedException;
-import com.proit.app.exception.DictionaryNotFoundException;
+import com.proit.app.exception.dictionary.DictAlreadyExistsException;
+import com.proit.app.exception.dictionary.DictDeletedException;
+import com.proit.app.exception.dictionary.DictNotFoundException;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 
 import java.util.List;
@@ -30,13 +29,13 @@ class DictServiceTest extends AbstractTest
 	@Test
 	void getByIdDictDeleted()
 	{
-		assertThrows(DictionaryDeletedException.class, () -> dictService.getById(DELETED_DICT_ID));
+		assertThrows(DictDeletedException.class, () -> dictService.getById(DELETED_DICT_ID));
 	}
 
 	@Test
 	void getByIdDictNotFound()
 	{
-		assertThrows(DictionaryNotFoundException.class, () -> dictService.getById("incorrect"));
+		assertThrows(DictNotFoundException.class, () -> dictService.getById("incorrect"));
 	}
 
 	@Test
@@ -70,7 +69,7 @@ class DictServiceTest extends AbstractTest
 	{
 		var alreadyExistsDict = Dict.builder().id(DICT_ID).build();
 
-		assertThrows(DictionaryAlreadyExistsException.class, () -> dictService.create(alreadyExistsDict));
+		assertThrows(DictAlreadyExistsException.class, () -> dictService.create(alreadyExistsDict));
 	}
 
 	@Test
@@ -78,7 +77,7 @@ class DictServiceTest extends AbstractTest
 	{
 		dictService.delete(DICT_ID, true);
 
-		assertThrows(DictionaryDeletedException.class, () -> dictService.getById(DICT_ID));
+		assertThrows(DictDeletedException.class, () -> dictService.getById(DICT_ID));
 
 		dictService.delete(DICT_ID, false);
 	}
@@ -86,7 +85,7 @@ class DictServiceTest extends AbstractTest
 	@Test
 	void deleteDictNotFound()
 	{
-		assertThrows(DictionaryNotFoundException.class, () -> dictService.delete("incorrect", true));
+		assertThrows(DictNotFoundException.class, () -> dictService.delete("incorrect", true));
 	}
 
 	@Test

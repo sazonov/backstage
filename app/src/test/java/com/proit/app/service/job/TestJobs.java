@@ -6,8 +6,12 @@ import com.proit.app.model.other.JobResult;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
+import java.time.LocalDate;
 import java.util.Map;
 
 public class TestJobs
@@ -131,11 +135,43 @@ public class TestJobs
 		}
 	}
 
+	@Component
+	static class TestManualJobWithValidationParams extends AbstractManualJob<TestValidationJobParams>
+	{
+		@Override
+		protected JobResult execute(TestValidationJobParams params)
+		{
+			return JobResult.builder()
+					.properties(Map.of("result", params.testInteger))
+					.build();
+		}
+
+		@Override
+		protected TestValidationJobParams createDefaultParams()
+		{
+			return new TestValidationJobParams(0, LocalDate.now());
+		}
+	}
+
 	@Getter
+	@NoArgsConstructor
 	@EqualsAndHashCode
 	@AllArgsConstructor
 	static class TestManualJobParams implements JobParams
 	{
 		private String testParam;
+	}
+
+	@Getter
+	@NoArgsConstructor
+	@EqualsAndHashCode
+	@AllArgsConstructor
+	static class TestValidationJobParams implements JobParams
+	{
+		@Positive
+		private Integer testInteger;
+
+		@NotNull
+		private LocalDate testDate;
 	}
 }

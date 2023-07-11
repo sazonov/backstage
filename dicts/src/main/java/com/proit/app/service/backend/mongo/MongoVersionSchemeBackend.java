@@ -21,13 +21,12 @@ package com.proit.app.service.backend.mongo;
 import com.mongodb.MongoNamespace;
 import com.proit.app.domain.DictIndex;
 import com.proit.app.domain.VersionScheme;
-import com.proit.app.exception.DictionaryException;
-import com.proit.app.exception.DictionaryNotFoundException;
+import com.proit.app.exception.dictionary.DictException;
+import com.proit.app.exception.dictionary.DictNotFoundException;
 import com.proit.app.repository.mongo.MongoDictRepository;
 import com.proit.app.repository.mongo.MongoVersionSchemeRepository;
 import com.proit.app.service.backend.VersionSchemeBackend;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.index.Index;
 import org.springframework.stereotype.Component;
@@ -37,12 +36,8 @@ import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "app.dicts.storage", havingValue = "mongoDB")
 public class MongoVersionSchemeBackend extends CommonMongoBackend implements VersionSchemeBackend
 {
-	// TODO: это уже не нужно.
-	private static final String ENUM_COLLECTION_ID = "dictEnum";
-
 	private final MongoTemplate mongoTemplate;
 
 	private final MongoDictRepository mongoDictRepository;
@@ -51,69 +46,48 @@ public class MongoVersionSchemeBackend extends CommonMongoBackend implements Ver
 	@Override
 	public void beginDDL()
 	{
-		if (activeTransaction.get())
+		if (dictTransactionProvider.isActiveTransaction())
 		{
-			throw new DictionaryException("Транзакция DDL уже открыта.");
+			throw new DictException("Транзакция DDL уже открыта.");
 		}
 
-		if (activeTransaction.compareAndSet(false, true))
+		if (dictTransactionProvider.isTransactionExpectedAndSet(false, true))
 		{
-			transactionData = new TransactionData();
+			dictTransactionProvider.transactionDataAsNew();
 		}
 		else
 		{
-			throw new DictionaryException("Транзакция DDL уже открыта.");
+			throw new DictException("Транзакция DDL уже открыта.");
 		}
 	}
 
 	@Override
 	public void commitDDL()
 	{
-		if (!activeTransaction.get())
+		if (!dictTransactionProvider.isActiveTransaction())
 		{
-			throw new DictionaryException("Отсутствует транзакция DDL.");
+			throw new DictException("Отсутствует транзакция DDL.");
 		}
 
-		transactionData.getAffectedDictIds().forEach((original, copied) -> mongoTemplate.dropCollection(copied));
+		dictTransactionProvider.getAffectedDictIds()
+				.forEach((original, copied) -> mongoTemplate.dropCollection(copied));
 
-		transactionData = null;
-		activeTransaction.set(false);
+		dictTransactionProvider.transactionDataAsNew();
+		dictTransactionProvider.transactionAsInactive();
 	}
 
 	@Override
 	public void rollbackDDL()
 	{
-		if (!activeTransaction.get())
+		if (!dictTransactionProvider.isActiveTransaction())
 		{
-			throw new DictionaryException("Отсутствует транзакция DDL.");
+			throw new DictException("Отсутствует транзакция DDL.");
 		}
 
-		transactionData.getAffectedDictIds().forEach((original, copied) -> {
-			mongoTemplate.dropCollection(original);
+		dictTransactionProvider.getAffectedDictIds().forEach(this::rollbackChanges);
 
-			if (original.equals(SCHEME_COLLECTION_ID) || original.equals(ENUM_COLLECTION_ID))
-			{
-				mongoTemplate.getCollection(copied)
-						.renameCollection(new MongoNamespace(mongoTemplate.getDb().getName(), original));
-			}
-			else if (mongoDictRepository.existsById(original))
-			{
-				mongoTemplate.getCollection(copied)
-						.renameCollection(new MongoNamespace(mongoTemplate.getDb().getName(), original));
-
-				mongoDictRepository.findById(original)
-						.orElseThrow(() -> new DictionaryNotFoundException(original))
-						.getIndexes()
-						.forEach(it -> mongoTemplate.indexOps(original).ensureIndex(buildIndex(it)));
-			}
-			else
-			{
-				mongoTemplate.dropCollection(copied);
-			}
-		});
-
-		transactionData = null;
-		activeTransaction.set(false);
+		dictTransactionProvider.transactionDataAsNew();
+		dictTransactionProvider.transactionAsInactive();
 	}
 
 	@Override
@@ -132,6 +106,31 @@ public class MongoVersionSchemeBackend extends CommonMongoBackend implements Ver
 	public Optional<VersionScheme> findByScript(String script)
 	{
 		return mongoVersionSchemeRepository.findByScript(script);
+	}
+
+	private void rollbackChanges(String original, String copied)
+	{
+		mongoTemplate.dropCollection(original);
+
+		if (original.equals(SCHEME_COLLECTION_ID))
+		{
+			mongoTemplate.getCollection(copied)
+					.renameCollection(new MongoNamespace(mongoTemplate.getDb().getName(), original));
+		}
+		else if (mongoDictRepository.existsById(original))
+		{
+			mongoTemplate.getCollection(copied)
+					.renameCollection(new MongoNamespace(mongoTemplate.getDb().getName(), original));
+
+			mongoDictRepository.findById(original)
+					.orElseThrow(() -> new DictNotFoundException(original))
+					.getIndexes()
+					.forEach(it -> mongoTemplate.indexOps(original).ensureIndex(buildIndex(it)));
+		}
+		else
+		{
+			mongoTemplate.dropCollection(copied);
+		}
 	}
 
 	private Index buildIndex(DictIndex source)

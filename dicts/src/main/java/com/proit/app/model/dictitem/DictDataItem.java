@@ -18,23 +18,16 @@
 
 package com.proit.app.model.dictitem;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.util.Map;
 
+@AllArgsConstructor(staticName = "of")
 @Getter
-public class DictDataItem extends AbstractDictDataItem
+public class DictDataItem
 {
+	private final String dictId;
+
 	private final Map<String, Object> dataItemMap;
-
-	private DictDataItem(String dictId, Map<String, Object> dataItemMap)
-	{
-		super(dictId);
-		this.dataItemMap = dataItemMap;
-	}
-
-	public static DictDataItem of(String dictId, Map<String, Object> dataItemMap)
-	{
-		return new DictDataItem(dictId, dataItemMap);
-	}
 }

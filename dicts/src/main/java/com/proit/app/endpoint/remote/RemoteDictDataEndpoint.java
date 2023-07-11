@@ -26,6 +26,7 @@ import com.proit.app.model.dto.data.DictItemDto;
 import com.proit.app.model.dto.data.request.CreateDictItemRequest;
 import com.proit.app.model.dto.data.request.DeleteDictItemRequest;
 import com.proit.app.model.dto.data.request.UpdateDictItemRequest;
+import com.proit.app.model.dto.request.BasicSearchRequest;
 import com.proit.app.model.dto.request.ExportDictRequest;
 import com.proit.app.model.dto.request.SearchRequest;
 import com.proit.app.service.DictDataService;
@@ -52,6 +53,7 @@ import javax.validation.Valid;
 import java.io.InputStream;
 import java.util.List;
 
+@Deprecated(forRemoval = true)
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/remote/dicts")
@@ -84,6 +86,16 @@ public class RemoteDictDataEndpoint implements RemoteDictDataService
 		var result = dictDataService.getByFilter(dictId, request.getFields(), request.getQuery(), pageable, userId);
 
 		return ApiResponse.of(dictItemConverter.convert(result));
+	}
+
+	@Override
+	@Operation(summary = "Получение списка ИД справочника по фильтру без пагинации.")
+	@PostMapping("/{dictId}/ids")
+	public ApiResponse<List<String>> getIdsByFilter(@PathVariable String dictId, @RequestBody @Valid BasicSearchRequest request, @RequestParam String userId)
+	{
+		var result = dictDataService.getIdsByFilter(dictId, request.getQuery(), userId);
+
+		return ApiResponse.of(result.getContent());
 	}
 
 	@Override

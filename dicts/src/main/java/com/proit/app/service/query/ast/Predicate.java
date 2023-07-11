@@ -18,18 +18,23 @@ package com.proit.app.service.query.ast;
 
 import com.proit.app.service.query.TranslationContext;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 @AllArgsConstructor
 public class Predicate implements QueryExpression
 {
+	@AllArgsConstructor
+	@Getter
 	public enum Type
 	{
-		EQ,
-		NEQ,
-		LS,
-		GT,
-		LEQ,
-		GEQ
+		EQ("="),
+		NEQ("!="),
+		LS("<"),
+		GT(">"),
+		LEQ("<="),
+		GEQ(">=");
+
+		private final String value;
 	}
 
 	public final Field left;
