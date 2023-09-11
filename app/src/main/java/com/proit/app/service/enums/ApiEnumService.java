@@ -1,6 +1,8 @@
 package com.proit.app.service.enums;
 
+import com.proit.app.configuration.properties.AppProperties;
 import com.proit.app.exception.ObjectNotFoundException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
@@ -17,11 +19,12 @@ import java.util.stream.Stream;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class ApiEnumService
 {
-	private static final String DEFAULT_PACKAGE = "com.proit";
-
 	private final Map<String, Class<?>> applicationEnums = new TreeMap<>();
+
+	private final AppProperties appProperties;
 
 	/**
 	 * Запускаем сканирование ClassPath на наличие enum'ов помеченных аннотацией @ApiEnum.
@@ -38,8 +41,10 @@ public class ApiEnumService
 
 		log.info("Scanning @ApiEnum annotations.");
 
-		scanner.findCandidateComponents(DEFAULT_PACKAGE)
+		appProperties.getBasePackages()
 				.stream()
+				.map(scanner::findCandidateComponents)
+				.flatMap(Collection::stream)
 				.map(BeanDefinition::getBeanClassName)
 				.filter(Objects::nonNull)
 				.map(className -> ClassUtils.resolveClassName(className, getClass().getClassLoader()))

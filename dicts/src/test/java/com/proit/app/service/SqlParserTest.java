@@ -1,6 +1,6 @@
 package com.proit.app.service;
 
-import com.proit.app.common.AbstractTest;
+import com.proit.app.common.CommonTest;
 import com.proit.app.service.ddl.SqlParser;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,20 +8,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class SqlParserTest extends AbstractTest
+class SqlParserTest extends CommonTest
 {
 	@Autowired
 	private SqlParser sqlParser;
 
-	private final static String EMPTY_QUERY = "";
-	private final static String COMMENT_QUERY = """
+	private static final String EMPTY_QUERY = "";
+	private static final String COMMENT_QUERY = """
 			-- Комментарий 1.
 			/* Комментарий 2.*/
 
 			-- Комментарий 3.
 			""";
 
-	private final static String CREATE_TABLE_QUERY = """
+	private static final String CREATE_TABLE_QUERY = """
 			/* Роли */
 			create table roles['Роли'] (id['Идентификатор'] text, name['Название'] text, comments['Комментарии'] text[]);
 
@@ -34,7 +34,7 @@ class SqlParserTest extends AbstractTest
 			    registrationDate['Дата регистрации'] date);
 			""";
 
-	private final static String ALTER_TABLE_QUERY = """
+	private static final String ALTER_TABLE_QUERY = """
 			alter table users add column comments['Комментарии'] text[];
 			alter table roles drop column comments;
 			alter table roles add constraint constrName unique (field);
@@ -42,31 +42,31 @@ class SqlParserTest extends AbstractTest
 			alter table roles drop constraint constrName;
 			""";
 
-	private final static String INSERT_QUERY = """
+	private static final String INSERT_QUERY = """
 			insert into roles (id, name, comments) values ('MANAGER', 'Менеджер', ARRAY['11', '22', '33']);
 			insert into users values('Иван', 'Иванов', 20, 'MANAGER', '2020-08-20');
 			""";
 
-	private final static String UPDATE_QUERY = """
+	private static final String UPDATE_QUERY = """
 			update users set name = 'Василий', age = 30 where id = 1;
 			update users set name = 'Николай' where id = '2';
 			""";
 
-	private final static String UPDATE_BY_COLUMN_VALUE_QUERY = """
+	private static final String UPDATE_BY_COLUMN_VALUE_QUERY = """
 			update users set lastName = lastName where id = 1;
 			""";
 
-	private final static String DELETE_QUERY = """
+	private static final String DELETE_QUERY = """
 			delete from users where id = 1;
 			""";
 
-	private final static String CREATE_INDEX_QUERY = """
+	private static final String CREATE_INDEX_QUERY = """
 			create index usersLastName on users (lastName);
 			create index usersUniqueName on users (firstName, lastName);
 			create index usersFirstName on users (firstName) desc;
 			""";
 
-	private final static String DELETE_INDEX_QUERY = """
+	private static final String DELETE_INDEX_QUERY = """
 			drop index usersLastName on users;
 			""";
 

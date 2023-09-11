@@ -29,6 +29,9 @@ public enum ApiStatusCodeImpl implements ApiStatusCode
 	OBJECT_NOT_FOUND(5, "Указанный объект не найден.", ApiStatusCategory.NOT_FOUND),
 	CAPTCHA_CHECK_ERROR(6, "Ошибка проверки капчи.", ApiStatusCategory.ACCESS_RIGHTS),
 
+	SERIALIZE_ERROR(30, "Ошибка сериализации обьекта."),
+	DESERIALIZE_ERROR(31, "Ошибка десериализации обьекта."),
+
 	ATTACHMENT_ADD_ERROR(100, "Невозможно сохранить вложение."),
 	ATTACHMENT_DELETE_ERROR(101, "Невозможно удалить вложение."),
 	ATTACHMENT_TYPE_NOT_SUPPORTED(102, "Данный тип вложения не поддерживается."),
@@ -43,7 +46,9 @@ public enum ApiStatusCodeImpl implements ApiStatusCode
 
 	EMAIL_SEND_ERROR(200, "Ошибка отправки email сообщения."),
 
-	DICTS_ERROR(300, "При обращении к справочникам произошла ошибка.");
+	DICTS_ERROR(300, "При обращении к справочникам произошла ошибка."),
+
+	REPORT_GENERATE_ERROR(400, "При генерации отчета произошла ошибка.");
 
 	private final Integer code;
 

@@ -18,7 +18,6 @@ package com.proit.bpm.service.jbpm;
 
 import com.proit.bpm.configuration.properties.BpmProperties;
 import com.proit.bpm.domain.Process;
-import com.proit.bpm.domain.Task;
 import com.proit.bpm.domain.TaskResult;
 import com.proit.bpm.exception.BpmException;
 import com.proit.bpm.model.ProcessTimer;

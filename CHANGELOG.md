@@ -1,8 +1,83 @@
 # Change Log
 
+## 4.5.33 - 2023-09-08
+### Report
+- Добавили интерфейс ReportService и две реализации: AttachmentReportService, InMemoryReportService.
+- Заменили ReportNotification на ReportTask, дополнили модель полями reportId, userId.
+- Добавили реализацию по умолчанию для ReportTaskService: InMemoryReportTaskService.
+- Изменили определение reportGenerator'a в локаторе с ReportFilter на ReportType.
+- Расширили интерфейс ReportService для вызова генерации отчетов с передачей ReportType.
+
+## 4.5.32 - 2023-09-07
+### Dependency Upgrades
+- Spring Boot 2.7.15
+- EclipseLink 2.7.13
+- Groovy 3.0.19
+- MinIO 8.5.5
+- Flyway 9.22.0
+- Guava 32.1.2-jre
+
+## 4.5.31 - 2023-08-18
+### Report
+- Добавлен метод для генерации отчета с userId при отсутствии security контекста.
+- Добавлена передача userId в properties ReportNotification.
+- Отказались от применения JMS в очереди отчетов в пользу taskExecutor.
+- Добавлен лисенер на выполнение неотработанных нотификаций отчетов.
+
+## 4.5.30 - 2023-08-11
+### App
+- Теперь доступна только одна по умолчанию не транзакционная версия JmsListenerContainerFactory, управления транзакциями для неё осуществляется стандартными средствами через аннотацию @Transactional. Везде, где использовалась nonTxJmsListenerContainerFactory, необходимо использовать jmsListenerContainerFactory.
+
+## 4.5.29 - 2023-08-11
+### App
+- Добавлена абстракция переопределеного поведения json сериализации/десериализации из com.fasterxml.jackson.databind.
+
+### Dicts
+- Добавлена реализация абстракции json сериализации/десериализации для DictItem#dictData.
+
+## 4.5.28 - 2023-08-08
+### App
+- Добавлен JmsListenerContainerFactory с транзакцией только на уровне JMS.
+
+## 4.5.27 - 2023-08-03
+### Dicts
+- Обновление DictDto и конвертеров для работы с возможностью установки DictEngine.
+
+## 4.5.26 - 2023-08-03
+### Dicts
+- Добавили поддержку PostgreSQL для справочников.
+- Добавили миграцию сущностей Dict, VersionScheme между datasource-ами.
+
+## 4.5.25 - 2023-07-28
+### App
+- Добавлен DateUtils.
+- Добавлен модуль report.
+- Добавлен ReportService. Сервис поддержки приемы запросов и генерации отчетов.
+- Добавлен набор абстракции с общей функциональной логикой для реализации excel отчетов.
+- Добавлен ReportNotificationAdvice. Предоставляет возможность описания дополнительных действий в сочетании с нотификациями.
+
+## 4.5.24 - 2023-07-27
+### App
+- Фикс конфигурации JpaModelGenPlugin.
+
+## 4.5.23 - 2023-07-27
+### App
+- Доработали ApiEnumService. Теперь можно указать пакеты, в которых будет происходить поиск аннотации @ApiEnum, не ограничиваясь com.proit.
+- Доработали MetaModelVerifier. Теперь также можно указать пакеты для поиска моделей, не ограничиваясь com.proit.
+- Однотипная доработка для DefaultEntityManagerFactoryCustomizer.
+
+## 4.5.22 - 2023-07-26
+### Dependency Upgrades
+- Spring Boot 2.7.14
+- Spring Cloud 3.1.7
+
+### App
+- Добавлены аннотации @ConditionalOnJpa, @ConditionalOnJms, @ConditionalOnAudit как дополнительный уровень абстракции между конфигурацией и компонентами библиотеки.
+
 ## 4.5.21 - 2023-07-10
 ### Starter Feign
 - Понизили приоритет вызова Interceptor-а и убрали прерывание запроса при отсутствии авторизации.
+
 ### Dicts
 - Добавили вторые версии эндпоинтов RemoteDictDataEndpoint и RemoteDictDataService без передачи userId параметром.
 
@@ -297,16 +372,16 @@
 Суть релиза.
 
 ### Added
-- Добавили фичу
+- Добавили фичу.
 
 ### Changed
-- Изменили поведение
+- Изменили поведение.
 
 ### Fixed
-- Исправили ошибку
+- Исправили ошибку.
 
 ### Documentation
-- Расширили документацию
+- Расширили документацию.
 
 ### Dependency Upgrades
-- Обновили зависимость
+- Зависимость с версией.

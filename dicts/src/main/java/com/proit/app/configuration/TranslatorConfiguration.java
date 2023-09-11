@@ -16,8 +16,10 @@
 
 package com.proit.app.configuration;
 
+import com.proit.app.service.backend.postgres.PostgresReservedKeyword;
 import com.proit.app.service.ddl.SqlParser;
 import com.proit.app.service.query.MongoTranslator;
+import com.proit.app.service.query.PostgresTranslator;
 import com.proit.app.service.query.QueryParser;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,9 +34,15 @@ public class TranslatorConfiguration
 	}
 
 	@Bean
-	public MongoTranslator translator()
+	public MongoTranslator mongoTranslator()
 	{
 		return new MongoTranslator();
+	}
+
+	@Bean
+	public PostgresTranslator postgresTranslator(PostgresReservedKeyword postgresReservedKeyword)
+	{
+		return new PostgresTranslator(postgresReservedKeyword);
 	}
 
 	@Bean

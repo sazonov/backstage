@@ -16,19 +16,27 @@
 
 package com.proit.app.configuration.jpa.customizer;
 
+import com.proit.app.configuration.conditional.ConditionalOnJpa;
+import com.proit.app.configuration.properties.AppProperties;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
+@ConditionalOnJpa
+@RequiredArgsConstructor
 public class DefaultEntityManagerFactoryCustomizer implements EntityManagerFactoryCustomizer
 {
+	private final AppProperties appProperties;
+
 	@Override
 	public Set<String> getPackagesToScan()
 	{
-		return Set.of("com.proit");
+		return new HashSet<>(appProperties.getBasePackages());
 	}
 }

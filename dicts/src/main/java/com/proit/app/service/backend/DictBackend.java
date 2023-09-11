@@ -16,39 +16,32 @@
 
 package com.proit.app.service.backend;
 
-import com.proit.app.domain.*;
+import com.proit.app.domain.Dict;
+import com.proit.app.domain.DictEnum;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-public interface DictBackend
+public interface DictBackend extends Backend
 {
-	Storage getStorage();
-
 	Dict getDictById(String id);
 
 	List<Dict> getAllDicts();
 
-	Dict createDict(Dict dict);
+	Dict saveDict(Dict dict);
 
-	Dict updateDict(String dictId, Dict updatedDict);
+	Dict updateDict(String id, Dict dict);
 
-	void deleteDict(String id, LocalDateTime deleted);
+	void deleteById(String id);
 
-	DictField renameDictField(Dict dict, String oldFieldId, DictField field);
+	void softDeleteById(String id, LocalDateTime deleted);
 
-	DictConstraint createConstraint(Dict dict, DictConstraint constraint);
-
-	void deleteConstraint(Dict dict, String id);
-
-	DictIndex createIndex(Dict dict, DictIndex index);
-
-	void deleteIndex(Dict dict, String id);
+	boolean existsById(String id);
 
 	DictEnum createEnum(Dict dict, DictEnum dictEnum);
 
-	// TODO: зачем старый? есть ведь айди, делаем по аналогии с updateDict.
-	DictEnum updateEnum(Dict dict, DictEnum oldEnum, DictEnum newEnum);
+	// TODO: зачем старый? есть ведь айди, делаем по аналогии с updateDictScheme.
+	DictEnum updateEnum(Dict dict, DictEnum dictEnum);
 
 	void deleteEnum(Dict dict, String enumId);
 }

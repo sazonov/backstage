@@ -17,16 +17,15 @@
 package com.proit.app.configuration.jms;
 
 import com.google.common.collect.ImmutableMap;
-import com.proit.app.configuration.properties.JmsProperties;
+import com.proit.app.configuration.conditional.ConditionalOnJms;
 import com.proit.app.service.health.AbstractHealthIndicator;
 import org.apache.activemq.broker.BrokerService;
 import org.apache.commons.io.FileUtils;
 import org.springframework.boot.actuate.health.Health;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConditionalOnProperty(JmsProperties.ACTIVATION_PROPERTY)
+@ConditionalOnJms
 public class JmsStoreHealthIndicator extends AbstractHealthIndicator
 {
 	private final BrokerService brokerService;

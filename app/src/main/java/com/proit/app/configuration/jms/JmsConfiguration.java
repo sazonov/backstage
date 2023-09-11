@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.netflix.appinfo.ApplicationInfoManager;
+import com.proit.app.configuration.conditional.ConditionalOnJms;
 import com.proit.app.configuration.jms.discovery.EurekaDiscoveryAgent;
 import com.proit.app.configuration.jms.discovery.NoOpDiscoveryAgent;
 import com.proit.app.configuration.properties.JmsProperties;
@@ -44,7 +45,6 @@ import org.apache.activemq.util.DefaultIOExceptionHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.context.annotation.Bean;
@@ -59,7 +59,6 @@ import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.converter.MappingJackson2MessageConverter;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.MessageType;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.unit.DataSize;
 import org.springframework.util.unit.DataUnit;
 
@@ -75,7 +74,7 @@ import java.util.UUID;
 @Configuration
 @EnableJms
 @EnableConfigurationProperties(JmsProperties.class)
-@ConditionalOnProperty(JmsProperties.ACTIVATION_PROPERTY)
+@ConditionalOnJms
 @RequiredArgsConstructor
 public class JmsConfiguration
 {
@@ -86,18 +85,19 @@ public class JmsConfiguration
 
 	@Bean
 	@Primary
-	public JmsListenerContainerFactory<?> jmsListenerContainerFactory(ConnectionFactory connectionFactory, PlatformTransactionManager transactionManager)
+	public JmsListenerContainerFactory<?> jmsListenerContainerFactory(ConnectionFactory connectionFactory)
 	{
-		return createListenerContainerFactory(connectionFactory, transactionManager);
+		return createListenerContainerFactory(connectionFactory);
 	}
 
 	@Bean
+	@Deprecated(forRemoval = true)
 	public JmsListenerContainerFactory<?> nonTxJmsListenerContainerFactory(ConnectionFactory connectionFactory)
 	{
-		return createListenerContainerFactory(connectionFactory, null);
+		return createListenerContainerFactory(connectionFactory);
 	}
 
-	private JmsListenerContainerFactory<?> createListenerContainerFactory(ConnectionFactory connectionFactory, PlatformTransactionManager transactionManager)
+	private JmsListenerContainerFactory<?> createListenerContainerFactory(ConnectionFactory connectionFactory)
 	{
 		var factory = new DefaultJmsListenerContainerFactory();
 		factory.setConnectionFactory(connectionFactory);
@@ -108,12 +108,6 @@ public class JmsConfiguration
 		if (jmsProperties.isJacksonMessageConverterEnabled())
 		{
 			factory.setMessageConverter(jacksonMessageConverter());
-		}
-
-		if (transactionManager != null)
-		{
-			factory.setSessionTransacted(true);
-			factory.setTransactionManager(transactionManager);
 		}
 
 		return factory;
@@ -390,7 +384,7 @@ public class JmsConfiguration
 
 	// TODO: избавиться от @Primary.
 	@Configuration
-	@ConditionalOnProperty(JmsProperties.ACTIVATION_PROPERTY)
+	@ConditionalOnJms
 	@ConditionalOnClass(name = {"com.netflix.appinfo.ApplicationInfoManager"})
 	@RequiredArgsConstructor
 	public static class EurekaAgentConfiguration

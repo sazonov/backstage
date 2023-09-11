@@ -16,32 +16,47 @@
 
 package com.proit.app.service.query;
 
+import com.google.common.collect.Sets;
 import com.proit.app.domain.Dict;
-import com.proit.app.exception.dictionary.field.FieldNotFoundException;
+import com.proit.app.exception.AppException;
+import com.proit.app.exception.dict.field.FieldNotFoundException;
+import com.proit.app.model.api.ApiStatusCodeImpl;
+import com.proit.app.model.mongo.query.MongoQueryContext;
+import com.proit.app.model.mongo.query.MongoQueryField;
 import com.proit.app.service.query.ast.*;
 import lombok.RequiredArgsConstructor;
+import org.bson.types.Decimal128;
 import org.springframework.data.mongodb.core.query.Criteria;
 
+import java.util.Collections;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.proit.app.constant.ServiceFieldConstants.ID;
 import static com.proit.app.constant.ServiceFieldConstants._ID;
 
 @RequiredArgsConstructor
-public class MongoTranslator implements Translator<Criteria>, Visitor<TranslationResult<?>>
+public class MongoTranslator implements Translator<MongoQueryContext>, Visitor<TranslationResult<?>>
 {
-	public Criteria process(Dict dict, QueryExpression queryExpression)
+	@Override
+	public MongoQueryContext process(Dict dict, QueryExpression queryExpression)
 	{
-		return queryExpression.process(this, new TranslationContext(dict)).value(Criteria.class);
+		return queryExpression.process(this, new TranslationContext(dict)).value(MongoQueryContext.class);
 	}
 
+	@Override
 	public TranslationResult<Object> visit(Constant constant, TranslationContext context)
 	{
+		//TODO: убрать после реализации валидации/маппинга QueryExpression для адаптеров
+		if (Constant.Type.DECIMAL.equals(constant.type))
+		{
+			return new TranslationResult<>(Decimal128.parse((String) constant.getValue()));
+		}
+
 		return new TranslationResult<>(constant.getValue());
 	}
 
-	public TranslationResult<String> visit(Field field, TranslationContext context)
+	@Override
+	public TranslationResult<MongoQueryField> visit(Field field, TranslationContext context)
 	{
 		context.dict()
 				.getFields()
@@ -50,48 +65,65 @@ public class MongoTranslator implements Translator<Criteria>, Visitor<Translatio
 				.findFirst()
 				.orElseThrow(() -> new FieldNotFoundException(context.dict().getId(), field.name));
 
-		return new TranslationResult<>(field.name.equals(ID) ? _ID : field.name);
+		var fieldName = field.name.equals(ID) ? _ID : field.name;
+
+		return new TranslationResult<>(new MongoQueryField(field.dictId == null ? context.dict().getId() : field.dictId, fieldName));
 	}
 
-	public TranslationResult<Criteria> visit(LikeQueryExpression expression, TranslationContext context)
+	@Override
+	public TranslationResult<MongoQueryContext> visit(LikeQueryExpression expression, TranslationContext context)
 	{
-		var field = expression.field.process(this, context);
+		var field = expression.field.process(this, context).value(MongoQueryField.class);
 		var template = expression.template.process(this, context);
 
-		return new TranslationResult<>(Criteria.where(field.value(String.class)).regex(template.value(String.class)));
+		var criteria = Criteria.where(field.getFieldId())
+				.regex(template.value(String.class));
+
+		return new TranslationResult<>(new MongoQueryContext(criteria, participantDictIds(field)));
 	}
 
-	public TranslationResult<Criteria> visit(IlikeQueryExpression expression, TranslationContext context)
+	@Override
+	public TranslationResult<MongoQueryContext> visit(IlikeQueryExpression expression, TranslationContext context)
 	{
-		var field = expression.field.process(this, context);
+		var field = expression.field.process(this, context).value(MongoQueryField.class);
 		var template = expression.template.process(this, context);
 
-		return new TranslationResult<>(Criteria.where(field.value(String.class)).regex(template.value(String.class), "i"));
+		var criteria = Criteria.where(field.getFieldId())
+				.regex(template.value(String.class), "i");
+
+		return new TranslationResult<>(new MongoQueryContext(criteria, participantDictIds(field)));
 	}
 
-	public TranslationResult<Criteria> visit(LogicQueryExpression expression, TranslationContext context)
+	@Override
+	public TranslationResult<MongoQueryContext> visit(LogicQueryExpression expression, TranslationContext context)
 	{
-		var left = expression.left.process(this, context);
-		var right = expression.right.process(this, context);
+		var left = expression.left.process(this, context).value(MongoQueryContext.class);
+		var right = expression.right.process(this, context).value(MongoQueryContext.class);
 
-		Criteria criteria = null;
+		MongoQueryContext queryContext;
+
+		var participantDictIds = Sets.union(left.getParticipantDictIds(), right.getParticipantDictIds());
 
 		switch (expression.type)
 		{
-			case OR -> criteria = new Criteria().orOperator(left.value(Criteria.class), right.value(Criteria.class));
-			case AND -> criteria = new Criteria().andOperator(left.value(Criteria.class), right.value(Criteria.class));
-			case NOT -> criteria = new Criteria().not().andOperator(left.value(Criteria.class));
+			case OR -> queryContext = new MongoQueryContext(new Criteria().orOperator(left.getCriteria(), right.getCriteria()), participantDictIds);
+			case AND -> queryContext = new MongoQueryContext(new Criteria().andOperator(left.getCriteria(), right.getCriteria()), participantDictIds);
+			//fixme: исправить
+			case NOT -> throw new UnsupportedOperationException("Оператор '%s' не поддерживается в MongoDictDataBackend.".formatted(expression.type));
+
+			default -> throw new AppException(ApiStatusCodeImpl.ILLEGAL_INPUT, "Не поддерживаемый оператор '%s'".formatted(expression.type));
 		}
 
-		return new TranslationResult<>(criteria);
+		return new TranslationResult<>(queryContext);
 	}
 
-	public TranslationResult<Criteria> visit(Predicate predicate, TranslationContext context)
+	@Override
+	public TranslationResult<MongoQueryContext> visit(Predicate predicate, TranslationContext context)
 	{
-		var left = predicate.left.process(this, context);
+		var left = predicate.left.process(this, context).value(MongoQueryField.class);
 		var right = predicate.right.process(this, context);
 
-		var criteria = Criteria.where(left.value(String.class));
+		var criteria = Criteria.where(left.getFieldId());
 
 		switch (predicate.type)
 		{
@@ -101,21 +133,58 @@ public class MongoTranslator implements Translator<Criteria>, Visitor<Translatio
 			case GT -> criteria.gt(right.value());
 			case LEQ -> criteria.lte(right.value());
 			case GEQ -> criteria.gte(right.value());
+
+			default -> throw new AppException(ApiStatusCodeImpl.ILLEGAL_INPUT, "Не поддерживаемый оператор '%s'".formatted(predicate.type));
 		}
 
-		return new TranslationResult<>(criteria);
+		return new TranslationResult<>(new MongoQueryContext(criteria, participantDictIds(left)));
 	}
 
-	public TranslationResult<Criteria> visit(InQueryExpression expression, TranslationContext context)
+	@Override
+	public TranslationResult<MongoQueryContext> visit(InQueryExpression expression, TranslationContext context)
 	{
-		var left = expression.field.process(this, context);
-		var variants = expression.variants.stream().map(it -> it.process(this, context)).collect(Collectors.toList());
+		var left = expression.field.process(this, context).value(MongoQueryField.class);
+		var variants = expression.variants.stream()
+				.map(it -> it.process(this, context))
+				.map(TranslationResult::value)
+				.toList();
 
-		return new TranslationResult<>(Criteria.where(left.value(String.class)).in(variants.stream().map(TranslationResult::value).collect(Collectors.toList())));
+		var criteria = Criteria.where(left.getFieldId())
+				.in(variants);
+
+		return new TranslationResult<>(new MongoQueryContext(criteria, participantDictIds(left)));
 	}
 
-	public TranslationResult<Criteria> visit(Empty empty, TranslationContext context)
+	@Override
+	public TranslationResult<MongoQueryContext> visit(AllOrAnyQueryExpression expression, TranslationContext context)
 	{
-		return new TranslationResult<>(new Criteria());
+		var left = expression.field.process(this, context).value(MongoQueryField.class);
+		var constants = expression.constants.stream()
+				.map(it -> it.process(this, context))
+				.map(TranslationResult::value)
+				.toList();
+
+		var criteria = Criteria.where(left.getFieldId());
+
+		switch (expression.type)
+		{
+			case ALL -> criteria.all(constants);
+			case ANY -> criteria.in(constants);
+
+			default -> throw new AppException(ApiStatusCodeImpl.ILLEGAL_INPUT, "Не поддерживаемый оператор '%s'".formatted(expression.type));
+		}
+
+		return new TranslationResult<>(new MongoQueryContext(criteria, participantDictIds(left)));
+	}
+
+	@Override
+	public TranslationResult<MongoQueryContext> visit(Empty empty, TranslationContext context)
+	{
+		return new TranslationResult<>(new MongoQueryContext());
+	}
+
+	private Set<String> participantDictIds(MongoQueryField field)
+	{
+		return field.getDictId() != null ? Set.of(field.getDictId()) : Collections.emptySet();
 	}
 }

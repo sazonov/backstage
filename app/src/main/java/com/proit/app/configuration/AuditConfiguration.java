@@ -16,9 +16,10 @@
 
 package com.proit.app.configuration;
 
+import com.proit.app.configuration.conditional.ConditionalOnAudit;
+import com.proit.app.configuration.conditional.ConditionalOnJms;
+import com.proit.app.configuration.conditional.ConditionalOnJpa;
 import com.proit.app.configuration.properties.AuditProperties;
-import com.proit.app.configuration.properties.JPAProperties;
-import com.proit.app.configuration.properties.JmsProperties;
 import com.proit.app.repository.AuditRepository;
 import com.proit.app.service.audit.AuditStore;
 import com.proit.app.service.audit.JmsAuditStore;
@@ -26,7 +27,6 @@ import com.proit.app.service.audit.JpaAuditStore;
 import com.proit.app.service.audit.LogAuditStore;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,20 +36,20 @@ import org.springframework.jms.core.JmsTemplate;
 
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(AuditProperties.class)
-@ConditionalOnProperty(value = AuditProperties.ACTIVATION_PROPERTY, matchIfMissing = true)
+@ConditionalOnAudit
 @RequiredArgsConstructor
 public class AuditConfiguration
 {
 	@Bean
 	@Primary
-	@ConditionalOnProperty(JmsProperties.ACTIVATION_PROPERTY)
+	@ConditionalOnJms
 	public AuditStore jmsAuditWriter(NamedParameterJdbcTemplate jdbcTemplate, AuditRepository auditRepository, JmsTemplate jmsTemplate)
 	{
 		return new JmsAuditStore(jmsTemplate, jpaAuditWriter(jdbcTemplate, auditRepository));
 	}
 
 	@Bean
-	@ConditionalOnProperty(JPAProperties.ACTIVATION_PROPERTY)
+	@ConditionalOnJpa
 	public AuditStore jpaAuditWriter(NamedParameterJdbcTemplate jdbcTemplate, AuditRepository auditRepository)
 	{
 		return new JpaAuditStore(jdbcTemplate, auditRepository);

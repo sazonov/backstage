@@ -27,23 +27,35 @@ import org.testcontainers.containers.PostgreSQLContainer;
 public class AppDataSourceInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext>
 {
 	@ClassRule
-	public static final PostgreSQLContainer<?> postgres;
+	public static final PostgreSQLContainer<?> appDataSource;
+
+	@ClassRule
+	public static final PostgreSQLContainer<?> dictDataSource;
 
 	static
 	{
-		postgres = new PostgreSQLContainer<>("postgres");
+		appDataSource = new PostgreSQLContainer<>("postgres");
+		appDataSource.start();
 
-		postgres.start();
+		dictDataSource = new PostgreSQLContainer<>("postgres");
+		dictDataSource.start();
 	}
 
 	@Override
 	public void initialize(ConfigurableApplicationContext applicationContext)
 	{
 		TestPropertyValues.of(
-				"app.dataSource.driverClassName=" + postgres.getDriverClassName(),
-				"app.dataSource.url=" + postgres.getJdbcUrl(),
-				"app.dataSource.username=" + postgres.getUsername(),
-				"app.dataSource.password=" + postgres.getPassword()
+				"app.dataSource.driverClassName=" + appDataSource.getDriverClassName(),
+				"app.dataSource.url=" + appDataSource.getJdbcUrl(),
+				"app.dataSource.username=" + appDataSource.getUsername(),
+				"app.dataSource.password=" + appDataSource.getPassword()
+		).applyTo(applicationContext.getEnvironment());
+
+		TestPropertyValues.of(
+				"app.dicts.dataSource.driverClassName=" + dictDataSource.getDriverClassName(),
+				"app.dicts.dataSource.url=" + dictDataSource.getJdbcUrl(),
+				"app.dicts.dataSource.username=" + dictDataSource.getUsername(),
+				"app.dicts.dataSource.password=" + dictDataSource.getPassword()
 		).applyTo(applicationContext.getEnvironment());
 	}
 }

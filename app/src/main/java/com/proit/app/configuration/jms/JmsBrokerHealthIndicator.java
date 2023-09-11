@@ -16,14 +16,13 @@
 
 package com.proit.app.configuration.jms;
 
-import com.proit.app.configuration.properties.JmsProperties;
+import com.proit.app.configuration.conditional.ConditionalOnJms;
 import com.proit.app.service.health.AbstractHealthIndicator;
 import lombok.Cleanup;
 import org.apache.activemq.broker.BrokerService;
 import org.apache.activemq.command.ActiveMQDestination;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.actuate.health.Health;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Component;
 
@@ -33,7 +32,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Component
-@ConditionalOnProperty(JmsProperties.ACTIVATION_PROPERTY)
+@ConditionalOnJms
 public class JmsBrokerHealthIndicator extends AbstractHealthIndicator
 {
 	public static final String DEFAULT_AMQ_PREFIX = "ActiveMQ.Statistics.Destination.";

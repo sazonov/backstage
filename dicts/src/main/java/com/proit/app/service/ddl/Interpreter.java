@@ -18,8 +18,11 @@ package com.proit.app.service.ddl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.proit.app.configuration.properties.DictsProperties;
 import com.proit.app.domain.*;
-import com.proit.app.exception.dictionary.enums.EnumNotFoundException;
+import com.proit.app.exception.dict.enums.EnumCreatedException;
+import com.proit.app.exception.dict.enums.EnumNotFoundException;
+import com.proit.app.exception.dict.index.IndexCreatedException;
 import com.proit.app.model.dictitem.DictDataItem;
 import com.proit.app.service.DictDataService;
 import com.proit.app.service.DictService;
@@ -37,9 +40,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.proit.app.constant.ServiceFieldConstants.ID;
@@ -142,6 +143,7 @@ public class Interpreter
 
 		if (alterTable.getOperation() instanceof AddTableColumnOperation addTableColumnOperation)
 		{
+			fields = new ArrayList<>(fields);
 			fields.add(mapDictField(addTableColumnOperation.getField()));
 		}
 		else if (alterTable.getOperation() instanceof DropTableColumnOperation dropTableColumnOperation)
@@ -225,10 +227,15 @@ public class Interpreter
 				.map(this::mapDictField)
 				.collect(Collectors.toList());
 
+		var engineName = Optional.ofNullable(createTable.getEngine())
+				.map(StringValue::getValue)
+				.orElse(DictsProperties.DEFAULT_ENGINE);
+
 		var dict = Dict.builder()
 				.id(createTable.getId().getName())
 				.name(createTable.getName().getValue())
 				.fields(fields)
+				.engine(new DictEngine(engineName))
 				.build();
 
 		dictService.create(dict);
@@ -307,12 +314,20 @@ public class Interpreter
 
 	private void execute(CreateIndexExpression createIndex)
 	{
+		var indexId = createIndex.getId().getName();
+		var tableId = createIndex.getTable().getName();
+
+		if (indexId.equals(tableId))
+		{
+			throw new IndexCreatedException("Id индекса '%s' равен Id справочника '%s'.".formatted(indexId, tableId));
+		}
+
 		var fields = createIndex.getFields().stream()
 				.map(Id::getName)
 				.collect(Collectors.toList());
 
-		dictService.createIndex(createIndex.getTable().getName(), DictIndex.builder()
-				.id(createIndex.getId().getName())
+		dictService.createIndex(tableId, DictIndex.builder()
+				.id(indexId)
 				.direction(createIndex.isDescDirection() ? Sort.Direction.DESC : Sort.Direction.ASC)
 				.fields(fields)
 				.build());
@@ -325,6 +340,14 @@ public class Interpreter
 
 	private void execute(CreateEnum createEnum)
 	{
+		var enumId = createEnum.getId().getName();
+		var tableId = createEnum.getTableId().getName();
+
+		if (enumId.equals(tableId))
+		{
+			throw new EnumCreatedException("Id enum '%s' равен Id справочника '%s'.".formatted(enumId, tableId));
+		}
+
 		var values = createEnum.getValues()
 				.stream()
 				.map(StringValue::getValue)
@@ -335,7 +358,7 @@ public class Interpreter
 			throw new RuntimeException("Повторяющиеся значения в enum недопустимы.");
 		}
 
-		dictService.createEnum(createEnum.getTableId().getName(), new DictEnum(createEnum.getId().getName(), createEnum.getName().getValue(), values));
+		dictService.createEnum(tableId, new DictEnum(enumId, createEnum.getName().getValue(), values));
 	}
 
 	private DictField mapDictField(ColumnDefinition columnDefinition)
@@ -414,7 +437,7 @@ public class Interpreter
 			{
 				try
 				{
-					var map = objectMapper.readValue(jsonValue.getValue(), Map.class);
+					var map = Collections.unmodifiableMap(objectMapper.readValue(jsonValue.getValue(), Map.class));
 
 					item.put(fieldIds.get(i), map);
 				}
@@ -429,7 +452,7 @@ public class Interpreter
 			}
 		}
 
-		return item;
+		return Collections.unmodifiableMap(item);
 	}
 
 	private String buildFilterQuery(ComparingValueColumn column)

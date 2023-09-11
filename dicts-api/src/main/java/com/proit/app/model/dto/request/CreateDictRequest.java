@@ -43,4 +43,7 @@ public class CreateDictRequest
 
 	@Schema(description = "Название разрешения для изменения данных справочника")
 	private String editPermission;
+
+	@Schema(description = "Место хранения справочника")
+	private String engine;
 }

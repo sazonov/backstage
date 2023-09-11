@@ -23,24 +23,28 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 
 import javax.annotation.PostConstruct;
+import java.util.List;
 
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
 @ConditionalOnProperty(value = DDLProperties.ACTIVATION_PROPERTY, matchIfMissing = true)
 @EnableConfigurationProperties({DDLProperties.class, DictsProperties.class})
+@DependsOn({"jsonUtils", "dictEngineUpdater"})
 public class DictsDDLConfiguration
 {
-	private final DictsDDLProvider dictsDDLProvider;
+	private final List<DictsDDLProvider> dictsDDLProviders;
 
 	@PostConstruct
 	public void initialize()
 	{
-		log.info("Applying DDL with '{}'...", dictsDDLProvider.getName());
-
-		dictsDDLProvider.update();
+		dictsDDLProviders.stream()
+				.sorted(AnnotationAwareOrderComparator.INSTANCE)
+				.peek(it -> log.info("Applying DDL with '{}'...", it.getName()))
+				.forEach(DictsDDLProvider::update);
 	}
 }
-

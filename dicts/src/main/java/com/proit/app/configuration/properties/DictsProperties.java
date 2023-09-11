@@ -19,22 +19,45 @@ package com.proit.app.configuration.properties;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.validation.annotation.Validated;
 
-import java.util.Map;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import java.util.Set;
 
 @Getter
 @Setter
 @ConfigurationProperties("app.dicts")
+@Validated
 public class DictsProperties
 {
+	public static final String DEFAULT_SCHEME = "dicts";
+	public static final String ENGINE_PROPERTY = "app.dicts.engines";
 	public static final String STORAGE_PROPERTY = "app.dicts.storage";
 	public static final String ACTIVATION_PROPERTY = "app.dicts.enabled";
-	public static final String DEFAULT_ENGINE = "mongo";
-	public static final String DEFAULT_STORAGE = "mongo";
+	public static final String DEFAULT_ENGINE_PROPERTY = "app.dicts.default-engine";
+	public static String DEFAULT_ENGINE;
 
 	private boolean enabled = false;
 
-	private String storage = DEFAULT_STORAGE;
+	/**
+	 * Схема для создания справочников в источнике данных
+	 */
+	private String scheme = DEFAULT_SCHEME;
 
-	private Map<String, Boolean> engines = Map.of(DEFAULT_ENGINE, true);
+	@NotBlank
+	private String storage;
+
+	@NotEmpty
+	private Set<String> engines;
+
+	@NotBlank
+	private String defaultEngine;
+
+	public void setDefaultEngine(String defaultEngine)
+	{
+		this.defaultEngine = defaultEngine;
+
+		DictsProperties.DEFAULT_ENGINE = defaultEngine;
+	}
 }

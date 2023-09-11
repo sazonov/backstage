@@ -25,6 +25,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.jms.core.JmsTemplate;
+import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 public class JmsAuditStore implements AuditStore
@@ -50,8 +51,9 @@ public class JmsAuditStore implements AuditStore
 		return auditStore.getBySpecification(specification, pageable);
 	}
 
+	@Transactional
 	@JmsListener(destination = AUDIT_QUEUE)
-	void save(AuditEvent event)
+	public void save(AuditEvent event)
 	{
 		auditStore.write(event);
 	}

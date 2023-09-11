@@ -16,9 +16,13 @@
 
 package com.proit.app.model.dto.data;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -26,6 +30,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Builder
 @Schema(description = "Запись в справочнике")
@@ -35,6 +41,8 @@ public class DictItemDto
 
 	@Builder.Default
 	@Schema(description = "Пользовательские поля")
+	@JsonSerialize(using = DictDataJsonSerializer.class)
+	@JsonDeserialize(using = DictDataDeserializer.class)
 	private Map<String, Object> data = new HashMap<>();
 
 	@Builder.Default

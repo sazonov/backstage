@@ -16,7 +16,7 @@
 
 package com.proit.app.endpoint;
 
-import com.proit.app.configuration.properties.JmsProperties;
+import com.proit.app.configuration.conditional.ConditionalOnJms;
 import com.proit.app.model.api.ApiResponse;
 import com.proit.app.model.api.OkResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,7 +26,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.activemq.broker.BrokerService;
 import org.apache.activemq.broker.jmx.QueueViewMBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.*;
 
 import javax.management.ObjectName;
@@ -36,7 +35,7 @@ import java.util.Hashtable;
 @Tag(name = "jms-endpoint", description = "Методы для работы с JMS брокером сервиса.")
 @RestController
 @RequestMapping("/api/jms")
-@ConditionalOnProperty(JmsProperties.ACTIVATION_PROPERTY)
+@ConditionalOnJms
 @RequiredArgsConstructor
 public class JMSEndpoint
 {

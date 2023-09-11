@@ -23,18 +23,11 @@ import com.proit.app.domain.VersionScheme;
 import java.util.List;
 import java.util.Optional;
 
-public interface VersionSchemeBackend
+public interface VersionSchemeBackend extends Backend
 {
-	//TODO: изменить нейминг beginDDL/commitDDL/rollbackDDL
-	void beginDDL();
-
-	void commitDDL();
-
-	void rollbackDDL();
-
 	List<VersionScheme> findAll();
 
-	VersionScheme create(VersionScheme versionScheme);
+	VersionScheme saveVersionScheme(VersionScheme versionScheme);
 
 	Optional<VersionScheme> findByScript(String script);
 }

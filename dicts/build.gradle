@@ -43,9 +43,15 @@ dependencies {
 
 	compileOnly "com.fasterxml.jackson.core:jackson-annotations"
 
+	compileOnly "net.postgis:postgis-jdbc:$postgisVersion"
+	compileOnly "org.geolatte:geolatte-geom:$geolatteVersion"
+
+	compileOnly "org.postgresql:postgresql"
+
 	api "org.jparsec:jparsec:3.1"
 	api "org.apache.commons:commons-csv:1.9.0"
 	api "com.opencsv:opencsv:5.5"
+	api "de.grundid.opendatalab:geojson-jackson:$geojsonVersion"
 
 	testImplementation project(":app")
 	testImplementation project(":dicts-api")

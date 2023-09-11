@@ -18,9 +18,36 @@ package com.proit.app.utils;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 public class AttachmentUtils
 {
+	private static final Map<String, String> ext2mime;
+
+	static
+	{
+		HashMap<String, String> e2m = new HashMap<>();
+		e2m.put("jpg", "image/jpeg");
+		e2m.put("txt", "text/plain");
+		e2m.put("png", "image/png");
+		e2m.put("pdf", "application/pdf");
+		e2m.put("bmp", "image/bmp");
+		e2m.put("doc", "application/msword");
+		e2m.put("docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+		e2m.put("xls", "application/vnd.ms-excel");
+		e2m.put("xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+		e2m.put("csv", "text/csv");
+		e2m.put("json", "application/json");
+
+		ext2mime = Map.copyOf(e2m);
+	}
+
+	public static String extensionToMimeType(String mimeType)
+	{
+		return ext2mime.get(mimeType.toLowerCase());
+	}
+
 	public static String buildContentDisposition(boolean inline, String legacyName)
 	{
 		return buildContentDisposition(inline, legacyName, legacyName);

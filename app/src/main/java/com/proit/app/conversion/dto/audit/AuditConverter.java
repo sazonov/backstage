@@ -16,17 +16,16 @@
 
 package com.proit.app.conversion.dto.audit;
 
-import com.proit.app.configuration.properties.AuditProperties;
+import com.proit.app.configuration.conditional.ConditionalOnAudit;
 import com.proit.app.conversion.dto.AbstractConverter;
 import com.proit.app.model.domain.audit.Audit;
 import com.proit.app.model.dto.audit.AuditEvent;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.time.ZoneId;
 
 @Component
-@ConditionalOnProperty(value = AuditProperties.ACTIVATION_PROPERTY, matchIfMissing = true)
+@ConditionalOnAudit
 public class AuditConverter extends AbstractConverter<Audit, AuditEvent>
 {
 	@Override

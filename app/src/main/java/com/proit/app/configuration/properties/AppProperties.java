@@ -20,11 +20,16 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @Setter
 @ConfigurationProperties("app")
 public class AppProperties
 {
+	public static final String DEFAULT_PACKAGE = "com.proit";
+
 	/**
 	 * Внутренний адрес приложения.
 	 */
@@ -44,4 +49,17 @@ public class AppProperties
 	 * Версия приложения.
 	 */
 	private String version = "dev";
+
+	/**
+	 * Пакеты с компонентами приложения.
+	 */
+	private List<String> basePackages = new ArrayList<>();
+
+	public List<String> getBasePackages()
+	{
+		var res = new ArrayList<>(basePackages);
+		res.add(DEFAULT_PACKAGE);
+
+		return res;
+	}
 }

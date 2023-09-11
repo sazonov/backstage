@@ -15,7 +15,10 @@ app:
             path: uploads
     audit.enabled: false
     dicts:
-        storage: mongoDB
+        scheme: dicts
+        storage: mongo
+        engines: mongo, postgres
+        default-engine: mongo
     api:
         swagger:
             enabled: false

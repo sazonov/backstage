@@ -1,7 +1,7 @@
 package com.proit.app.service;
 
-import com.proit.app.common.AbstractTest;
-import com.proit.app.exception.dictionary.query.QuerySyntaxException;
+import com.proit.app.common.CommonTest;
+import com.proit.app.exception.dict.query.QuerySyntaxException;
 import com.proit.app.service.query.QueryParser;
 import com.proit.app.service.query.ast.Constant;
 import com.proit.app.service.query.ast.InQueryExpression;
@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class QueryParserTest extends AbstractTest
+class QueryParserTest extends CommonTest
 {
 	@Autowired
 	private QueryParser queryParser;

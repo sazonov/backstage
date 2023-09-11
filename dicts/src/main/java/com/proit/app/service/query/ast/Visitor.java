@@ -34,5 +34,7 @@ public interface Visitor<T>
 
 	T visit(InQueryExpression expression, TranslationContext context);
 
+	T visit(AllOrAnyQueryExpression expression, TranslationContext context);
+
 	T visit(Empty empty, TranslationContext context);
 }

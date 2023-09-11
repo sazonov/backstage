@@ -16,15 +16,14 @@
 
 package com.proit.app.repository;
 
-import com.proit.app.configuration.properties.AuditProperties;
+import com.proit.app.configuration.conditional.ConditionalOnAudit;
 import com.proit.app.model.domain.audit.Audit;
 import com.proit.app.repository.generic.CustomJpaRepository;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import java.util.List;
 
-@ConditionalOnProperty(value = AuditProperties.ACTIVATION_PROPERTY, matchIfMissing = true)
+@ConditionalOnAudit
 public interface AuditRepository extends CustomJpaRepository<Audit, String>, JpaSpecificationExecutor<Audit>
 {
 	List<Audit> findAllByTypeAndObjectId(String type, String objectId);

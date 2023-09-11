@@ -51,4 +51,7 @@ public class DictDto
 
 	@Schema(description = "Флаг удаления")
 	private LocalDateTime deleted;
+
+	@Schema(description = "Место хранения справочника")
+	private String engine;
 }

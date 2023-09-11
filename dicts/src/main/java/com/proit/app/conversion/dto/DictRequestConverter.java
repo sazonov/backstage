@@ -17,6 +17,7 @@
 package com.proit.app.conversion.dto;
 
 import com.proit.app.domain.Dict;
+import com.proit.app.domain.DictEngine;
 import com.proit.app.model.dto.request.CreateDictRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -38,6 +39,7 @@ public class DictRequestConverter extends AbstractConverter<CreateDictRequest, D
 				.enums(dictEnumRequestConverter.convert(source.getEnums()))
 				.viewPermission(source.getViewPermission())
 				.editPermission(source.getEditPermission())
+				.engine(new DictEngine(source.getEngine()))
 				.build();
 	}
 }

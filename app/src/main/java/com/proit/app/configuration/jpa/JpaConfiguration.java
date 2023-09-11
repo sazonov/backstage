@@ -16,10 +16,12 @@
 
 package com.proit.app.configuration.jpa;
 
+import com.proit.app.configuration.conditional.ConditionalOnJpa;
 import com.proit.app.configuration.ddl.DDLConfiguration;
 import com.proit.app.configuration.jpa.customizer.EntityManagerFactoryCustomizer;
 import com.proit.app.configuration.jpa.eclipselink.Customizer;
 import com.proit.app.configuration.jpa.eclipselink.MetaModelVerifier;
+import com.proit.app.configuration.properties.AppProperties;
 import com.proit.app.configuration.properties.JPAProperties;
 import com.proit.app.repository.generic.CustomJpaRepositoryFactoryBean;
 import lombok.RequiredArgsConstructor;
@@ -45,10 +47,10 @@ import java.util.Optional;
 @Configuration
 @RequiredArgsConstructor
 @EnableTransactionManagement
-@ConditionalOnProperty(value = JPAProperties.ACTIVATION_PROPERTY, matchIfMissing = true)
+@ConditionalOnJpa
 @EnableConfigurationProperties({JpaProperties.class, JPAProperties.class})
 @PropertySource("classpath:jpa.properties")
-@EnableJpaRepositories(value = {"com.proit"}, repositoryFactoryBeanClass = CustomJpaRepositoryFactoryBean.class)
+@EnableJpaRepositories(value = {AppProperties.DEFAULT_PACKAGE}, repositoryFactoryBeanClass = CustomJpaRepositoryFactoryBean.class)
 public class JpaConfiguration
 {
 	// Убеждаемся, что при активированном DDL, он инициализируется до JPA.
@@ -100,8 +102,8 @@ public class JpaConfiguration
 
 	@Bean
 	@ConditionalOnProperty(value = JPAProperties.META_MODEL_VALIDATION_ACTIVATION_PROPERTY, matchIfMissing = true)
-	public MetaModelVerifier metaModelVerifier()
+	public MetaModelVerifier metaModelVerifier(AppProperties appProperties)
 	{
-		return new MetaModelVerifier();
+		return new MetaModelVerifier(appProperties);
 	}
 }

@@ -34,4 +34,6 @@ public class CreateTable implements Expression
 	private final StringValue name;
 
 	private final List<ColumnDefinition> fields;
+
+	private final StringValue engine;
 }

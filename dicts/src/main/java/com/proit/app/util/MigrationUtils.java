@@ -24,8 +24,8 @@ import org.springframework.data.util.Version;
 import java.util.Comparator;
 import java.util.Map;
 
-import static com.proit.app.configuration.ddl.DictsDDLProvider.MIGRATIONS_PATH;
-import static com.proit.app.configuration.ddl.DictsDDLProvider.SEPARATOR;
+import static com.proit.app.configuration.ddl.ClasspathMigrationDictsDDLProvider.MIGRATIONS_PATH;
+import static com.proit.app.configuration.ddl.ClasspathMigrationDictsDDLProvider.SEPARATOR;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MigrationUtils

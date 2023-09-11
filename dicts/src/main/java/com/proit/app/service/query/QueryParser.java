@@ -16,7 +16,7 @@
 
 package com.proit.app.service.query;
 
-import com.proit.app.exception.dictionary.query.QuerySyntaxException;
+import com.proit.app.exception.dict.query.QuerySyntaxException;
 import com.proit.app.service.query.ast.*;
 import org.apache.commons.lang3.StringUtils;
 import org.jparsec.*;
@@ -27,9 +27,9 @@ import java.util.function.UnaryOperator;
 
 public class QueryParser
 {
-	final String[] OPERATORS = { "=", "!=", "<>", "<", ">", "<=", ">=", ",", "(", ")", "::" };
+	final String[] OPERATORS = { "=", "!=", "<>", "<", ">", "<=", ">=", ",", "(", ")", "::", ".", "[", "]" };
 
-	final String[] KEYWORDS = { "in", "like", "ilike", "true", "false", "not", "and", "or", "null" };
+	final String[] KEYWORDS = { "in", "like", "ilike", "any", "all", "true", "false", "not", "and", "or", "null" };
 
 	final Terminals TERMS = Terminals.operators(OPERATORS).words(Scanners.IDENTIFIER).caseInsensitiveKeywords(KEYWORDS).build();
 
@@ -63,9 +63,12 @@ public class QueryParser
 	final Parser<Constant> CASTED_CONSTANT = Parsers.sequence(SIMPLE_CONSTANT, term("::"), Terminals.identifier(), (constant, kw, targetType) -> new Constant(constant, targetType));
 	final Parser<Constant> CONSTANT = Parsers.or(CASTED_CONSTANT, SIMPLE_CONSTANT);
 
-	final Parser<Field> FIELD = Terminals.Identifier.PARSER.map(Field::new);
+	final Parser<Field> FIELD = Parsers.or(Parsers.sequence(Terminals.identifier(), term("."), Terminals.identifier(), (dict, kw, field) -> new Field(dict, field)),
+			Terminals.Identifier.PARSER.map(Field::new));
 
 	final Parser<List<Constant>> CONSTANT_LIST = Parsers.between(term("("), CONSTANT.sepBy(term(",")), term(")"));
+
+	final Parser<List<Constant>> CONSTANT_ARRAY = Parsers.between(term("["), CONSTANT.sepBy(term(",")), term("]"));
 
 	final Parser<Predicate.Type> CompOp = Parsers.or(
 		term("=").retn(Predicate.Type.EQ),
@@ -77,15 +80,22 @@ public class QueryParser
 		term("<>").retn(Predicate.Type.NEQ)
 	);
 
+	final Parser<AllOrAnyQueryExpression.Type> ArrayOp = Parsers.or(
+			term("all").retn(AllOrAnyQueryExpression.Type.ALL),
+			term("any").retn(AllOrAnyQueryExpression.Type.ANY)
+	);
+
 	final Parser<InQueryExpression> IN_EXPR = Parsers.sequence(FIELD, term("in"), CONSTANT_LIST, (field, kw, constants) -> new InQueryExpression(field, constants));
 
 	final Parser<LikeQueryExpression> LIKE_EXPR = Parsers.sequence(FIELD, term("like"), STRING_CONSTANT, (field, kw, regExp) -> new LikeQueryExpression(field, regExp));
 
 	final Parser<IlikeQueryExpression> ILIKE_EXPR = Parsers.sequence(FIELD, term("ilike"), STRING_CONSTANT, (field, kw, regExp) -> new IlikeQueryExpression(field, regExp));
 
+	final Parser<AllOrAnyQueryExpression> ALL_OR_ANY_EXPR = Parsers.sequence(FIELD, ArrayOp, CONSTANT_ARRAY, AllOrAnyQueryExpression::new);
+
 	final Parser<Predicate> COMPARE_EXPR = Parsers.sequence(FIELD, CompOp, CONSTANT, (lhs, type, rhs) -> new Predicate(lhs, rhs, type));
 
-	final Parser<QueryExpression> PREDICATE = Parsers.or(COMPARE_EXPR, LIKE_EXPR, IN_EXPR, ILIKE_EXPR);
+	final Parser<QueryExpression> PREDICATE = Parsers.or(COMPARE_EXPR, LIKE_EXPR, IN_EXPR, ILIKE_EXPR, ALL_OR_ANY_EXPR);
 
 	final UnaryOperator<QueryExpression> NOT = expr -> new LogicQueryExpression(expr, null, LogicQueryExpression.Type.NOT);
 	final BinaryOperator<QueryExpression> AND = (lhs, rhs) -> new LogicQueryExpression(lhs, rhs, LogicQueryExpression.Type.AND);

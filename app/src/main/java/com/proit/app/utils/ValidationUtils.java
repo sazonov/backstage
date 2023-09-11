@@ -30,6 +30,7 @@ public class ValidationUtils implements ApplicationContextAware
 	private static final String PHONE_NUMBER_PATTERN = "^((\\+7)|(8))\\d{10}$";
 	private static final String LATIN_AND_DIGITS_PATTERN = "^[a-zA-Z0-9]*$";
 	private static final String LATIN_DIGITS_SYMBOLS_PATTERN = "^[a-zA-Z0-9!@#$%^&*()_\\-+=?/.,<>{}\\[\\]|/~`]*$";
+	private static final String FIRST_DIGIT_PATTERN = "^[0-9].*";
 
 	private static TranslationService translationService;
 
@@ -163,5 +164,10 @@ public class ValidationUtils implements ApplicationContextAware
 	public static boolean isLatinDigitsSymbolsOnly(String str)
 	{
 		return StringUtils.isNoneBlank(str) && str.matches(LATIN_DIGITS_SYMBOLS_PATTERN);
+	}
+
+	public static boolean hasFirstDigit(String str)
+	{
+		return StringUtils.isNoneBlank(str) && str.matches(FIRST_DIGIT_PATTERN);
 	}
 }

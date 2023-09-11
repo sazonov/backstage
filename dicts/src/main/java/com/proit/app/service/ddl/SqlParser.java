@@ -43,7 +43,8 @@ public class SqlParser
 			"delete", "from",
 			"true", "false",
 			"array", "asc", "desc",
-			"for", "as", "enum", "value"
+			"for", "as", "enum", "value",
+			"engine"
 	};
 
 	static final String[] OPERATORS = {
@@ -110,6 +111,7 @@ public class SqlParser
 			phrase("create", "table").next(ID),
 			STRING_VALUE.between(term("["), term("]")).optional(new StringValue(null)),
 			COLUMN_DEFINITION.sepBy1(term(",")).between(term("("), term(")")),
+			phrase("engine", "=").next(STRING_VALUE).optional(new StringValue(null)),
 			CreateTable::new);
 
 	final Parser<Expression> CREATE_INDEX_EXPR = Parsers.sequence(

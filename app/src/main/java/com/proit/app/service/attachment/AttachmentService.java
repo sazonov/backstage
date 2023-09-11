@@ -307,7 +307,7 @@ public class AttachmentService
 	}
 
 	@Transactional
-	void deleteAttachment(String attachmentId)
+	public void deleteAttachment(String attachmentId)
 	{
 		var attachment = attachmentRepository.findByIdEx(attachmentId);
 

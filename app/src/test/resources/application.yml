@@ -18,3 +18,5 @@ app:
             bucket: uploads
         directory:
             path: uploads
+    base-packages:
+        - com.proitr

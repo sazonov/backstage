@@ -17,12 +17,23 @@
 package com.proit.app.service.query.ast;
 
 import com.proit.app.service.query.TranslationContext;
-import lombok.AllArgsConstructor;
 
-@AllArgsConstructor
 public class Field implements QueryOperand
 {
+	public final String dictId;
+
 	public final String name;
+
+	public Field(String name)
+	{
+		this(null, name);
+	}
+
+	public Field(String dictId, String name)
+	{
+		this.dictId = dictId;
+		this.name = name;
+	}
 
 	public <T> T process(Visitor<T> visitor, TranslationContext context)
 	{

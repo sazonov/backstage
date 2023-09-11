@@ -26,10 +26,8 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
-public interface DictDataBackend
+public interface DictDataBackend extends Backend
 {
-	Engine getEngine();
-
 	DictItem getById(String dictId, String id, List<DictFieldName> requiredFields);
 
 	List<DictItem> getByIds(String dictId, List<String> ids, List<DictFieldName> requiredFields);
@@ -44,11 +42,11 @@ public interface DictDataBackend
 
 	List<DictItem> createMany(String dictId, List<DictItem> dictItems);
 
-	DictItem update(String dictId, String itemId, long version, DictItem dictItem);
+	DictItem update(String dictId, String itemId, DictItem dictItem, long version);
 
-	void delete(String dictId, String itemId, boolean deleted, String reason);
+	void delete(String dictId, DictItem dictItem);
 
-	void deleteAll(String dictId, boolean deleted);
+	void deleteAll(String dictId, List<DictItem> dictItems);
 
 	long countByFilter(String dictId, QueryExpression queryExpression);
 }

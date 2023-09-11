@@ -16,19 +16,18 @@
 
 package com.proit.app.service.audit;
 
-import com.proit.app.configuration.properties.AuditProperties;
+import com.proit.app.configuration.conditional.ConditionalOnAudit;
 import com.proit.app.model.domain.audit.Audit;
 import com.proit.app.model.dto.audit.AuditEvent;
 import com.proit.app.model.other.filter.AuditFilter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 @Service
-@ConditionalOnProperty(value = AuditProperties.ACTIVATION_PROPERTY, matchIfMissing = true)
+@ConditionalOnAudit
 @RequiredArgsConstructor
 public class AuditService
 {

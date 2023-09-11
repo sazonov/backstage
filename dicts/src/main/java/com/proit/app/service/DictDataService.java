@@ -16,8 +16,9 @@
 
 package com.proit.app.service;
 
-import com.proit.app.configuration.DictDataBackendProvider;
-import com.proit.app.configuration.properties.DictsProperties;
+import com.proit.app.configuration.backend.provider.DictDataBackendProvider;
+import com.proit.app.domain.Dict;
+import com.proit.app.domain.DictFieldName;
 import com.proit.app.domain.DictFieldType;
 import com.proit.app.domain.DictItem;
 import com.proit.app.exception.AppException;
@@ -35,12 +36,12 @@ import com.proit.app.utils.SecurityUtils;
 import com.proit.app.utils.StreamUtils;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,22 +61,13 @@ public class DictDataService
 
 	private final QueryParser queryParser;
 
-	private final DictDataBackendProvider dictDataBackendProvider;
+	private final DictDataBackendProvider backendProvider;
 
 	@Getter
 	private final List<DictDataServiceAdvice> serviceAdviceList;
 
-	private DictDataBackend dictDataBackend;
-
-	@PostConstruct
-	public void init()
-	{
-		//TODO: убрать инициализацию dictDataBackend после ввода engine
-		dictDataBackend = dictDataBackendProvider.dictDataBackend(DictsProperties.DEFAULT_STORAGE);
-	}
-
 	//TODO: Провести рефакторинг
-	// создать апи для getById с проверкой секьюрити и валидацией.
+	// создать апи для getDictById с проверкой секьюрити и валидацией.
 	public DictItem getById(String dictId, String itemId)
 	{
 		return getById(dictId, itemId, SecurityUtils.getCurrentUserId());
@@ -115,7 +107,8 @@ public class DictDataService
 
 		dictDataValidationService.validateSelectFields(dictId, requiredFields);
 
-		return dictDataBackend.getByIds(dictId, ids, requiredFields)
+		return backend(dictId)
+				.getByIds(dictId, ids, requiredFields)
 				.stream()
 				.sorted(StreamUtils.listOrderComparator(ids))
 				.toList();
@@ -126,8 +119,7 @@ public class DictDataService
 		return getByFilter(dictId, selectFields, filtersQuery, pageable, SecurityUtils.getCurrentUserId());
 	}
 
-	//TODO: При реализации дополнительного адаптера, осуществить валидацию pageable (в т.н. сортировки), selectFields, filtersQuery на наличие переданных клиентом
-	// полей характерных для монго адаптера (_id). Рассмотреть возможность реализации валидации в эдвайсах.
+	//TODO: реализовать валидацию filtersQuery и маппинг в QueryExpression с учетом сопоставления констант с типом DictField
 	public Page<DictItem> getByFilter(String dictId, List<String> selectFields, String filtersQuery, Pageable pageable, String userId)
 	{
 		dictPermissionService.checkViewPermission(dictId, userId);
@@ -146,8 +138,9 @@ public class DictDataService
 				.toList();
 
 		dictDataValidationService.validateSelectFields(dictId, requiredFields);
+		dictDataValidationService.validatePageable(dictId, pageable);
 
-		return dictDataBackend.getByFilter(dictId, requiredFields, queryParser.parse(filtersQuery), pageable);
+		return backend(dict).getByFilter(dictId, requiredFields, queryParser.parse(filtersQuery), pageable);
 	}
 
 	public Page<String> getIdsByFilter(String dictId, String filtersQuery)
@@ -172,7 +165,7 @@ public class DictDataService
 
 		serviceAdviceList.forEach(it -> it.handleExistsById(dictId, itemId));
 
-		return dictDataBackend.existsById(dictId, itemId);
+		return backend(dictId).existsById(dictId, itemId);
 	}
 
 	public boolean existsByFilter(String dictId, String filtersQuery)
@@ -186,7 +179,7 @@ public class DictDataService
 
 		serviceAdviceList.forEach(it -> it.handleExistsByFilter(dictId, filtersQuery));
 
-		return dictDataBackend.existsByFilter(dictId, queryParser.parse(filtersQuery));
+		return backend(dictId).existsByFilter(dictId, queryParser.parse(filtersQuery));
 	}
 
 	public long countByFilter(String dictId, String filtersQuery)
@@ -200,7 +193,7 @@ public class DictDataService
 
 		serviceAdviceList.forEach(it -> it.handleCountByFilter(dictId, filtersQuery));
 
-		return dictDataBackend.countByFilter(dictId, queryParser.parse(filtersQuery));
+		return backend(dictId).countByFilter(dictId, queryParser.parse(filtersQuery));
 	}
 
 	@Deprecated(forRemoval = true)
@@ -230,9 +223,9 @@ public class DictDataService
 		dictDataValidationService.validateDictDataItem(dictDataItem, userId);
 		var dictItem = dictItemMappingService.mapDictItem(dictDataItem);
 
-		setupServiceDictItemFields(dictItem);
+		setupServiceFields(dictItem);
 
-		var result = dictDataBackend.create(dictId, dictItem);
+		var result = backend(dictId).create(dictId, dictItem);
 
 		serviceAdviceList.forEach(it -> it.handleAfterCreate(dictId, result));
 
@@ -254,10 +247,10 @@ public class DictDataService
 		var dictItems = dictDataItems.stream()
 				.peek(it -> dictDataValidationService.validateDictDataItem(it, userId))
 				.map(dictItemMappingService::mapDictItem)
-				.peek(this::setupServiceDictItemFields)
+				.peek(this::setupServiceFields)
 				.toList();
 
-		var result = dictDataBackend.createMany(dictId, dictItems);
+		var result = backend(dictId).createMany(dictId, dictItems);
 
 		serviceAdviceList.forEach(it -> it.handleAfterCreateMany(dictId, result));
 
@@ -285,15 +278,19 @@ public class DictDataService
 	{
 		var dictId = dictDataItem.getDictId();
 
-		var dictItem = getById(dictId, itemId, userId);
+		var item = getById(dictId, itemId, userId);
 
 		dictPermissionService.checkEditPermission(dictId, userId);
-		serviceAdviceList.forEach(it -> it.handleUpdate(dictItem, dictDataItem));
+		serviceAdviceList.forEach(it -> it.handleUpdate(item, dictDataItem));
 
 		dictDataValidationService.validateDictDataItem(dictDataItem, userId);
-		var mappedDictItem = dictItemMappingService.mapDictItem(dictDataItem);
+		dictDataValidationService.validateOptimisticLock(dictId, itemId, version, userId);
 
-		var result = dictDataBackend.update(dictId, itemId, version, mappedDictItem);
+		var mappedItem = dictItemMappingService.mapDictItem(dictDataItem);
+
+		var dictItem = withUpdated(mappedItem, item);
+
+		var result = backend(dictId).update(dictId, itemId, dictItem, version);
 
 		serviceAdviceList.forEach(it -> it.handleAfterUpdate(dictId, result));
 
@@ -312,13 +309,17 @@ public class DictDataService
 
 	public void delete(String dictId, String itemId, boolean deleted, String reason, String userId)
 	{
-		var dictItem = getById(dictId, itemId, userId);
+		var item = getById(dictId, itemId, userId);
 
 		dictPermissionService.checkEditPermission(dictId, userId);
 
-		serviceAdviceList.forEach(it -> it.handleDelete(dictId, dictItem, deleted));
+		serviceAdviceList.forEach(it -> it.handleDelete(dictId, item, deleted));
 
-		dictDataBackend.delete(dictId, itemId, deleted, reason);
+		dictDataValidationService.validateOptimisticLock(dictId, itemId, item, userId);
+
+		var dictItem = withDeleted(deleted, reason, item);
+
+		backend(dictId).delete(dictId, dictItem);
 	}
 
 	public void deleteAll(String dictId, boolean deleted)
@@ -331,7 +332,26 @@ public class DictDataService
 		dictPermissionService.checkEditPermission(dictId, userId);
 		serviceAdviceList.forEach(it -> it.handleDeleteAll(dictId, deleted));
 
-		dictDataBackend.deleteAll(dictId, deleted);
+		var backend = backend(dictId);
+
+		var dictItems = backend.getByFilter(dictId, List.of(new DictFieldName(null, "*")), queryParser.parse("deleted = null"), Pageable.unpaged())
+				.getContent()
+				.stream()
+				.peek(it -> dictDataValidationService.validateOptimisticLock(dictId, it.getId(), it, userId))
+				.map(it -> withDeleted(deleted, null, it))
+				.toList();
+
+		backend.deleteAll(dictId, dictItems);
+	}
+
+	private DictDataBackend backend(String dictId)
+	{
+		return backend(dictService.getById(dictId));
+	}
+
+	private DictDataBackend backend(Dict dict)
+	{
+		return backendProvider.getBackendByEngineName(dict.getEngine().getName());
 	}
 
 	private DictDataItem buildDictDataItem(String dictId, Map<String, Object> dictData)
@@ -339,14 +359,13 @@ public class DictDataService
 		return DictDataItem.of(dictId, dictData);
 	}
 
-	private void setupServiceDictItemFields(DictItem dictItem)
+	private void setupServiceFields(DictItem dictItem)
 	{
-		var dataItemMap = dictItem.getData();
-
-		dataItemMap.put(CREATED, new Date());
-		dataItemMap.put(UPDATED, new Date());
-		dataItemMap.put(DELETED, null);
-		dataItemMap.put(VERSION, 1L);
+		dictItem.setVersion(1L);
+		dictItem.setCreated(LocalDateTime.now());
+		dictItem.setUpdated(LocalDateTime.now());
+		dictItem.setDeleted(null);
+		dictItem.setDeletionReason(null);
 
 		setupHistoryItemMap(dictItem);
 	}
@@ -356,9 +375,61 @@ public class DictDataService
 		var historyItemMap = dictItem.getData()
 				.entrySet()
 				.stream()
-				.filter(entry -> !entry.getKey().equalsIgnoreCase(ID))
-				.collect(HashMap::new, (m, e) -> m.put(e.getKey(), e.getValue()), HashMap::putAll);
+				.filter(it -> !ID.equals(it.getKey()))
+				.collect(HashMap::new, (m, e) -> m.put(e.getKey(), e.getValue()), HashMap<String, Object>::putAll);
 
-		dictItem.getData().put(HISTORY, List.of(historyItemMap));
+		historyItemMap.put(VERSION, dictItem.getVersion());
+		historyItemMap.put(CREATED, dictItem.getCreated());
+		historyItemMap.put(UPDATED, dictItem.getUpdated());
+
+		dictItem.setHistory(List.of(historyItemMap));
+	}
+
+	/**
+	 * Id - устанавливается в target по кейсу: создание item с предопределенным id {@link com.proit.app.constant.ServiceFieldConstants#serviceInsertableFields}
+	 */
+	private DictItem withUpdated(DictItem source, DictItem target)
+	{
+		target.setId(source.getId() != null ? source.getId() : target.getId());
+		target.setData(source.getData());
+		target.setUpdated(LocalDateTime.now());
+		target.setVersion(target.getVersion() + 1L);
+
+		var historyMap = new HashMap<>(target.getData());
+
+		historyMap.put(UPDATED, target.getUpdated());
+		historyMap.put(VERSION, target.getVersion());
+
+		target.getHistory().add(historyMap);
+
+		return target;
+	}
+
+	private DictItem withDeleted(boolean deleted, String reason, DictItem dictItem)
+	{
+		dictItem.setUpdated(LocalDateTime.now());
+		dictItem.setVersion(dictItem.getVersion() + 1L);
+
+		if (deleted)
+		{
+			dictItem.setDeleted(LocalDateTime.now());
+			dictItem.setDeletionReason(StringUtils.isBlank(reason) ? null : reason);
+		}
+		else
+		{
+			dictItem.setDeleted(null);
+			dictItem.setDeletionReason(null);
+		}
+
+		var historyMap = new HashMap<String, Object>();
+
+		historyMap.put(UPDATED, dictItem.getUpdated());
+		historyMap.put(VERSION, dictItem.getVersion());
+		historyMap.put(DELETED, dictItem.getDeleted());
+		historyMap.put(DELETION_REASON, dictItem.getDeletionReason());
+
+		dictItem.getHistory().add(historyMap);
+
+		return dictItem;
 	}
 }

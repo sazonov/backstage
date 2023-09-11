@@ -18,8 +18,8 @@ package com.proit.app.service.query.ast;
 
 import com.proit.app.model.other.date.DateConstants;
 import com.proit.app.service.query.TranslationContext;
-import org.bson.types.Decimal128;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
@@ -89,7 +89,9 @@ public class Constant implements QueryOperand
 		return switch (type)
 				{
 					case INTEGER -> Long.parseLong(value);
-					case DECIMAL -> Decimal128.parse(value);
+					case DECIMAL -> BigDecimal.valueOf(Double.parseDouble(value))
+							.stripTrailingZeros()
+							.toPlainString();
 					case STRING -> value;
 					case BOOLEAN -> Boolean.parseBoolean(value);
 					case DATE -> dateValue;

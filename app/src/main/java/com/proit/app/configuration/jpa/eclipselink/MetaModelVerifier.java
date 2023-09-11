@@ -16,6 +16,8 @@
 
 package com.proit.app.configuration.jpa.eclipselink;
 
+import com.proit.app.configuration.properties.AppProperties;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
@@ -27,10 +29,16 @@ import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.StaticMetamodel;
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.stream.Collectors;
 
 @Slf4j
+@RequiredArgsConstructor
 public class MetaModelVerifier
 {
+
+	private final AppProperties appProperties;
+
 	@PostConstruct
 	public void initialize()
 	{
@@ -45,7 +53,11 @@ public class MetaModelVerifier
 		};
 		scanner.addIncludeFilter(new AnnotationTypeFilter(StaticMetamodel.class));
 
-		var models = scanner.findCandidateComponents("com.proit");
+		var models = appProperties.getBasePackages()
+				.stream()
+				.map(scanner::findCandidateComponents)
+				.flatMap(Collection::stream)
+				.collect(Collectors.toSet());
 
 		log.info("JPA meta models found: {}.", models.size());
 

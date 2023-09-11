@@ -21,28 +21,31 @@ package com.proit.app.service.validation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.proit.app.constant.ServiceFieldConstants;
-import com.proit.app.domain.Dict;
-import com.proit.app.domain.DictField;
-import com.proit.app.domain.DictFieldName;
-import com.proit.app.domain.DictFieldType;
-import com.proit.app.exception.dictionary.UnavailableDictRefException;
-import com.proit.app.exception.dictionary.enums.EnumNotFoundException;
-import com.proit.app.exception.dictionary.field.FieldNotFoundException;
-import com.proit.app.exception.dictionary.field.FieldValidationException;
-import com.proit.app.exception.dictionary.field.ForbiddenFieldNameException;
+import com.proit.app.domain.*;
+import com.proit.app.exception.dict.DictConcurrentUpdateException;
+import com.proit.app.exception.dict.UnavailableDictRefException;
+import com.proit.app.exception.dict.enums.EnumNotFoundException;
+import com.proit.app.exception.dict.field.FieldNotFoundException;
+import com.proit.app.exception.dict.field.FieldValidationException;
+import com.proit.app.exception.dict.field.ForbiddenFieldNameException;
 import com.proit.app.model.dictitem.DictDataItem;
 import com.proit.app.model.other.date.DateConstants;
 import com.proit.app.service.DictDataService;
 import com.proit.app.service.DictService;
+import com.proit.app.service.mapping.DictFieldNameMappingService;
 import org.bson.types.Decimal128;
+import org.geojson.GeoJsonObject;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -56,18 +59,21 @@ public class DictDataValidationService
 	private final DictService dictService;
 	private final DictDataService dictDataService;
 
-	public DictDataValidationService(DictService dictService, @Lazy DictDataService dictDataService, ObjectMapper objectMapper)
+	private final DictFieldNameMappingService fieldNameMappingService;
+
+	public DictDataValidationService(DictService dictService, @Lazy DictDataService dictDataService, ObjectMapper objectMapper, DictFieldNameMappingService fieldNameMappingService)
 	{
 		this.dictService = dictService;
 		this.dictDataService = dictDataService;
 		this.objectMapper = objectMapper;
+		this.fieldNameMappingService = fieldNameMappingService;
 	}
 
 	public void validateSelectFields(String dictId, List<DictFieldName> selectFields)
 	{
 		var dict = dictService.getById(dictId);
 
-		validateJoins(dict, selectFields);
+		validateRefDict(dict, selectFields);
 
 		var withoutRefFields = selectFields.stream()
 				.filter(it -> it.getDictId() == null)
@@ -84,6 +90,34 @@ public class DictDataValidationService
 				.forEach(this::validateFieldsBySingleScheme);
 	}
 
+	public void validatePageable(String dictId, Pageable pageable)
+	{
+		if (pageable != null)
+		{
+			var dict = dictService.getById(dictId);
+
+			var sortedFields = pageable.getSort()
+					.stream()
+					.map(Sort.Order::getProperty)
+					.map(this::dictFieldName)
+					.toList();
+
+			var withoutRefFields = sortedFields.stream()
+					.filter(it -> it.getDictId() == null)
+					.map(DictFieldName::getFieldId)
+					.toList();
+
+			validateFieldsBySingleScheme(dict, withoutRefFields);
+
+			validateRefDict(dict, sortedFields);
+		}
+	}
+
+	private DictFieldName dictFieldName(String field)
+	{
+		return fieldNameMappingService.mapDictFieldName(field);
+	}
+
 	//TODO: после слияния KGH-4229, актуализировать без проброса userId
 	public void validateDictDataItem(DictDataItem dataItem, String userId)
 	{
@@ -96,6 +130,26 @@ public class DictDataValidationService
 		dataItemMap.forEach((field, value) -> checkForbiddenField(availableFieldIds, field));
 
 		validateRequiredFields(dataItem.getDictId(), dataItemMap, availableFields, userId);
+	}
+
+	public void validateOptimisticLock(String dictId, String itemId, DictItem dictItem, String userId)
+	{
+		var current = dictDataService.getById(dictId, itemId, userId);
+
+		if (!Objects.equals(dictItem, current))
+		{
+			throw new DictConcurrentUpdateException(dictItem.getId());
+		}
+	}
+
+	public void validateOptimisticLock(String dictId, String itemId, long version, String userId)
+	{
+		var current = dictDataService.getById(dictId, itemId, userId);
+
+		if (version != current.getVersion())
+		{
+			throw new DictConcurrentUpdateException(version, current.getVersion());
+		}
 	}
 
 	private void validateRequiredFields(String dictId, Map<String, Object> dictData, List<DictField> availableFields, String userId)
@@ -134,6 +188,7 @@ public class DictDataValidationService
 		}
 	}
 
+	//TODO: провести декомпозицию метода
 	private void checkSingleElementCast(String dictId, DictField dictField, Object value, String userId)
 	{
 		try
@@ -141,58 +196,69 @@ public class DictDataValidationService
 			switch (dictField.getType())
 			{
 				case INTEGER -> {
-					if (value instanceof Integer || value instanceof Long)
-					{
-						var castedValue = value instanceof Integer
-								? ((Integer) value).longValue()
-								: (Long) value;
+					Long number = null;
 
-						if (checkNumberValue(castedValue, (Integer) dictField.getMinSize(), (Integer) dictField.getMaxSize()))
+					if (value instanceof Double d)
+					{
+						if (d.longValue() != d)
 						{
-							throw new FieldValidationException("Превышена допустимые ограничения числа: %s.".formatted(dictField.getId()));
+							throw new FieldValidationException("Double вместо Integer: %s.".formatted(dictField.getId()));
 						}
 
-						break;
+						number = d.longValue();
 					}
 
-					var d = (Double) value;
-
-					if (d.intValue() != d)
+					if (value instanceof Integer i)
 					{
-						throw new FieldValidationException("Double вместо Integer: %s.".formatted(dictField.getId()));
+						number = i.longValue();
+					}
+
+					if (value instanceof Long l)
+					{
+						number = l;
+					}
+
+					Assert.notNull(number, "Недопустимый тип '%s' для значения '%s'".formatted(value.getClass().getTypeName(), value));
+
+					if (checkNumberValue(number, (Integer) dictField.getMinSize(), (Integer) dictField.getMaxSize()))
+					{
+						throw new FieldValidationException("Превышена допустимые ограничения числа: %s.".formatted(dictField.getId()));
 					}
 				}
 				case DECIMAL -> {
-					//todo: KGH-3049 рефакторинг, декомпозиция метода
+					BigDecimal decimal = null;
 
-					Decimal128 decimal;
+					if (value instanceof Integer i)
+					{
+						decimal = BigDecimal.valueOf(i);
+					}
 
-					if (value instanceof Integer || value instanceof Double)
+					if (value instanceof Double d)
 					{
-						var d = value instanceof Integer
-								? ((Integer) value).doubleValue()
-								: (Double) value;
+						decimal = BigDecimal.valueOf(d);
+					}
 
-						decimal = Decimal128.parse(String.valueOf(d));
-					}
-					else if (value instanceof BigDecimal)
+					if (value instanceof BigDecimal bd)
 					{
-						decimal = new Decimal128((BigDecimal) value);
+						decimal = bd;
 					}
-					else
+
+					if (value instanceof Decimal128 d)
 					{
-						decimal = (Decimal128) value;
+						throw new FieldValidationException("Недопустимый тип '%s' для значения '%s'".formatted(Decimal128.class.getTypeName(), d));
 					}
+
+					Assert.notNull(decimal, "Неизвестный тип '%s' для поля '%s'".formatted(value.getClass().getTypeName(), dictField.getId()));
 
 					if (checkNumberValue(decimal.doubleValue(), dictField.getMinSize(), dictField.getMaxSize()))
 					{
 						throw new FieldValidationException("Превышена допустимые ограничения вещественного числа: %s.".formatted(dictField.getId()));
 					}
 				}
-				case BOOLEAN -> {
-					var b = (Boolean) value;
-				}
+				case BOOLEAN -> Assert.isInstanceOf(Boolean.class, value, "Недопустимый тип '%s' для поля '%s'.".formatted(value.getClass().getTypeName(), dictField.getId()));
 				case STRING -> {
+					Assert.isInstanceOf(String.class, value, "Недопустимый тип '%s' для поля '%s'.".formatted(value.getClass().getTypeName(), dictField.getId()));
+
 					if (checkStringLength(((String) value).length(), (Integer) dictField.getMinSize(), (Integer) dictField.getMaxSize()))
 					{
 						throw new FieldValidationException("Превышена допустимая длина строки: %s.".formatted(dictField.getId()));
@@ -228,7 +294,7 @@ public class DictDataValidationService
 					{
 						try
 						{
-							var map = objectMapper.readValue(s, Map.class);
+							objectMapper.readValue(s, Map.class);
 						}
 						catch (JsonProcessingException ex)
 						{
@@ -256,8 +322,18 @@ public class DictDataValidationService
 						throw new FieldValidationException("Неизвестное значение enum: %s.".formatted(dictField.getId()));
 					}
 				}
-				//todo: KGH-4512 реализовать валидацию GEO_JSON поля
-				case ATTACHMENT, GEO_JSON -> {
+				case GEO_JSON -> {
+					//TODO: реализовать персистентное хранение значений GEO_JSON как GeoJson обьектов (postgis)
+					if (value instanceof String s)
+					{
+						objectMapper.readValue(s, GeoJsonObject.class);
+
+						return;
+					}
+
+					throw new FieldValidationException("Недопустимый тип '%s' значения для поля: %s".formatted(value.getClass().getTypeName(), dictField.getId()));
+				}
+				case ATTACHMENT -> {
 					var s = (String) value;
 				}
 				default -> throw new FieldValidationException("Неизвестный тип данных: %s.".formatted(dictField.getId()));
@@ -297,21 +373,34 @@ public class DictDataValidationService
 		}
 	}
 
-	private void validateJoins(Dict scheme, List<DictFieldName> selectFields)
+	private void validateRefDict(Dict scheme, List<DictFieldName> selectFields)
 	{
-		var availableJoins = scheme.getFields()
+		var availableRefDicts = scheme.getFields()
 				.stream()
 				.filter(it -> it.getType() == DictFieldType.DICT)
 				.map(it -> it.getDictRef().getDictId())
-				.toList();
+				.map(dictService::getById)
+				.collect(Collectors.toMap(Dict::getId, Function.identity()));
 
 		selectFields.stream()
 				.filter(it -> it.getDictId() != null)
-				.filter(it -> !availableJoins.contains(it.getDictId()))
+				.filter(it -> !availableRefDicts.containsKey(it.getDictId()))
 				.findAny()
 				.ifPresent(it -> {
 					throw new UnavailableDictRefException(it.getDictId());
 				});
+
+		var refFieldIds = selectFields.stream()
+				.filter(it -> it.getDictId() != null)
+				.map(DictFieldName::getFieldId)
+				.filter(fieldId -> !"*".equals(fieldId))
+				.collect(Collectors.toList());
+
+		selectFields.stream()
+				.filter(it -> it.getDictId() != null)
+				.filter(it -> !"*".equals(it.getFieldId()))
+				.map(it -> availableRefDicts.get(it.getDictId()))
+				.forEach(it -> validateFieldsBySingleScheme(it, refFieldIds));
 	}
 
 	private void validateFieldsBySingleScheme(String dictId, List<String> selectFields)
@@ -326,7 +415,7 @@ public class DictDataValidationService
 		var availableFieldIds = getAvailableFieldIds(dict.getFields());
 
 		selectFields.stream()
-				.filter(it -> !it.equals("*"))
+				.filter(it -> !"*".equals(it))
 				.filter(Predicate.not(availableFieldIds::contains))
 				.findAny()
 				.ifPresent(fieldId -> {

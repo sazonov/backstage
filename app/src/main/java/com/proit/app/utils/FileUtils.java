@@ -17,6 +17,7 @@
 package com.proit.app.utils;
 
 import org.apache.commons.io.IOUtils;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,6 +25,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 public class FileUtils
 {
@@ -55,6 +57,22 @@ public class FileUtils
 		catch (IOException e)
 		{
 			throw new RuntimeException("Failed to write stream to temp file", e);
+		}
+	}
+
+	public static List<String> extractLines(String path)
+	{
+		try
+		{
+			var inputStream = new PathMatchingResourcePatternResolver()
+					.getResource(path)
+					.getInputStream();
+
+			return IOUtils.readLines(inputStream, StandardCharsets.UTF_8);
+		}
+		catch (IOException e)
+		{
+			throw new RuntimeException("Failed extract lines from '%s': %s");
 		}
 	}
 }

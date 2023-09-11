@@ -27,7 +27,7 @@ public enum DictsStatusCodeImpl implements ApiStatusCode
 {
 	MIGRATION_APPLIED_ERROR(1, "Ошибка применения миграции."),
 	MIGRATION_FILE_READ_ERROR(2, "Ошибка чтения миграции из файла."),
-	MIGRATIONS_HAS_SAME_VERSION(3, "Миграции имеет одинаковую версию."),
+	MIGRATIONS_HAS_SAME_VERSION(3, "Миграция имеет одинаковую версию."),
 	MIGRATION_PROCESS_UNKNOWN_ERROR(4, "Неизвестная ошибка при обработки миграций."),
 
 	SQL_PARSE_SYNTAX_ERROR(100, "Синтаксическая ошибка парсинга SQL выражения."),
@@ -35,9 +35,7 @@ public enum DictsStatusCodeImpl implements ApiStatusCode
 	PREPARE_PAGEABLE_MONGO_ERROR(200, "Ошибка при адаптации pageable к MongoDB адаптеру."),
 
 	ENGINE_ERROR(300, "Ошибка при обработке engine."),
-	ENGINE_NOT_FOUND_ERROR(301, "Не существующее в имплементациях наименование storage."),
-	STORAGE_ERROR(310, "Не существующее в имплементациях наименование storage."),
-	STORAGE_NOT_FOUND_ERROR(311, "Не существующее в имплементациях наименование storage.");
+	STORAGE_ERROR(310, "Ошибка при обработке storage.");
 
 	private final Integer code;
 

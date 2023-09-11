@@ -18,13 +18,15 @@
 
 package com.proit.app.service.validation;
 
+import com.proit.app.configuration.backend.provider.DictSchemeBackendProvider;
 import com.proit.app.constant.ServiceFieldConstants;
 import com.proit.app.domain.Dict;
 import com.proit.app.domain.DictField;
 import com.proit.app.domain.DictFieldType;
-import com.proit.app.exception.dictionary.enums.EnumNotFoundException;
-import com.proit.app.exception.dictionary.field.FieldValidationException;
-import com.proit.app.exception.dictionary.field.ForbiddenFieldNameException;
+import com.proit.app.exception.EngineException;
+import com.proit.app.exception.dict.enums.EnumNotFoundException;
+import com.proit.app.exception.dict.field.FieldValidationException;
+import com.proit.app.exception.dict.field.ForbiddenFieldNameException;
 import com.proit.app.service.DictService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -34,12 +36,34 @@ public class DictValidationService
 {
 	private final DictService dictService;
 
-	public DictValidationService(@Lazy DictService dictService)
+	private final DictSchemeBackendProvider schemeBackendProvider;
+
+	public DictValidationService(@Lazy DictService dictService, DictSchemeBackendProvider schemeBackendProvider)
 	{
 		this.dictService = dictService;
+		this.schemeBackendProvider = schemeBackendProvider;
 	}
 
 	public void validateDictScheme(Dict dict)
+	{
+		validateDictEngine(dict);
+
+		validateServiceFields(dict);
+
+		validateFieldType(dict);
+	}
+
+	private void validateDictEngine(Dict dict)
+	{
+		if (dict.getEngine() == null)
+		{
+			throw new EngineException("Значение engine для справочника '%s' не может быть null.".formatted(dict.getId()));
+		}
+
+		schemeBackendProvider.getBackendByEngineName(dict.getEngine().getName());
+	}
+
+	private void validateServiceFields(Dict dict)
 	{
 		dict.getFields()
 				.stream()
@@ -48,42 +72,49 @@ public class DictValidationService
 				.ifPresent(it -> {
 					throw new ForbiddenFieldNameException(it.getId());
 				});
+	}
 
-		dict.getFields().forEach(field -> {
-			if (field.getType() == DictFieldType.DICT)
+	private void validateFieldType(Dict dict)
+	{
+		dict.getFields()
+				.forEach(field -> validateField(dict, field));
+	}
+
+	private void validateField(Dict dict, DictField field)
+	{
+		if (field.getType() == DictFieldType.DICT)
+		{
+			try
 			{
-				try
-				{
-					dictService.getById(field.getDictRef().getDictId());
-				}
-				catch (Exception e)
-				{
-					throw new FieldValidationException("Ошибка валидации поля-референса: %s.".formatted(field.getId()), e);
-				}
+				dictService.getById(field.getDictRef().getDictId());
 			}
-			else if (field.getType() == DictFieldType.ENUM)
+			catch (Exception e)
 			{
-				dict.getEnums()
-						.stream()
-						.filter(it -> it.getId().equals(field.getEnumId()))
-						.findAny()
-						.orElseThrow(() -> new EnumNotFoundException(field.getEnumId()));
+				throw new FieldValidationException("Ошибка валидации поля-референса: %s.".formatted(field.getId()), e);
 			}
-			else if (field.getType() == DictFieldType.DECIMAL)
+		}
+		else if (field.getType() == DictFieldType.ENUM)
+		{
+			dict.getEnums()
+					.stream()
+					.filter(it -> it.getId().equals(field.getEnumId()))
+					.findAny()
+					.orElseThrow(() -> new EnumNotFoundException(field.getEnumId()));
+		}
+		else if (field.getType() == DictFieldType.DECIMAL)
+		{
+			if (!checkDecimalMaxMinCondition(field))
 			{
-				if (!checkDecimalMaxMinCondition(field))
-				{
-					throw new FieldValidationException("Значение minSize и maxSize для поля %s может быть только INTEGER или DECIMAL.".formatted(field.getId()));
-				}
+				throw new FieldValidationException("Значение minSize и maxSize для поля %s может быть только INTEGER или DECIMAL.".formatted(field.getId()));
 			}
-			else if (field.getType() == DictFieldType.INTEGER || field.getType() == DictFieldType.STRING)
+		}
+		else if (field.getType() == DictFieldType.INTEGER || field.getType() == DictFieldType.STRING)
+		{
+			if (!checkIntegerMaxMinCondition(field))
 			{
-				if (!checkIntegerMaxMinCondition(field))
-				{
-					throw new FieldValidationException("Значение minSize и maxSize для поля %s может быть только INTEGER.".formatted(field.getId()));
-				}
+				throw new FieldValidationException("Значение minSize и maxSize для поля %s может быть только INTEGER.".formatted(field.getId()));
 			}
-		});
+		}
 	}
 
 	private boolean checkDecimalMaxMinCondition(DictField field)

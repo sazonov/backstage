@@ -24,6 +24,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.jms.core.JmsTemplate;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.UUID;
@@ -80,8 +81,9 @@ public class JmsTransactionTests extends AbstractTests
 		assertEquals(value, testValue);
 	}
 
+	@Transactional
 	@JmsListener(destination = JMS_TEST_CHANNEL)
-	void handleJmsMessage(String value)
+	public void handleJmsMessage(String value)
 	{
 		testValue = value;
 	}

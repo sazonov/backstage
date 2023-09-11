@@ -24,7 +24,7 @@ public class ApiEnumServiceTest extends AbstractTests
 	@Test
 	void getEnumNames_success()
 	{
-		var expected = Set.of("TestEnum0", "TestEnum1");
+		var expected = Set.of("TestEnumInOtherPackage", "TestEnum0", "TestEnum1");
 
 		var actual = apiEnumService.getEnumNames();
 
