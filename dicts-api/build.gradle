@@ -22,13 +22,8 @@ bootJar {
 dependencies {
 	annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
 
-	compileOnly project(":app")
-
-	compileOnly "org.springframework.cloud:spring-cloud-starter-openfeign:$springCloudVersion"
-	compileOnly "org.springframework.cloud:spring-cloud-starter-netflix-eureka-client:$springCloudVersion"
-	compileOnly ("org.springframework.data:spring-data-jpa") {
-		exclude(group: "org.hibernate")
-	}
+	api project(":api")
+	api "org.springframework.cloud:spring-cloud-starter-openfeign:$springCloudVersion"
 }
 
 test {

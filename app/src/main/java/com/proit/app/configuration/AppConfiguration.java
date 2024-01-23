@@ -16,9 +16,8 @@
 
 package com.proit.app.configuration;
 
-import com.proit.app.configuration.properties.ApiProperties;
 import com.proit.app.configuration.properties.AppProperties;
-import com.proit.app.service.user.PermissionService;
+import com.proit.app.dict.service.user.PermissionService;
 import com.proit.app.utils.SecurityUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -28,7 +27,7 @@ import org.springframework.context.annotation.Configuration;
 import java.util.List;
 
 @Configuration
-@EnableConfigurationProperties({AppProperties.class, ApiProperties.class})
+@EnableConfigurationProperties({AppProperties.class})
 public class AppConfiguration
 {
 	@Bean

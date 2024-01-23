@@ -85,8 +85,9 @@ public class KotlinCompiler
 
 		configuration.put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, new PrintingMessageCollector(printStream, MessageRenderer.PLAIN_FULL_PATHS, true));
 		configuration.put(JVMConfigurationKeys.OUTPUT_DIRECTORY, outputPath);
-		configuration.put(JVMConfigurationKeys.JVM_TARGET, JvmTarget.JVM_11);
+		configuration.put(JVMConfigurationKeys.JVM_TARGET, JvmTarget.JVM_17);
 
+		JvmContentRootsKt.configureJdkClasspathRoots(configuration);
 		JvmContentRootsKt.addJvmClasspathRoots(configuration, JvmClasspathUtilKt.classpathFromClassloader(parentClassLoader, false));
 
 		var env = KotlinCoreEnvironment.createForProduction(new StubDisposable(), configuration, EnvironmentConfigFiles.JVM_CONFIG_FILES);

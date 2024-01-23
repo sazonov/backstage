@@ -41,6 +41,11 @@ public class AppProperties
 	private String externalUrl;
 
 	/**
+	 * Пакеты с компонентами приложения.
+	 */
+	private List<String> basePackages = new ArrayList<>();
+
+	/**
 	 * Идентификатор модуля приложения.
 	 */
 	private String module = "app";
@@ -49,11 +54,6 @@ public class AppProperties
 	 * Версия приложения.
 	 */
 	private String version = "dev";
-
-	/**
-	 * Пакеты с компонентами приложения.
-	 */
-	private List<String> basePackages = new ArrayList<>();
 
 	public List<String> getBasePackages()
 	{

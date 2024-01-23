@@ -17,7 +17,7 @@
 package com.proit.bpm.conversion.jpa;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.proit.app.conversion.jpa.AbstractJsonConverter;
+import com.proit.app.database.conversion.jpa.AbstractJsonConverter;
 import com.proit.bpm.domain.TaskResult;
 
 public class TaskResultConverter extends AbstractJsonConverter<TaskResult>

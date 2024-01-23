@@ -18,7 +18,6 @@
 
 package com.proit.app.model.json;
 
-import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -26,7 +25,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.proit.app.exception.AppException;
-import com.proit.app.model.api.ApiStatusCodeImpl;
+import com.proit.app.model.other.exception.ApiStatusCodeImpl;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -45,16 +44,14 @@ public abstract class AbstractCustomJsonDeserializer<T> extends JsonDeserializer
 	private static final int TYPE_TOKEN = 0;
 	private static final int VALUE_TOKEN = 1;
 
-	private JsonNode mainNode;
 	private ObjectCodec mainCodec;
 
 	@Override
-	public T deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JacksonException
+	public T deserialize(JsonParser p, DeserializationContext ctxt) throws IOException
 	{
 		var json = (JsonNode) p.readValueAsTree();
 
 		this.mainCodec = p.getCodec();
-		this.mainNode = json;
 
 		return extractedValue(json);
 	}
@@ -62,16 +59,17 @@ public abstract class AbstractCustomJsonDeserializer<T> extends JsonDeserializer
 	public abstract T extractedValue(JsonNode json);
 
 	/**
-	 * Извлекает значение из главной json ноды по имени поля.
+	 * Извлекает значение из json ноды по имени поля.
 	 *
 	 * @param fieldName - имя поля.
+	 * @param json - json нода.
 	 * @return значение, не null-safety.
 	 */
-	protected Object extractValueByFieldName(String fieldName)
+	protected Object extractValueByFieldName(String fieldName, JsonNode json)
 	{
-		var node = mainNode.get(fieldName);
+		var node = json.get(fieldName);
 
-		if (node.isNull())
+		if (node == null || node.isNull())
 		{
 			return null;
 		}

@@ -1,7 +1,7 @@
 package com.proit.bpm;
 
-import com.proit.app.configuration.jpa.DataSourceConfiguration;
-import com.proit.app.configuration.jpa.JpaConfiguration;
+import com.proit.app.database.configuration.jpa.DataSourceConfiguration;
+import com.proit.app.database.configuration.jpa.JpaConfiguration;
 import org.junit.ClassRule;
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.boot.autoconfigure.task.TaskSchedulingAutoConfiguration;

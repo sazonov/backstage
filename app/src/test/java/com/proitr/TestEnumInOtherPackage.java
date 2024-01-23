@@ -1,7 +1,7 @@
 package com.proitr;
 
-import com.proit.app.service.enums.ApiEnum;
-import com.proit.app.service.enums.ApiEnumDescription;
+import com.proit.app.dict.service.enums.ApiEnum;
+import com.proit.app.dict.service.enums.ApiEnumDescription;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 

@@ -67,6 +67,8 @@ class WorkflowTests extends AbstractTests
 	public void migrateRevisions()
 	{
 		var process = processService.startProcess(WORKFLOW_FIRST_REVISION);
+		assertNotNull(process);
+		processService.sendEvent(process, "startProcess");
 
 		processService.migrateProcess(process.getId(), WORKFLOW_SECOND_REVISION);
 
@@ -75,7 +77,7 @@ class WorkflowTests extends AbstractTests
 		assertNotNull(process);
 		assertEquals(process.getWorkflowId(), WORKFLOW_SECOND_REVISION);
 
-		processService.sendEvent(process, "nextStep1");
+		processService.sendEvent(process, "nextStep");
 
 		process = processService.getProcess(process.getId()).orElse(null);
 
@@ -88,5 +90,12 @@ class WorkflowTests extends AbstractTests
 
 		assertNotNull(process);
 		assertFalse(process.isActive());
+	}
+
+	@Order(3)
+	@Test
+	void initializationTest()
+	{
+		workflowService.initialize();
 	}
 }

@@ -24,7 +24,7 @@ import com.fasterxml.jackson.core.type.WritableTypeId;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.proit.app.exception.AppException;
-import com.proit.app.model.api.ApiStatusCodeImpl;
+import com.proit.app.model.other.exception.ApiStatusCodeImpl;
 
 import java.io.IOException;
 import java.util.Collection;

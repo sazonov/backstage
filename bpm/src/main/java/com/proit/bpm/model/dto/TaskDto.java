@@ -41,16 +41,16 @@ public class TaskDto
 	private TaskStatus status;
 
 	@JsonInclude(JsonInclude.Include.NON_NULL)
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateConstants.API_TIMESTAMP_FORMAT)
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateConstants.ISO_OFFSET_DATE_TIME_MS_FORMAT)
 	private ZonedDateTime deadline;
 
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateConstants.API_TIMESTAMP_FORMAT)
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateConstants.ISO_OFFSET_DATE_TIME_MS_FORMAT)
 	private ZonedDateTime created;
 
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateConstants.API_TIMESTAMP_FORMAT)
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateConstants.ISO_OFFSET_DATE_TIME_MS_FORMAT)
 	private ZonedDateTime updated;
 
 	@JsonInclude(JsonInclude.Include.NON_NULL)
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateConstants.API_TIMESTAMP_FORMAT)
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateConstants.ISO_OFFSET_DATE_TIME_MS_FORMAT)
 	private ZonedDateTime completed;
 }

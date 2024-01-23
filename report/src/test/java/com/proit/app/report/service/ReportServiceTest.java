@@ -26,19 +26,19 @@ public class ReportServiceTest extends AbstractTest
 	public void generateExampleXlsCorrectTest()
 	{
 		var filter = SimpleReportFilter.builder()
-				.reportType(ExampleReportType.EXAMPLE_XLS_1)
+				.reportType(ExampleReportType.EXAMPLE_1)
 				.from(FROM)
 				.to(TO)
 				.build();
 
-		assertDoesNotThrow(() -> reportService.generate(filter, USER_ID));
+		assertDoesNotThrow(() -> reportService.generate(ExampleReportType.EXAMPLE_1, filter, USER_ID));
 	}
 
 	@Test
 	public void serializeCorrectReportMessageTest()
 	{
 		var filter = SimpleReportFilter.builder()
-				.reportType(ExampleReportType.EXAMPLE_XLS_1)
+				.reportType(ExampleReportType.EXAMPLE_1)
 				.from(FROM)
 				.to(TO)
 				.build();
@@ -55,7 +55,7 @@ public class ReportServiceTest extends AbstractTest
 	@Test
 	public void deserializeCorrectReportMessageTest()
 	{
-		var correctSerializedReportMessage = "{\"reportFilter\":{\"@c\":\"com.proit.app.report.model.filter.SimpleReportFilter\",\"reportType\":[\"com.proit.app.report.model.ExampleReportType\",\"EXAMPLE_XLS_1\"]}}";
+		var correctSerializedReportMessage = "{\"reportFilter\":{\"@c\":\"com.proit.app.report.model.filter.SimpleReportFilter\",\"reportType\":[\"com.proit.app.report.model.ExampleReportType\",\"EXAMPLE_1\"]}}";
 
 		assertDoesNotThrow(() -> objectMapper.readValue(correctSerializedReportMessage, ReportMessage.class));
 	}

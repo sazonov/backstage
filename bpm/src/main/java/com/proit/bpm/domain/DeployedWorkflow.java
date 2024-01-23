@@ -16,7 +16,7 @@
 
 package com.proit.bpm.domain;
 
-import com.proit.app.model.domain.NonCacheableEntity;
+import com.proit.app.database.model.NonCacheableEntity;
 import lombok.Getter;
 import lombok.Setter;
 

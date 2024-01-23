@@ -16,8 +16,8 @@
 
 package com.proit.bpm.configuration;
 
-import com.proit.app.configuration.ddl.AbstractDDLProvider;
-import com.proit.app.configuration.ddl.DDLConfiguration;
+import com.proit.app.database.configuration.ddl.AbstractDDLProvider;
+import com.proit.app.database.configuration.ddl.DDLConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;

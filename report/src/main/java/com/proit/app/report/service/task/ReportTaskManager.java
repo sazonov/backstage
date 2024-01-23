@@ -16,8 +16,8 @@
 
 package com.proit.app.report.service.task;
 
-import com.proit.app.report.model.filter.ReportFilter;
 import com.proit.app.report.model.ReportStatus;
+import com.proit.app.report.model.filter.ReportFilter;
 import com.proit.app.report.model.task.ReportTask;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

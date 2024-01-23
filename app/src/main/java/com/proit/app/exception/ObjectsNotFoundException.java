@@ -16,7 +16,7 @@
 
 package com.proit.app.exception;
 
-import com.proit.app.model.api.ApiStatusCodeImpl;
+import com.proit.app.model.other.exception.ApiStatusCodeImpl;
 import lombok.Getter;
 
 import java.util.Collection;

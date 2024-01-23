@@ -16,7 +16,7 @@
 
 package com.proit.bpm.model;
 
-import com.proit.app.model.domain.Identity;
+import com.proit.app.database.model.Identity;
 import com.proit.bpm.domain.Process;
 import com.proit.bpm.domain.TaskStatus;
 import lombok.Builder;

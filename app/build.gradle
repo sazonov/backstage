@@ -6,8 +6,6 @@ plugins {
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 apply plugin: 'maven-publish'
-apply plugin: 'proit-jpa-weaving'
-apply plugin: 'proit-jpa-modelgen'
 
 delombok {
 	enabled = false
@@ -22,41 +20,20 @@ bootJar {
 }
 
 dependencies {
-	testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1'
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
 
-	compileOnly "org.springframework.boot:spring-boot-starter"
-	compileOnly "org.springframework.boot:spring-boot-starter-aop"
-	compileOnly "org.springframework.boot:spring-boot-starter-actuator"
-	compileOnly "org.springframework.boot:spring-boot-starter-web"
-	compileOnly "org.springframework.boot:spring-boot-starter-validation"
-	compileOnly "org.springframework.boot:spring-boot-starter-security"
-	compileOnly "org.springframework.boot:spring-boot-starter-cache"
-	compileOnly "org.springframework.boot:spring-boot-starter-activemq"
-	compileOnly "org.springframework.boot:spring-boot-starter-quartz"
+	api "org.springframework.boot:spring-boot-starter-actuator"
+	api "org.springframework.boot:spring-boot-starter"
+	api "org.springframework.boot:spring-boot-starter-aop"
+	api "org.springframework.boot:spring-boot-starter-web"
+	api "org.springframework.boot:spring-boot-starter-validation"
+	api "org.springframework.boot:spring-boot-starter-security"
+
 	compileOnly "org.springframework.boot:spring-boot-starter-data-redis"
-	compileOnly "org.springframework.boot:spring-boot-starter-data-mongodb"
-	compileOnly ("org.springframework.data:spring-data-jpa") {
-		exclude(group: "org.hibernate")
-	}
-	compileOnly "org.springframework.cloud:spring-cloud-starter-netflix-eureka-client:$springCloudVersion"
 
-	compileOnly "org.freemarker:freemarker"
+	api "org.freemarker:freemarker"
 
-	compileOnly "org.apache.activemq:activemq-kahadb-store"
-	compileOnly "net.sf.ehcache:ehcache"
-	compileOnly "com.hazelcast:hazelcast-spring"
-	compileOnly "com.fasterxml.jackson.core:jackson-annotations"
-	compileOnly "org.flywaydb:flyway-core"
-
-	compileOnly "net.postgis:postgis-jdbc:$postgisVersion"
-	compileOnly "org.geolatte:geolatte-geom:$geolatteVersion"
-
-	compileOnly "org.postgresql:postgresql"
-
-	api "org.eclipse.persistence:eclipselink:$eclipseLinkVersion"
-
-	api "io.minio:minio:$minioVersion"
+	api "com.fasterxml.jackson.core:jackson-annotations"
 
 	api "com.google.guava:guava:$guavaVersion"
 	api "org.apache.commons:commons-lang3"
@@ -64,43 +41,16 @@ dependencies {
 	api "commons-codec:commons-codec:$commonsCodecVersion"
 	api "commons-beanutils:commons-beanutils:$commonsBeanUtilsVersion"
 
-	api "jakarta.activation:jakarta.activation-api:2.1.0"
-	api "jakarta.xml.bind:jakarta.xml.bind-api:4.0.0"
-	api ("com.sun.xml.bind:jaxb-impl:4.0.1") {
-		exclude(module: "angus-activation")
-	}
-
-	api "org.springdoc:springdoc-openapi-ui:$springDocVersion"
-
 	// Интеграция с systemd
 	api "com.github.jpmsilva.jsystemd:jsystemd-spring-boot-starter:2.0.1"
 
 	testImplementation "org.springframework.boot:spring-boot-starter-test"
-	testImplementation "org.springframework.boot:spring-boot-starter-cache"
 	testImplementation "org.springframework.boot:spring-boot-starter-aop"
 	testImplementation "org.springframework.boot:spring-boot-starter-actuator"
 	testImplementation "org.springframework.boot:spring-boot-starter-validation"
 	testImplementation "org.springframework.boot:spring-boot-starter-web"
-	testImplementation "org.springframework.boot:spring-boot-starter-quartz"
-	testImplementation "org.springframework.boot:spring-boot-starter-activemq"
-	testImplementation ("org.springframework.data:spring-data-jpa") {
-		exclude(group: "org.hibernate")
-	}
 
-	testImplementation "org.apache.activemq:activemq-client"
-	testImplementation "org.apache.activemq:activemq-broker"
-	testImplementation "org.apache.activemq:activemq-kahadb-store"
-	testImplementation "org.apache.activemq:activemq-pool"
-	testImplementation "org.apache.activemq:activemq-spring"
-
-	testImplementation "org.flywaydb:flyway-core"
-	testImplementation "com.zaxxer:HikariCP"
-	testImplementation "org.postgresql:postgresql"
-	testImplementation "net.sf.ehcache:ehcache"
-
-	testImplementation "org.testcontainers:testcontainers:$testContainersVersion"
-	testImplementation "org.testcontainers:junit-jupiter:$testContainersVersion"
-	testImplementation "org.testcontainers:postgresql:$testContainersVersion"
+	testImplementation "org.junit.jupiter:junit-jupiter:5.8.1"
 }
 
 test {

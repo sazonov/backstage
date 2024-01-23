@@ -3,8 +3,8 @@
 	<persistence-unit name="bpm">
 		<mapping-file>META-INF/orm.xml</mapping-file>
 
-		<class>com.proit.app.conversion.jpa.LocalDateAttributeConverter</class>
-		<class>com.proit.app.conversion.jpa.LocalDateTimeAttributeConverter</class>
+		<class>com.proit.app.database.conversion.jpa.LocalDateAttributeConverter</class>
+		<class>com.proit.app.database.conversion.jpa.LocalDateTimeAttributeConverter</class>
 
 		<class>com.proit.bpm.domain.Process</class>
 		<class>com.proit.bpm.domain.Task</class>

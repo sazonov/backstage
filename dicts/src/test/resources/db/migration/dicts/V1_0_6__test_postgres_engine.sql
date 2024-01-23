@@ -23,5 +23,3 @@ create enum objectsEnum['Енам обьектов'] for objects as ('object_enu
 alter table objects_item add constraint objectsItemNameConstraint unique (item_name);
 
 alter table objects drop enum objectsEnum;
-
-alter table objects_item rename to objects_element;

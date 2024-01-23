@@ -19,34 +19,75 @@
 package com.proit.app.model.other.date;
 
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
-import java.time.temporal.ChronoField;
-import java.util.List;
 
 public class DateConstants
 {
-	public static final String API_TIME_FORMAT = "HH:mm:ss";
-	public static final String API_DATE_FORMAT = "yyyy-MM-dd";
-	public static final String API_ZONED_DATE_FORMAT = "yyyy-MM-ddXXX";
-	public static final String API_DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
-	public static final String API_ZONED_DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ssXXX";
-	public static final String API_DATE_TIME_MILLIS_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
-	public static final String API_TIMESTAMP_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
+	public static final String ISO_DATE_FORMAT = "yyyy-MM-dd";
+	public static final String ISO_TIME_SECONDS_FORMAT = "HH:mm:ss";
+	public static final String ISO_TIME_MINUTES_FORMAT = "HH:mm";
 
-	public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern(API_DATE_FORMAT);
-	public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(API_TIMESTAMP_FORMAT);
-	public static final DateTimeFormatter UNIVERSAL_DATE_FORMATTER = new DateTimeFormatterBuilder()
-			.appendOptional(DateTimeFormatter.ISO_DATE_TIME)
-			.appendOptional(DateTimeFormatter.ISO_DATE)
-			.toFormatter();
+	/**
+	 * yyyy-MM-ddXXX
+	 */
+	public static final String ISO_OFFSET_DATE_FORMAT = ISO_DATE_FORMAT + "XXX";
 
-	public static final DateTimeFormatter UNIVERSAL_DATE_TIME_FORMATTER = new DateTimeFormatterBuilder()
-			.appendOptional(DateTimeFormatter.ISO_DATE_TIME)
-			.appendOptional(DateTimeFormatter.ISO_DATE)
-			.parseDefaulting(ChronoField.HOUR_OF_DAY, 0)
-			.parseDefaulting(ChronoField.MINUTE_OF_HOUR, 0)
-			.parseDefaulting(ChronoField.SECOND_OF_MINUTE, 0)
-			.toFormatter();
+	/**
+	 * yyyy-MM-dd'T'HH:mm:ss
+	 */
+	public static final String ISO_DATE_TIME_SECONDS_FORMAT = ISO_DATE_FORMAT + "'T'" + ISO_TIME_SECONDS_FORMAT;
 
-	public static final List<String> AVAILABLE_DATE_PATTERNS = List.of(API_DATE_FORMAT, API_ZONED_DATE_FORMAT, API_DATE_TIME_FORMAT, API_ZONED_DATE_TIME_FORMAT, API_DATE_TIME_MILLIS_FORMAT, API_TIMESTAMP_FORMAT);
+	/**
+	 * yyyy-MM-dd'T'HH:mm:ss.SSS
+	 */
+	public static final String ISO_DATE_TIME_MS_FORMAT = ISO_DATE_TIME_SECONDS_FORMAT + ".SSS";
+
+	/**
+	 * yyyy-MM-dd'T'HH:mm:ss.SSSXXX
+	 */
+	public static final String ISO_OFFSET_DATE_TIME_MS_FORMAT = ISO_DATE_TIME_SECONDS_FORMAT + ".SSSXXX";
+
+	/**
+	 * yyyy-MM-dd'T'HH:mm:ssXXX
+	 */
+	public static final String ISO_OFFSET_DATE_TIME_SECONDS_FORMAT = ISO_DATE_TIME_SECONDS_FORMAT + "XXX";
+
+	/**
+	 * yyyy-MM-dd HH:mm:ss
+	 */
+	public static final String SIMPLE_DATE_TIME_SECONDS_FORMAT = ISO_DATE_FORMAT + " " + ISO_TIME_SECONDS_FORMAT;
+
+	/**
+	 * yyyy-MM-dd HH:mm
+	 */
+	public static final String SIMPLE_DATE_TIME_MINUTES_FORMAT = ISO_DATE_FORMAT + " " + ISO_TIME_MINUTES_FORMAT;
+
+	public static final String RUSSIAN_DATE_FORMAT = "dd.MM.yyyy";
+
+	/**
+	 * dd.MM.yyyy HH:mm
+	 */
+	public static final String RUSSIAN_DATE_TIME_MINUTES_FORMAT = RUSSIAN_DATE_FORMAT + " " + ISO_TIME_MINUTES_FORMAT;
+
+	/**
+	 * dd.MM.yyyy HH:mm:ss
+	 */
+	public static final String RUSSIAN_DATE_TIME_SECONDS_FORMAT = RUSSIAN_DATE_FORMAT + " " + ISO_TIME_SECONDS_FORMAT;
+
+	/**
+	 * HH:mm dd.MM.yyyy
+	 */
+	public static final String INVERT_RUSSIAN_DATE_TIME_FORMAT = ISO_TIME_MINUTES_FORMAT + " " + RUSSIAN_DATE_FORMAT;
+
+	public static final DateTimeFormatter ISO_DATE_FORMATTER = DateTimeFormatter.ofPattern(ISO_DATE_FORMAT);
+	public static final DateTimeFormatter ISO_OFFSET_DATE_TIME_MS_FORMATTER = DateTimeFormatter.ofPattern(ISO_OFFSET_DATE_TIME_MS_FORMAT);
+	public static final DateTimeFormatter ISO_TIME_MINUTES_FORMATTER = DateTimeFormatter.ofPattern(ISO_TIME_MINUTES_FORMAT);
+	public static final DateTimeFormatter ISO_DATE_TIME_SECONDS_FORMATTER = DateTimeFormatter.ofPattern(ISO_DATE_TIME_SECONDS_FORMAT);
+
+	public static final DateTimeFormatter SIMPLE_DATE_TIME_SECONDS_FORMATTER = DateTimeFormatter.ofPattern(SIMPLE_DATE_TIME_SECONDS_FORMAT);
+	public static final DateTimeFormatter SIMPLE_DATE_TIME_MINUTES_FORMATTER = DateTimeFormatter.ofPattern(SIMPLE_DATE_TIME_MINUTES_FORMAT);
+
+	public static final DateTimeFormatter RUSSIAN_DATE_FORMATTER = DateTimeFormatter.ofPattern(RUSSIAN_DATE_FORMAT);
+	public static final DateTimeFormatter RUSSIAN_DATE_TIME_MINUTES_FORMATTER = DateTimeFormatter.ofPattern(RUSSIAN_DATE_TIME_MINUTES_FORMAT);
+	public static final DateTimeFormatter RUSSIAN_DATE_TIME_SECONDS_FORMATTER = DateTimeFormatter.ofPattern(RUSSIAN_DATE_TIME_SECONDS_FORMAT);
+	public static final DateTimeFormatter INVERT_RUSSIAN_DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(INVERT_RUSSIAN_DATE_TIME_FORMAT);
 }

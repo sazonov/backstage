@@ -18,6 +18,7 @@ package com.proit.app.utils;
 
 import com.proit.app.model.other.user.Principal;
 import com.proit.app.model.other.user.UserInfo;
+import com.proit.app.utils.functional.RunnableEx;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -29,12 +30,6 @@ import java.util.concurrent.Callable;
 @UtilityClass
 public final class SecurityUtils
 {
-	@FunctionalInterface
-	public interface RunnableEx
-	{
-		void run() throws Exception;
-	}
-
 	public String getCurrentUserId()
 	{
 		return getCurrentUser().getId();

@@ -1,3 +1,0 @@
-<ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="ehcache.xsd">
-	<cache name="objects" eternal="false" maxEntriesLocalHeap="1000" timeToLiveSeconds="30000" timeToIdleSeconds="30000" />
-</ehcache>

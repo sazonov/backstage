@@ -17,6 +17,7 @@
 package com.proit.bpm.conversion.dto;
 
 import com.proit.app.conversion.dto.AbstractConverter;
+import com.proit.app.utils.DateUtils;
 import com.proit.bpm.domain.Task;
 import com.proit.bpm.model.dto.TaskDto;
 import org.springframework.stereotype.Component;
@@ -36,10 +37,10 @@ public class TaskConverter extends AbstractConverter<Task, TaskDto>
 		target.setComment(source.getComment());
 		target.setType(source.getType());
 		target.setStatus(source.getStatus());
-		target.setDeadline(source.getDeadline().atZone(ZoneId.systemDefault()));
-		target.setCreated(source.getCreated().atZone(ZoneId.systemDefault()));
-		target.setUpdated(source.getUpdated().toLocalDateTime().atZone(ZoneId.systemDefault()));
-		target.setCompleted(source.getCompleted().atZone(ZoneId.systemDefault()));
+		target.setDeadline(DateUtils.toZonedDateTime(source.getDeadline()));
+		target.setCreated(DateUtils.toZonedDateTime(source.getCreated()));
+		target.setUpdated(DateUtils.toZonedDateTime(source.getUpdated().toLocalDateTime()));
+		target.setCompleted(DateUtils.toZonedDateTime(source.getCompleted()));
 
 		return target;
 	}

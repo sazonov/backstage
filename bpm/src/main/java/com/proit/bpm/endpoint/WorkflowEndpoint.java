@@ -16,8 +16,8 @@
 
 package com.proit.bpm.endpoint;
 
-import com.proit.app.model.api.ApiResponse;
-import com.proit.app.model.api.OkResponse;
+import com.proit.app.api.model.ApiResponse;
+import com.proit.app.api.model.OkResponse;
 import com.proit.bpm.conversion.dto.WorkflowConverter;
 import com.proit.bpm.model.dto.DeployWorkflowRequest;
 import com.proit.bpm.model.dto.WorkflowDto;

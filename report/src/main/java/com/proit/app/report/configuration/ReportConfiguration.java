@@ -17,11 +17,11 @@
 package com.proit.app.report.configuration;
 
 import com.proit.app.report.configuration.properties.ReportProperties;
-import com.proit.app.report.service.store.AttachmentReportStore;
-import com.proit.app.report.service.store.InMemoryReportStore;
 import com.proit.app.report.service.AttachmentReportService;
 import com.proit.app.report.service.InMemoryReportService;
 import com.proit.app.report.service.ReportService;
+import com.proit.app.report.service.store.AttachmentReportStore;
+import com.proit.app.report.service.store.InMemoryReportStore;
 import com.proit.app.utils.transactional.TransactionalExecutor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;

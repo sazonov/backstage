@@ -16,13 +16,16 @@
 
 package com.proit.app.utils;
 
-import com.proit.app.service.health.AbstractHealthIndicatorComponent;
+import com.proit.app.dict.service.health.AbstractHealthIndicatorComponent;
+import lombok.experimental.UtilityClass;
 import org.springframework.boot.actuate.health.CompositeHealthContributor;
 import org.springframework.boot.actuate.health.HealthContributor;
+import org.springframework.boot.context.metrics.buffering.BufferingApplicationStartup;
 
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@UtilityClass
 public class ActuatorUtils
 {
 	public static HealthContributor createHealthComposite(Map<String, ? extends AbstractHealthIndicatorComponent> indicatorComponents)
@@ -30,5 +33,15 @@ public class ActuatorUtils
 		return CompositeHealthContributor.fromMap(indicatorComponents.entrySet().stream().collect(Collectors.toMap(
 				Map.Entry::getKey, entry -> entry.getValue().asHealthIndicator()
 		)));
+	}
+
+	public static BufferingApplicationStartup buildBufferingApplicationStartup()
+	{
+		var startup = new BufferingApplicationStartup(16);
+
+		startup.addFilter(startupStep -> startupStep.getName()
+				.startsWith("spring.boot.application"));
+
+		return startup;
 	}
 }

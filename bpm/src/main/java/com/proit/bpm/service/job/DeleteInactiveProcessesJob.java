@@ -16,10 +16,10 @@
 
 package com.proit.bpm.service.job;
 
-import com.proit.app.model.dto.job.EmptyJobParams;
-import com.proit.app.model.other.JobResult;
-import com.proit.app.service.job.AbstractCronJob;
-import com.proit.app.service.job.JobDescription;
+import com.proit.app.jobs.model.dto.other.JobResult;
+import com.proit.app.jobs.model.dto.param.EmptyJobParams;
+import com.proit.app.jobs.service.AbstractCronJob;
+import com.proit.app.jobs.service.JobDescription;
 import com.proit.bpm.configuration.properties.BpmProperties;
 import com.proit.bpm.repository.ProcessRepository;
 import com.proit.bpm.service.ProcessService;

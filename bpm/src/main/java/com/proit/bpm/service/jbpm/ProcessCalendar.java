@@ -17,7 +17,7 @@
 package com.proit.bpm.service.jbpm;
 
 import com.proit.app.configuration.properties.BusinessCalendarProperties;
-import com.proit.app.service.BusinessCalendarService;
+import com.proit.app.dict.service.BusinessCalendarService;
 import lombok.RequiredArgsConstructor;
 import org.jbpm.process.core.timer.BusinessCalendar;
 import org.jbpm.process.core.timer.DateTimeUtils;

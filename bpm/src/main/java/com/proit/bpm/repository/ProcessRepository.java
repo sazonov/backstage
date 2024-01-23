@@ -16,7 +16,7 @@
 
 package com.proit.bpm.repository;
 
-import com.proit.app.repository.generic.CustomJpaRepository;
+import com.proit.app.database.repository.CustomJpaRepository;
 import com.proit.bpm.domain.Process;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;

@@ -17,7 +17,7 @@
 package com.proit.bpm.conversion.jpa;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.proit.app.conversion.jpa.AbstractMutableJsonConverter;
+import com.proit.app.database.conversion.jpa.AbstractMutableJsonConverter;
 
 import java.util.Map;
 

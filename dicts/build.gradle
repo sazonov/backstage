@@ -26,51 +26,25 @@ bootJar {
 dependencies {
 	annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
 
-	compileOnly project(":app")
-	compileOnly project(":dicts-api")
+	api project(":api")
+	api project(":dicts-api")
+	api project(":database")
+	api project(":attachments")
 
-	compileOnly "org.springframework.boot:spring-boot-starter"
-	compileOnly "org.springframework.boot:spring-boot-starter-actuator"
-	compileOnly "org.springframework.boot:spring-boot-starter-web"
-	compileOnly "org.springframework.boot:spring-boot-starter-validation"
-	compileOnly "org.springframework.boot:spring-boot-starter-security"
-	compileOnly "org.springframework.boot:spring-boot-starter-quartz"
 	compileOnly "org.springframework.boot:spring-boot-starter-data-mongodb"
-	compileOnly ("org.springframework.data:spring-data-jpa") {
-		exclude(group: "org.hibernate")
-	}
-	compileOnly "org.springframework.cloud:spring-cloud-starter-netflix-eureka-client:$springCloudVersion"
-
-	compileOnly "com.fasterxml.jackson.core:jackson-annotations"
 
 	compileOnly "net.postgis:postgis-jdbc:$postgisVersion"
 	compileOnly "org.geolatte:geolatte-geom:$geolatteVersion"
-
-	compileOnly "org.postgresql:postgresql"
 
 	api "org.jparsec:jparsec:3.1"
 	api "org.apache.commons:commons-csv:1.9.0"
 	api "com.opencsv:opencsv:5.5"
 	api "de.grundid.opendatalab:geojson-jackson:$geojsonVersion"
 
-	testImplementation project(":app")
-	testImplementation project(":dicts-api")
-
 	testImplementation "org.springframework.boot:spring-boot-starter-test"
-	testImplementation "org.springframework.boot:spring-boot-starter-actuator"
-	testImplementation "org.springframework.boot:spring-boot-starter-validation"
-	testImplementation "org.springframework.boot:spring-boot-starter-aop"
-	testImplementation "org.springframework.boot:spring-boot-starter-security"
-	testImplementation "org.springframework.boot:spring-boot-starter-web"
 	testImplementation "org.springframework.boot:spring-boot-starter-data-mongodb"
-	testImplementation ("org.springframework.data:spring-data-jpa") {
-		exclude(group: "org.hibernate")
-	}
-	testImplementation "org.springframework.cloud:spring-cloud-starter-netflix-eureka-client:$springCloudVersion"
 
-	testImplementation "org.flywaydb:flyway-core"
 	testImplementation "com.zaxxer:HikariCP"
-	testImplementation "org.postgresql:postgresql"
 
 	testImplementation "org.testcontainers:testcontainers:$testContainersVersion"
 	testImplementation "org.testcontainers:junit-jupiter:$testContainersVersion"

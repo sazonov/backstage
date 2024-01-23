@@ -22,7 +22,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.proit.app.exception.AppException;
-import com.proit.app.model.api.ApiStatusCodeImpl;
+import com.proit.app.model.other.exception.ApiStatusCodeImpl;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -42,7 +42,7 @@ public class JsonUtils implements ApplicationContextAware
 		mapper = applicationContext.getBean(ObjectMapper.class);
 	}
 
-	public static String asJson(Object value)
+	public static String toJson(Object value)
 	{
 		try
 		{
@@ -51,11 +51,11 @@ public class JsonUtils implements ApplicationContextAware
 		catch (JsonProcessingException e)
 		{
 			throw new AppException(ApiStatusCodeImpl.SERIALIZE_ERROR,
-					"При сериализации обьекта '%s', произошла ошибка: %s".formatted(value, e));
+					"При сериализации объекта '%s', произошла ошибка: %s".formatted(value, e));
 		}
 	}
 
-	public static Map<String, Object> attributeValueMap(Object value)
+	public static Map<String, Object> toObject(Object value)
 	{
 		try
 		{
@@ -64,11 +64,11 @@ public class JsonUtils implements ApplicationContextAware
 		catch (JsonProcessingException e)
 		{
 			throw new AppException(ApiStatusCodeImpl.DESERIALIZE_ERROR,
-					"При десериализации обьекта '%s', произошла ошибка: %s".formatted(value, e));
+					"При десериализации объекта '%s', произошла ошибка: %s".formatted(value, e));
 		}
 	}
 
-	public static List<Map<String, Object>> attributeValueMaps(Object value)
+	public static List<Map<String, Object>> toList(Object value)
 	{
 		try
 		{
@@ -77,11 +77,11 @@ public class JsonUtils implements ApplicationContextAware
 		catch (JsonProcessingException e)
 		{
 			throw new AppException(ApiStatusCodeImpl.DESERIALIZE_ERROR,
-					"При десериализации обьекта '%s', произошла ошибка: %s".formatted(value, e));
+					"При десериализации объекта '%s', произошла ошибка: %s".formatted(value, e));
 		}
 	}
 
-	public static Object asTypeReference(Object value, Class<?> clazz)
+	public static <T> T toObject(Object value, Class<T> clazz)
 	{
 		try
 		{
@@ -90,7 +90,7 @@ public class JsonUtils implements ApplicationContextAware
 		catch (JsonProcessingException e)
 		{
 			throw new AppException(ApiStatusCodeImpl.DESERIALIZE_ERROR,
-					"При десериализации обьекта '%s', произошла ошибка: %s".formatted(value, e));
+					"При десериализации объекта '%s', произошла ошибка: %s".formatted(value, e));
 		}
 	}
 }

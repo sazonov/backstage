@@ -40,20 +40,23 @@ public class GeneratorLocator
 	 */
 	private final List<ReportGenerator<? extends ReportFilter>> generators;
 
-	private final Map<ReportType, ReportGenerator<? extends ReportFilter>> generatorByReportTypeName = new HashMap<>();
+	private final Map<Class<?>, ReportGenerator<? extends ReportFilter>> generatorByReportTypeName = new HashMap<>();
 
 	@PostConstruct
 	void init()
 	{
 		log.info("Найдено имплементаций ReportGenerator: {}.", generators.size());
 
-		generators.forEach(it -> generatorByReportTypeName.put(it.getReportType(), it));
+		generators.forEach(it -> generatorByReportTypeName.put(it.getClass(), it));
 	}
 
 	@SuppressWarnings("unchecked")
 	public <T extends ReportFilter> ReportGenerator<T> getGenerator(ReportType reportType)
 	{
-		return Optional.ofNullable((ReportGenerator<T>) generatorByReportTypeName.get(reportType))
+		return Optional.ofNullable(reportType)
+				.map(ReportType::getGeneratorType)
+				// TODO: 25.10.2023 Рассмотреть вариант отказа от локатора в пользу извлечения напрямую из контекста
+				.map(clazz -> (ReportGenerator<T>) generatorByReportTypeName.get(clazz))
 				.orElseThrow(() -> new ReportGeneratorNotFoundException("Не найден генератор для типа отчета %s.".formatted(reportType)));
 	}
 }

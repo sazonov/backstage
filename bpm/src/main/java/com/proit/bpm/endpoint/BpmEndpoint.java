@@ -16,7 +16,7 @@
 
 package com.proit.bpm.endpoint;
 
-import com.proit.app.model.api.ApiResponse;
+import com.proit.app.api.model.ApiResponse;
 import com.proit.bpm.model.dto.KillProcessRequest;
 import com.proit.bpm.model.dto.MigrateProcessRequest;
 import com.proit.bpm.model.dto.StartProcessRequest;

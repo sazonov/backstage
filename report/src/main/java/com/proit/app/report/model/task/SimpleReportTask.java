@@ -16,8 +16,8 @@
 
 package com.proit.app.report.model.task;
 
-import com.proit.app.report.model.filter.ReportFilter;
 import com.proit.app.report.model.ReportStatus;
+import com.proit.app.report.model.filter.ReportFilter;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;

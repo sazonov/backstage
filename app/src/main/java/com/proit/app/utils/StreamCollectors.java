@@ -32,7 +32,7 @@ public final class StreamCollectors
 {
 	/**
 	 * Коллектор который не выбрасывает {@link NullPointerException} при value == null.
-	 *
+	 * <p>
 	 * Стандартный коллектор {@link java.util.stream.Collectors#toMap(Function keyMapper, Function valueMapper)}
 	 * содержит проверку Objects.requireNonNull() для value.
 	 *

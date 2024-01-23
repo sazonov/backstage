@@ -3,14 +3,12 @@ package com.proit.app.report.utils;
 import com.proit.app.report.AbstractTest;
 import com.proit.app.report.model.ExampleReportType;
 import com.proit.app.report.model.filter.SimpleReportFilter;
-import com.proit.app.report.service.builder.SheetBuilder;
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
 import java.time.LocalDate;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ReportUtilsTest extends AbstractTest
@@ -23,7 +21,7 @@ public class ReportUtilsTest extends AbstractTest
 	@Test
 	public void checkFileNameMethodFullFilterTest()
 	{
-		var repotType = ExampleReportType.EXAMPLE_XLS_1;
+		var repotType = ExampleReportType.EXAMPLE_1;
 
 		var filter = SimpleReportFilter.builder()
 				.reportType(repotType)
@@ -46,7 +44,7 @@ public class ReportUtilsTest extends AbstractTest
 	@Test
 	public void checkFileNameMethodShortFilterTest()
 	{
-		var repotType = ExampleReportType.EXAMPLE_XLS_1;
+		var repotType = ExampleReportType.EXAMPLE_1;
 
 		var filter = SimpleReportFilter.builder()
 				.reportType(repotType)
@@ -62,41 +60,5 @@ public class ReportUtilsTest extends AbstractTest
 		var fileName = ReportUtils.getReportFileName(filter);
 
 		assertEquals(expectedFileName, fileName);
-	}
-
-	@Test
-	public void checkAddingHeaderTest()
-	{
-		var reportType = ExampleReportType.EXAMPLE_XLS_1;
-
-		var filter = SimpleReportFilter.builder()
-				.reportType(reportType)
-				.from(FROM)
-				.to(FROM)
-				.build();
-
-		var workbook = new SXSSFWorkbook();
-		var builder = SheetBuilder.create(workbook, "Реестр ПРИМЕР", false);
-
-		var expectedCurrentRowNumber = builder.getCurrentRowNumber();
-
-		ReportUtils.addHeaderDefault(builder, filter);
-
-		// метод ReportUtils.addHeaderDefault создает 2 строки
-		assertEquals(expectedCurrentRowNumber + 2, builder.getCurrentRowNumber());
-	}
-
-	@Test
-	public void checkAddingFooterTest()
-	{
-		var workbook = new SXSSFWorkbook();
-		var builder = SheetBuilder.create(workbook, "Реестр ПРИМЕР", false);
-
-		var expectedCurrentRowNumber = builder.getCurrentRowNumber();
-
-		ReportUtils.addFooterDefault(builder, "Реестр ПРИМЕР");
-
-		// метод ReportUtils.addFooterDefault создает 2 строки
-		assertEquals(expectedCurrentRowNumber + 2, builder.getCurrentRowNumber());
 	}
 }

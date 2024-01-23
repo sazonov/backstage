@@ -16,7 +16,7 @@
 
 package com.proit.bpm.domain;
 
-import com.proit.app.model.domain.UuidGeneratedEntity;
+import com.proit.app.database.model.UuidGeneratedEntity;
 import com.proit.bpm.conversion.jpa.TaskActionListConverter;
 import com.proit.bpm.conversion.jpa.TaskParametersConverter;
 import com.proit.bpm.conversion.jpa.TaskResultConverter;

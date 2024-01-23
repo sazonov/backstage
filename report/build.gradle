@@ -22,37 +22,15 @@ bootJar {
 dependencies {
 	annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
 
-	compileOnly project(":app")
-
-	compileOnly "org.springframework.boot:spring-boot-starter"
-	compileOnly "org.springframework.boot:spring-boot-starter-validation"
-	compileOnly "org.springframework.boot:spring-boot-starter-web"
-	compileOnly "org.springframework.boot:spring-boot-starter-activemq"
-	compileOnly ("org.springframework.data:spring-data-jpa") {
-		exclude(group: "org.hibernate")
-	}
-	compileOnly "org.springframework.cloud:spring-cloud-starter-openfeign:$springCloudVersion"
-	compileOnly "org.springframework.cloud:spring-cloud-starter-netflix-eureka-client:$springCloudVersion"
+	api project(":api")
+	api project(":jobs")
+	api project(":attachments")
 
 	api "org.apache.poi:poi:$apachePOIVersion"
 	api "org.apache.poi:poi-ooxml:$apachePOIVersion"
 
 	testImplementation "org.springframework.boot:spring-boot-starter-test"
-	testImplementation "org.springframework.boot:spring-boot-starter-actuator"
-	testImplementation "org.springframework.boot:spring-boot-starter-validation"
-	testImplementation "org.springframework.boot:spring-boot-starter-web"
-	testImplementation "org.springframework.boot:spring-boot-starter-activemq"
-	testImplementation ("org.springframework.data:spring-data-jpa") {
-		exclude(group: "org.hibernate")
-	}
-
-	testImplementation project(":app")
-
-	testImplementation "org.apache.activemq:activemq-kahadb-store"
-	testImplementation "org.flywaydb:flyway-core"
 	testImplementation "com.zaxxer:HikariCP"
-	testImplementation "org.postgresql:postgresql"
-	testImplementation "net.sf.ehcache:ehcache"
 
 	testImplementation "org.testcontainers:testcontainers:$testContainersVersion"
 	testImplementation "org.testcontainers:junit-jupiter:$testContainersVersion"

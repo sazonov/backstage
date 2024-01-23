@@ -1,0 +1,9 @@
+app:
+    jpa.enabled: false
+    quartz.enabled: false
+    api.swagger.enabled: false
+
+    jms:
+        enabled: true
+        storeType: persistent
+        store-path: build/jms

@@ -17,6 +17,8 @@
 package com.proit.app.report.model;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.proit.app.report.model.filter.ReportFilter;
+import com.proit.app.report.service.generator.ReportGenerator;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.MINIMAL_CLASS)
 public interface ReportType
@@ -26,4 +28,8 @@ public interface ReportType
 	String getTitle();
 
 	ReportFileType getReportFileType();
+
+	Class<? extends ReportGenerator<? extends ReportFilter>> getGeneratorType();
+
+	Class<? extends ReportFilter> getFilterType();
 }

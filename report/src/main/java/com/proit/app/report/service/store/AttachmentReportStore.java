@@ -16,12 +16,12 @@
 
 package com.proit.app.report.service.store;
 
+import com.proit.app.attachment.model.domain.Attachment;
+import com.proit.app.attachment.service.AttachmentService;
 import com.proit.app.exception.ObjectNotFoundException;
-import com.proit.app.model.domain.Attachment;
 import com.proit.app.report.configuration.properties.ReportProperties;
 import com.proit.app.report.model.report.Report;
 import com.proit.app.report.model.report.SimpleReport;
-import com.proit.app.service.attachment.AttachmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;

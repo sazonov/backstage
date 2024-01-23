@@ -16,8 +16,8 @@
 
 package com.proit.bpm.service.jbpm.script;
 
+import com.proit.app.dict.service.BusinessCalendarService;
 import com.proit.app.model.other.date.DateConstants;
-import com.proit.app.service.BusinessCalendarService;
 import com.proit.bpm.exception.BpmException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateFormatUtils;
@@ -90,6 +90,6 @@ public class DateFunctions implements ScriptingExtension, ApplicationContextAwar
 
 	public String formatToTimestamp(Date date)
 	{
-		return DateFormatUtils.format(date, DateConstants.API_TIMESTAMP_FORMAT);
+		return DateFormatUtils.format(date, DateConstants.ISO_OFFSET_DATE_TIME_MS_FORMAT);
 	}
 }

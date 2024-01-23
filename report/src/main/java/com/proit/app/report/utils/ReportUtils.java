@@ -17,16 +17,11 @@
 package com.proit.app.report.utils;
 
 import com.proit.app.report.model.filter.ReportFilter;
-import com.proit.app.report.service.builder.SheetBuilder;
 import lombok.experimental.UtilityClass;
-import org.apache.poi.ss.usermodel.BorderStyle;
-import org.apache.poi.ss.util.CellRangeAddress;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 import static com.proit.app.report.utils.ReportDateUtils.LOCAL_DATE_FORMATTER;
-import static com.proit.app.report.utils.ReportDateUtils.LOCAL_DATE_TIME_FORMATTER;
 
 @UtilityClass
 public class ReportUtils
@@ -37,14 +32,6 @@ public class ReportUtils
 	private static final short EXCEL_COLUMN_WIDTH_FACTOR = 256;
 	private static final int UNIT_OFFSET_LENGTH = 7;
 	private static final int[] UNIT_OFFSET_MAP = new int[]{0, 36, 73, 109, 146, 182, 219};
-
-	public short pixelToWidthUnits(int pxs)
-	{
-		var widthUnits = (short) (EXCEL_COLUMN_WIDTH_FACTOR * (pxs / UNIT_OFFSET_LENGTH));
-		widthUnits += UNIT_OFFSET_MAP[(pxs % UNIT_OFFSET_LENGTH)];
-
-		return widthUnits;
-	}
 
 	public String getReportFileName(ReportFilter filter)
 	{
@@ -59,32 +46,5 @@ public class ReportUtils
 		}
 
 		return result + filter.getReportType().getReportFileType().getExtension();
-	}
-
-	public void addHeaderDefault(SheetBuilder builder, ReportFilter filter)
-	{
-		String dateRange = String.join(HYPHEN, LOCAL_DATE_FORMATTER.format(filter.getFrom()), LOCAL_DATE_FORMATTER.format(filter.getTo()));
-
-		builder.getSheet()
-				.addMergedRegion(new CellRangeAddress(builder.getSheet().getLastRowNum(), builder.getSheet().getLastRowNum(), 0, 1));
-		builder.addHeader(filter.getReportType().getTitle(), 150)
-				.createRow();
-		builder.addHeader("Период:", 150)
-				.addStringCell(dateRange)
-				.createRow();
-	}
-
-	public void addFooterDefault(SheetBuilder builder, String title)
-	{
-		builder.createRow()
-				.addStringCell(title);
-		builder.addMergedRegionWithBorders(
-				builder.getSheet().getLastRowNum(),
-				builder.getSheet().getLastRowNum(), 0, 3);
-		builder.createRow().addStringCellWithoutBorders(0, "Дата и время формирования отчета: ");
-		builder.addMergedRegionWithBorders(
-				builder.getSheet().getLastRowNum(),
-				builder.getSheet().getLastRowNum(), 0, 2, BorderStyle.THIN, BorderStyle.THIN, BorderStyle.THIN, BorderStyle.NONE);
-		builder.addStringCellCenterAlignmentBorderTopRightBottom(3, LOCAL_DATE_TIME_FORMATTER.format(LocalDateTime.now()));
 	}
 }

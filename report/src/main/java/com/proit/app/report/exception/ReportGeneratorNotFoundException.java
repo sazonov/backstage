@@ -17,7 +17,7 @@
 package com.proit.app.report.exception;
 
 import com.proit.app.exception.AppException;
-import com.proit.app.model.api.ApiStatusCodeImpl;
+import com.proit.app.model.other.exception.ApiStatusCodeImpl;
 
 public class ReportGeneratorNotFoundException extends AppException
 {

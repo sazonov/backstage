@@ -16,7 +16,7 @@
 
 package com.proit.bpm.configuration;
 
-import com.proit.app.configuration.jpa.customizer.EntityManagerFactoryCustomizer;
+import com.proit.app.database.configuration.jpa.customizer.EntityManagerFactoryCustomizer;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;

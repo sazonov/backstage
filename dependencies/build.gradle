@@ -14,6 +14,7 @@ catalog {
 		version("springSocial", "$springSocialVersion")
 		version("jbpm", "$jbpmVersion")
 		version("groovy", "$groovyVersion")
+		version("kotlin", "$kotlinVersion")
 		version("nashorn", "$nashornVersion")
 		version("eclipseLink", "$eclipseLinkVersion")
 		version("postgis", "$postgisVersion")

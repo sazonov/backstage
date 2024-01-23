@@ -1,0 +1,7 @@
+app:
+    jpa.enabled: true
+    api.swagger.enabled: false
+
+    jms:
+        enabled: false
+        storeType: memory

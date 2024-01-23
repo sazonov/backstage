@@ -28,38 +28,15 @@ bootJar {
 dependencies {
 	annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
 
-	compileOnly project(":app")
+	api project(":api")
+	api project(":attachments")
 
-	compileOnly "org.springframework.boot:spring-boot-starter"
-	compileOnly "org.springframework.boot:spring-boot-starter-validation"
-	compileOnly "org.springframework.boot:spring-boot-starter-web"
-	compileOnly "org.springframework.boot:spring-boot-starter-data-jpa"
 
 	api "org.wickedsource.docx-stamper:docx-stamper:1.4.0"
 	api "org.docx4j:docx4j:6.1.2"
 
 	testImplementation "org.springframework.boot:spring-boot-starter-test"
-	testImplementation "org.springframework.boot:spring-boot-starter-cache"
-	testImplementation "org.springframework.boot:spring-boot-starter-aop"
-	testImplementation "org.springframework.boot:spring-boot-starter-actuator"
-	testImplementation "org.springframework.boot:spring-boot-starter-validation"
-	testImplementation "org.springframework.boot:spring-boot-starter-web"
-	testImplementation "org.springframework.boot:spring-boot-starter-quartz"
-	testImplementation "org.springframework.boot:spring-boot-starter-activemq"
-	testImplementation ("org.springframework.data:spring-data-jpa") {
-		exclude(group: "org.hibernate")
-	}
-
-	testImplementation "org.apache.activemq:activemq-client"
-	testImplementation "org.apache.activemq:activemq-broker"
-	testImplementation "org.apache.activemq:activemq-kahadb-store"
-	testImplementation "org.apache.activemq:activemq-pool"
-	testImplementation "org.apache.activemq:activemq-spring"
-
-	testImplementation "org.flywaydb:flyway-core"
 	testImplementation "com.zaxxer:HikariCP"
-	testImplementation "org.postgresql:postgresql"
-	testImplementation "net.sf.ehcache:ehcache"
 
 	testImplementation "org.testcontainers:testcontainers:$testContainersVersion"
 	testImplementation "org.testcontainers:junit-jupiter:$testContainersVersion"

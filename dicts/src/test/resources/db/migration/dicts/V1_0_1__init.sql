@@ -22,10 +22,6 @@ update roles set name = 'Супер-Менеджер' where id = 'MANAGER';
 delete from roles where id = 'MANAGER';
 delete from roles where name = 'Менеджер2';
 
-alter table users rename to users['Архив пользователей'];
-alter table users rename to oldUsers['Архив пользователей'];
-alter table oldUsers rename to users;
-
 alter table users rename column age to age['Только обновили описание'];
 alter table users rename column age to ages['Возраст'];
 alter table users rename column ages to age;

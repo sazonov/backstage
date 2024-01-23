@@ -16,6 +16,8 @@
 
 package com.proit.bpm.service.jbpm;
 
+import com.proit.app.exception.AppException;
+import com.proit.app.model.other.exception.ApiStatusCodeImpl;
 import com.proit.bpm.configuration.properties.BpmProperties;
 import com.proit.bpm.exception.BpmException;
 import com.proit.bpm.model.Workflow;
@@ -28,9 +30,7 @@ import org.drools.compiler.compiler.ProcessLoadError;
 import org.jbpm.ruleflow.core.RuleFlowProcess;
 import org.jbpm.workflow.core.node.EventTrigger;
 import org.jbpm.workflow.core.node.StartNode;
-import org.jbpm.workflow.core.node.Trigger;
 import org.kie.api.KieBase;
-import org.kie.api.definition.process.Node;
 import org.kie.api.io.ResourceType;
 import org.kie.internal.builder.KnowledgeBuilder;
 import org.kie.internal.builder.KnowledgeBuilderFactory;
@@ -51,7 +51,6 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 @Slf4j
 @Service
@@ -83,6 +82,8 @@ public class KnowledgeService implements ApplicationListener<WorkflowsUpdatedEve
 		catch (Exception e)
 		{
 			log.error("Failed to load workflow definitions.", e);
+
+			throw new AppException(ApiStatusCodeImpl.ILLEGAL_INPUT, e);
 		}
 	}
 
@@ -133,27 +134,16 @@ public class KnowledgeService implements ApplicationListener<WorkflowsUpdatedEve
 		for (var process : kieBase.getProcesses())
 		{
 			// Запуск по событию оставляем только в последних ревизиях процессов.
-			if (!workflowService.getActualWorkflowIds().contains(process.getId()))
+			if (!workflowService.getActualWorkflowIds().contains(process.getId())
+					&& process instanceof RuleFlowProcess ruleFlowProcess)
 			{
-				if (process instanceof RuleFlowProcess ruleFlowProcess)
+				for (var node : ruleFlowProcess.getNodes())
 				{
-					for (Node node : ruleFlowProcess.getNodes())
+					if (node instanceof StartNode startNode
+							&& startNode.getTriggers() != null)
 					{
-						if (node instanceof StartNode startNode)
-						{
-							List<Trigger> triggers = startNode.getTriggers();
-
-							if (triggers != null)
-							{
-								for (Trigger trigger : triggers)
-								{
-									if (trigger instanceof EventTrigger)
-									{
-										startNode.removeTrigger(trigger);
-									}
-								}
-							}
-						}
+						startNode.getTriggers()
+								.removeIf(trigger -> trigger instanceof EventTrigger);
 					}
 				}
 			}

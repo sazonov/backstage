@@ -16,9 +16,9 @@
 
 package com.proit.app.report.service;
 
-import com.proit.app.report.model.filter.ReportFilter;
 import com.proit.app.report.model.ReportMessage;
 import com.proit.app.report.model.ReportType;
+import com.proit.app.report.model.filter.ReportFilter;
 import com.proit.app.report.model.task.ReportTask;
 import org.springframework.util.concurrent.ListenableFuture;
 
@@ -26,15 +26,15 @@ public interface ReportService
 {
 	ReportTask generate(ReportType type);
 
-	ReportTask generate(ReportFilter filter);
+	ReportTask generate(ReportType type, ReportFilter filter);
 
 	ReportTask generate(ReportType type, String userId);
 
-	ReportTask generate(ReportFilter filter, String userId);
+	ReportTask generate(ReportType type, ReportFilter filter, String userId);
 
 	ListenableFuture<byte[]> generateAsync(ReportType type);
 
-	ListenableFuture<byte[]> generateAsync(ReportFilter filter);
+	ListenableFuture<byte[]> generateAsync(ReportType type, ReportFilter filter);
 
 	void generate(ReportMessage message);
 

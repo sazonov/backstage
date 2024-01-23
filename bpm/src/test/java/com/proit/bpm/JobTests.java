@@ -1,6 +1,6 @@
 package com.proit.bpm;
 
-import com.proit.app.service.job.JobManager;
+import com.proit.app.jobs.service.JobManager;
 import com.proit.bpm.repository.ProcessRepository;
 import com.proit.bpm.repository.TaskRepository;
 import com.proit.bpm.service.job.ArchiveWorkflowsJob;

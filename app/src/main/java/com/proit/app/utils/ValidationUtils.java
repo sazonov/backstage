@@ -16,7 +16,7 @@
 
 package com.proit.app.utils;
 
-import com.proit.app.service.TranslationService;
+import com.proit.app.dict.service.TranslationService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -30,7 +30,7 @@ public class ValidationUtils implements ApplicationContextAware
 	private static final String PHONE_NUMBER_PATTERN = "^((\\+7)|(8))\\d{10}$";
 	private static final String LATIN_AND_DIGITS_PATTERN = "^[a-zA-Z0-9]*$";
 	private static final String LATIN_DIGITS_SYMBOLS_PATTERN = "^[a-zA-Z0-9!@#$%^&*()_\\-+=?/.,<>{}\\[\\]|/~`]*$";
-	private static final String FIRST_DIGIT_PATTERN = "^[0-9].*";
+	private static final String FIRST_DIGIT_PATTERN = "^\\d.*";
 
 	private static TranslationService translationService;
 

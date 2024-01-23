@@ -16,12 +16,8 @@
 
 package com.proit.app.report.service.generator;
 
-import com.proit.app.report.model.ReportType;
-
 public interface ReportGenerator<T>
 {
-	ReportType getReportType();
-
 	byte[] generate(T filter);
 
 	String generateReportFileName(T filter);

@@ -16,8 +16,8 @@
 
 package com.proit.app.report.model.task;
 
-import com.proit.app.report.model.filter.ReportFilter;
 import com.proit.app.report.model.ReportStatus;
+import com.proit.app.report.model.filter.ReportFilter;
 
 public interface ReportTask
 {

@@ -16,7 +16,7 @@
 
 package com.proit.app.report.service;
 
-import com.proit.app.report.model.*;
+import com.proit.app.report.model.ReportMessage;
 import com.proit.app.report.service.store.AttachmentReportStore;
 import com.proit.app.report.service.store.ReportStore;
 import com.proit.app.utils.transactional.TransactionalExecutor;

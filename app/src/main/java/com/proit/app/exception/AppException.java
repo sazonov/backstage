@@ -16,7 +16,7 @@
 
 package com.proit.app.exception;
 
-import com.proit.app.model.api.ApiStatusCode;
+import com.proit.app.model.other.exception.ApiStatusCode;
 import lombok.Getter;
 import org.springframework.validation.Errors;
 

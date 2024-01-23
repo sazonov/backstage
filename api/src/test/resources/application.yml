@@ -1,0 +1,2 @@
+app:
+    api.swagger.enabled: false

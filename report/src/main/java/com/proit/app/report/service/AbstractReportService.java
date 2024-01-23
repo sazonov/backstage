@@ -16,17 +16,17 @@
 
 package com.proit.app.report.service;
 
+import com.proit.app.attachment.utils.AttachmentUtils;
 import com.proit.app.report.model.ReportFileType;
-import com.proit.app.report.model.ReportType;
-import com.proit.app.report.model.filter.EmptyReportFilter;
-import com.proit.app.report.model.filter.ReportFilter;
 import com.proit.app.report.model.ReportMessage;
 import com.proit.app.report.model.ReportStatus;
+import com.proit.app.report.model.ReportType;
+import com.proit.app.report.model.filter.ReportFilter;
 import com.proit.app.report.model.task.ReportTask;
+import com.proit.app.report.service.queue.ReportQueueService;
 import com.proit.app.report.service.store.ReportStore;
 import com.proit.app.report.service.task.ReportTaskManager;
-import com.proit.app.report.service.queue.ReportQueueService;
-import com.proit.app.utils.AttachmentUtils;
+import com.proit.app.utils.JsonUtils;
 import com.proit.app.utils.SecurityUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
@@ -38,6 +38,8 @@ import org.springframework.util.concurrent.ListenableFuture;
 @Slf4j
 public abstract class AbstractReportService implements ReportService
 {
+	public static final String EMPTY_FILTER_JSON = "{}";
+
 	protected static final String REPORT_ATTACHMENT_BINDING_KEY = "REPORT_TASK";
 
 	@Autowired protected ReportTaskManager reportTaskManager;
@@ -50,23 +52,26 @@ public abstract class AbstractReportService implements ReportService
 	@Override
 	public ReportTask generate(ReportType type)
 	{
-		return generate(EmptyReportFilter.of(type), SecurityUtils.getCurrentUserId());
+		return generate(type, SecurityUtils.getCurrentUserId());
 	}
 
 	@Override
 	public ReportTask generate(ReportType type, String userId)
 	{
-		return generate(EmptyReportFilter.of(type), userId);
+		// TODO: 25.10.2023 Заменить на более органичный способ получения пустого инстанса
+		var emptyFilter = JsonUtils.toObject(EMPTY_FILTER_JSON, type.getFilterType());
+
+		return generate(type, emptyFilter, userId);
 	}
 
 	@Override
-	public ReportTask generate(ReportFilter filter)
+	public ReportTask generate(ReportType type, ReportFilter filter)
 	{
-		return generate(filter, SecurityUtils.getCurrentUserId());
+		return generate(type, filter, SecurityUtils.getCurrentUserId());
 	}
 
 	@Override
-	public ReportTask generate(ReportFilter filter, String userId)
+	public ReportTask generate(ReportType type, ReportFilter filter, String userId)
 	{
 		log.info("От пользователя '{}' получен запрос на генерацию отчёта: {}.", userId, filter);
 
@@ -84,12 +89,15 @@ public abstract class AbstractReportService implements ReportService
 	@Override
 	public ListenableFuture<byte[]> generateAsync(ReportType type)
 	{
-		return generateAsync(EmptyReportFilter.of(type));
+		// TODO: 25.10.2023 Заменить на более органичный способ получения пустого инстанса
+		var emptyFilter = JsonUtils.toObject(EMPTY_FILTER_JSON, type.getFilterType());
+
+		return generateAsync(type, emptyFilter);
 	}
 
 	@Async
 	@Override
-	public ListenableFuture<byte[]> generateAsync(ReportFilter filter)
+	public ListenableFuture<byte[]> generateAsync(ReportType type, ReportFilter filter)
 	{
 		var reportType = filter.getReportType();
 

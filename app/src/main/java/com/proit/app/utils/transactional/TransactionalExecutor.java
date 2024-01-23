@@ -17,7 +17,10 @@
 package com.proit.app.utils.transactional;
 
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.function.Supplier;
 
 @Component
 public class TransactionalExecutor
@@ -30,5 +33,14 @@ public class TransactionalExecutor
 	public void execute(Runnable action)
 	{
 		action.run();
+	}
+
+	/**
+	 * Обработка действия внутри новой транзакции с получением результата.
+	 */
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	public <T> T executeInNewTx(Supplier<T> supplier)
+	{
+		return supplier.get();
 	}
 }
