@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -79,13 +79,13 @@ public class JobManager
 		return Map.entry(entry.getKey(), value);
 	}
 
-	public JobResult executeJobAndWait(Class<? extends AbstractJob> jobClass)
+	public <P extends JobParams> JobResult executeJobAndWait(Class<? extends AbstractJob<P>> jobClass)
 	{
 		return executeJobAndWait(jobClass, null);
 	}
 
 	@SuppressWarnings("unchecked")
-	public <P extends JobParams> JobResult executeJobAndWait(Class<? extends AbstractJob> jobClass, P params)
+	public <P extends JobParams> JobResult executeJobAndWait(Class<? extends AbstractJob<P>> jobClass, P params)
 	{
 		log.info("Executing scheduled job by class name '{}' manually.", jobClass.getSimpleName());
 
@@ -96,7 +96,12 @@ public class JobManager
 				.map(it -> (AbstractJob<P>) it)
 				.orElseThrow(() -> new ObjectNotFoundException(AbstractJob.class, jobClass.getSimpleName()));
 
-		return params == null ? job.execute() : job.execute(params);
+		if (params == null)
+		{
+			params = job.getDefaultParams();
+		}
+
+		return job.execute(params);
 	}
 
 	@SuppressWarnings("unchecked")

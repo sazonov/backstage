@@ -1,4 +1,4 @@
-plugins {
+	plugins {
 	id 'java-library'
 	id "io.freefair.lombok" version "$lombokVersion"
 }
@@ -6,6 +6,7 @@ plugins {
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 apply plugin: 'maven-publish'
+apply plugin: 'proit-jpa-persistence-xml'
 apply plugin: 'proit-jpa-weaving'
 apply plugin: 'proit-jpa-modelgen'
 
@@ -28,56 +29,11 @@ dependencies {
 	api project(":database")
 
 	testImplementation "org.springframework.boot:spring-boot-starter-test"
-	testImplementation "com.zaxxer:HikariCP"
-
-	testImplementation "org.junit.jupiter:junit-jupiter:5.8.1"
 
 	testImplementation "org.testcontainers:testcontainers:$testContainersVersion"
-	testImplementation "org.testcontainers:junit-jupiter:$testContainersVersion"
 	testImplementation "org.testcontainers:postgresql:$testContainersVersion"
 }
 
 test {
 	useJUnitPlatform()
-}
-
-javadoc {
-	if (JavaVersion.current().isJava9Compatible()) {
-		options.addBooleanOption('html5', true)
-		options.encoding('UTF-8')
-	}
-}
-
-tasks.register('sourceJar', Jar) {
-	archiveClassifier = 'sources'
-	from sourceSets.main.allJava
-}
-
-tasks.register('javadocJar', Jar) {
-	archiveClassifier = 'javadoc'
-	from javadoc
-}
-
-publishing {
-	publications {
-		maven(MavenPublication) {
-			groupId = project.group
-			artifactId = project.name
-			version = project.version
-
-			from components.java
-			artifact sourceJar
-			artifact javadocJar
-		}
-	}
-
-	repositories {
-		maven {
-			url 'https://nexus.proitr.ru/repository/maven-proit/'
-			credentials {
-				username nexusLogin
-				password nexusPassword
-			}
-		}
-	}
 }

@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -34,13 +34,12 @@ public interface DictBackend extends Backend
 
 	void deleteById(String id);
 
-	void softDelete(Dict dict, LocalDateTime deleted);
+	void softDelete(String id, LocalDateTime deleted);
 
 	boolean existsById(String id);
 
 	DictEnum createEnum(Dict dict, DictEnum dictEnum);
 
-	// TODO: зачем старый? есть ведь айди, делаем по аналогии с updateDictScheme.
 	DictEnum updateEnum(Dict dict, DictEnum dictEnum);
 
 	void deleteEnum(Dict dict, String enumId);

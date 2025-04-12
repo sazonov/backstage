@@ -6,6 +6,7 @@ plugins {
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 apply plugin: 'maven-publish'
+apply plugin: 'proit-jpa-persistence-xml'
 apply plugin: 'proit-jpa-weaving'
 apply plugin: 'proit-jpa-modelgen'
 
@@ -25,76 +26,35 @@ dependencies {
 	annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
 
 	api project(":app")
+	api project(":jobs")
+
 	compileOnly "org.springframework.boot:spring-boot-starter-data-mongodb"
 	api ("org.springframework.data:spring-data-jpa") {
 		exclude(group: "org.hibernate")
 	}
 
+	api "org.eclipse.persistence:eclipselink:$eclipseLinkVersion"
+
+	api "com.zaxxer:HikariCP"
+	api "org.postgresql:postgresql"
+	api "com.clickhouse:clickhouse-jdbc:$clickhouseJdbcVersion:http"
+
 	api "org.flywaydb:flyway-core"
+	api "org.flywaydb:flyway-database-postgresql:$flywayVersion"
+	api "org.flywaydb:flyway-database-clickhouse:$flywayVersion"
 
 	compileOnly "net.postgis:postgis-jdbc:$postgisVersion"
 	compileOnly "org.geolatte:geolatte-geom:$geolatteVersion"
 
-	api "org.postgresql:postgresql"
-	api "com.zaxxer:HikariCP"
-
-	api "org.eclipse.persistence:eclipselink:$eclipseLinkVersion"
-
-	testImplementation project(":app")
-
-	testImplementation "com.zaxxer:HikariCP"
-
 	testImplementation "org.springframework.boot:spring-boot-starter-test"
-	testImplementation "com.zaxxer:HikariCP"
 
-	testImplementation "org.junit.jupiter:junit-jupiter:5.8.1"
+	testImplementation "org.junit.jupiter:junit-jupiter:$jupiterVersion"
 
 	testImplementation "org.testcontainers:testcontainers:$testContainersVersion"
-	testImplementation "org.testcontainers:junit-jupiter:$testContainersVersion"
 	testImplementation "org.testcontainers:postgresql:$testContainersVersion"
+	testImplementation "org.testcontainers:clickhouse:$testContainersVersion"
 }
 
 test {
 	useJUnitPlatform()
-}
-
-javadoc {
-	if (JavaVersion.current().isJava9Compatible()) {
-		options.addBooleanOption('html5', true)
-		options.encoding('UTF-8')
-	}
-}
-
-tasks.register('sourceJar', Jar) {
-	archiveClassifier = 'sources'
-	from sourceSets.main.allJava
-}
-
-tasks.register('javadocJar', Jar) {
-	archiveClassifier = 'javadoc'
-	from javadoc
-}
-
-publishing {
-	publications {
-		maven(MavenPublication) {
-			groupId = project.group
-			artifactId = project.name
-			version = project.version
-
-			from components.java
-			artifact sourceJar
-			artifact javadocJar
-		}
-	}
-
-	repositories {
-		maven {
-			url 'https://nexus.proitr.ru/repository/maven-proit/'
-			credentials {
-				username nexusLogin
-				password nexusPassword
-			}
-		}
-	}
 }

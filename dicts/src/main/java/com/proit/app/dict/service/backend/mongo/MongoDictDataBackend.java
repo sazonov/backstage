@@ -1,23 +1,23 @@
 /*
+ *    Copyright 2019-2024 the original author or authors.
  *
- *  Copyright 2019-2023 the original author or authors.
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *        https://www.apache.org/licenses/LICENSE-2.0
  *
- *  https://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
  */
 
 package com.proit.app.dict.service.backend.mongo;
 
+import com.proit.app.dict.api.domain.DictFieldType;
+import com.proit.app.dict.constant.ServiceFieldConstants;
 import com.proit.app.dict.domain.Dict;
 import com.proit.app.dict.domain.DictFieldName;
 import com.proit.app.dict.domain.DictItem;
@@ -26,16 +26,14 @@ import com.proit.app.dict.exception.dict.DictException;
 import com.proit.app.dict.model.mongo.MongoClause;
 import com.proit.app.dict.model.mongo.query.MongoQueryContext;
 import com.proit.app.dict.service.backend.DictBackend;
-import com.proit.app.dict.service.backend.mongo.clause.MongoDictDataQueryClause;
-import com.proit.app.dict.service.query.QueryParser;
-import com.proit.app.dict.service.query.ast.Empty;
-import com.proit.app.dict.api.domain.DictFieldType;
-import com.proit.app.exception.ObjectNotFoundException;
 import com.proit.app.dict.service.backend.DictDataBackend;
 import com.proit.app.dict.service.backend.Engine;
+import com.proit.app.dict.service.backend.mongo.clause.MongoDictDataQueryClause;
 import com.proit.app.dict.service.query.MongoTranslator;
+import com.proit.app.dict.service.query.QueryParser;
+import com.proit.app.dict.service.query.ast.Empty;
 import com.proit.app.dict.service.query.ast.QueryExpression;
-import com.proit.app.dict.constant.ServiceFieldConstants;
+import com.proit.app.exception.ObjectNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.bson.Document;
 import org.springframework.data.domain.Page;
@@ -152,7 +150,6 @@ public class MongoDictDataBackend extends AbstractMongoBackend implements DictDa
 				.orElseThrow(() -> new DictException("Ошибка при создании пользовательских данных справочника %s".formatted(dictId)));
 	}
 
-	//TODO: рассмотреть возможность замыкание на create
 	@Override
 	public List<DictItem> createMany(Dict dict, List<DictItem> dictItems)
 	{
@@ -210,7 +207,7 @@ public class MongoDictDataBackend extends AbstractMongoBackend implements DictDa
 	private MongoClause completedMongoClauses(List<DictFieldName> requiredFields, HashSet<String> joinFields, Query query,
 	                                          MongoQueryContext queryContext, LinkedList<AggregationOperation> operations, Pageable pageable, String dictId)
 	{
-		query.collation(Collation.of("ru").strength(Collation.ComparisonLevel.secondary()));
+		query.collation(Collation.of("en").strength(Collation.ComparisonLevel.primary()));
 
 		queryClause.addSelectFields(requiredFields, query);
 		queryClause.addJoin(requiredFields, joinFields, queryContext, operations, pageable, dictId);
@@ -372,7 +369,6 @@ public class MongoDictDataBackend extends AbstractMongoBackend implements DictDa
 				});
 	}
 
-	//TODO: провести рефакторинг MongoPageable, сделать контракт с PostgresPageable
 	private Pageable buildMongoPageable(Pageable pageable)
 	{
 		Predicate<String> idMatches = property -> ID_PATTERN.matcher(property).matches();

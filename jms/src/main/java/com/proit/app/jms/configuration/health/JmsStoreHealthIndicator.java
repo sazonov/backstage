@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -17,15 +17,15 @@
 package com.proit.app.jms.configuration.health;
 
 import com.google.common.collect.ImmutableMap;
-import com.proit.app.dict.service.health.AbstractHealthIndicator;
-import com.proit.app.jms.configuration.conditional.ConditionalOnJms;
+import com.proit.app.jms.configuration.conditional.ConditionalOnEmbeddedBroker;
+import com.proit.app.service.health.AbstractHealthIndicator;
 import org.apache.activemq.broker.BrokerService;
 import org.apache.commons.io.FileUtils;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConditionalOnJms
+@ConditionalOnEmbeddedBroker
 public class JmsStoreHealthIndicator extends AbstractHealthIndicator
 {
 	private final BrokerService brokerService;

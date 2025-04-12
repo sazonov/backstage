@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@
 package com.proit.app.attachment.conversion.dto;
 
 import com.proit.app.attachment.configuration.properties.AttachmentProperties;
-import com.proit.app.conversion.dto.AbstractConverter;
 import com.proit.app.attachment.model.domain.AttachmentBinding;
 import com.proit.app.attachment.model.dto.AttachmentBindingDto;
+import com.proit.app.conversion.dto.AbstractConverter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 

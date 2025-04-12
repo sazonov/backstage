@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.proit.app.dict.configuration.properties;
 
+import com.proit.app.database.configuration.properties.DDLProperties;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -31,19 +32,19 @@ import java.util.Set;
 @Validated
 public class DictsProperties
 {
-	public static final String DEFAULT_SCHEME = "dicts";
 	public static final String ENGINE_PROPERTY = "app.dicts.engines";
 	public static final String STORAGE_PROPERTY = "app.dicts.storage";
 	public static final String ACTIVATION_PROPERTY = "app.dicts.enabled";
+	public static final String DDL_ACTIVATION_PROPERTY = "app.dicts.ddl.enabled";
 	public static final String DEFAULT_ENGINE_PROPERTY = "app.dicts.default-engine";
 	public static String DEFAULT_ENGINE;
 
 	private boolean enabled = false;
 
 	/**
-	 * Схема для создания справочников в источнике данных
+	 * Параметры для DDLProvider. Схема указывается для PostgreSQL.
 	 */
-	private String scheme = DEFAULT_SCHEME;
+	private DDLProperties ddl = new DDLProperties();
 
 	@NotBlank
 	private String storage;

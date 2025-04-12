@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -33,6 +33,12 @@ public class JmsProperties
 	public static final String ACTIVATION_PROPERTY = "app.jms.enabled";
 
 	private boolean enabled = false;
+
+	public enum BrokerType
+	{
+		EMBEDDED,
+		EXTERNAL
+	}
 
 	public enum ChannelType
 	{
@@ -88,6 +94,10 @@ public class JmsProperties
 		private List<String> topics = new LinkedList<>();
 	}
 
+	private BrokerType brokerType = BrokerType.EMBEDDED;
+
+	private String brokerUrl;
+
 	private String brokerName;
 
 	private StoreType storeType = StoreType.PERSISTENT;
@@ -117,4 +127,16 @@ public class JmsProperties
 	private BrokerChannels brokerChannels = new BrokerChannels();
 
 	private boolean jacksonMessageConverterEnabled = true;
+
+	public String getBrokerUrl()
+	{
+		if (brokerUrl != null)
+		{
+			return brokerUrl;
+		}
+		else
+		{
+			return "tcp://" + host + ":" + port;
+		}
+	}
 }

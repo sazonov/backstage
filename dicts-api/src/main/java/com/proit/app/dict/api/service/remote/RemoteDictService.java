@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package com.proit.app.dict.api.service.remote;
 
-import com.proit.app.dict.api.constant.RemoteServices;
 import com.proit.app.api.model.ApiResponse;
+import com.proit.app.dict.api.constant.RemoteServices;
 import com.proit.app.dict.api.model.dto.DictDto;
 import com.proit.app.dict.api.model.dto.DictEnumDto;
 import com.proit.app.dict.api.model.dto.request.CreateDictEnumRequest;
@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
-@Tag(name = "remote-dict-service", description = "Методы для работы со схемами справочников.")
+@Tag(name = "dict-endpoint", description = "Методы для работы со схемами справочников.")
 @FeignClient(value = RemoteServices.DICTS, path = "/api/remote/dicts", contextId = "remoteDictService")
 public interface RemoteDictService
 {

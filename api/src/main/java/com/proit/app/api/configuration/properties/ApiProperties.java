@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -27,11 +27,12 @@ import java.util.List;
 @ConfigurationProperties("app.api")
 public class ApiProperties
 {
+	public static final String OPENAPI_ACTIVATION_PROPERTY = "app.api.openapi.enabled";
 	public static final String SWAGGER_ACTIVATION_PROPERTY = "app.api.swagger.enabled";
 
 	@Getter
 	@Setter
-	public static class SwaggerProperties
+	public static class OpenApiProperties
 	{
 		/**
 		 * Определяет доступность Swagger.
@@ -57,7 +58,7 @@ public class ApiProperties
 	/**
 	 * Настройки Swagger для API.
 	 */
-	private SwaggerProperties swagger;
+	private OpenApiProperties openapi;
 
 	/**
 	 * Активирует вывод stack trace в ответах api для необработанных исключений.

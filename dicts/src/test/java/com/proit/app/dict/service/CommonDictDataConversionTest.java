@@ -18,9 +18,9 @@
 
 package com.proit.app.dict.service;
 
+import com.proit.app.dict.api.model.dto.data.DictItemRemoteDto;
 import com.proit.app.dict.conversion.dto.data.DictItemConverter;
 import com.proit.app.dict.domain.DictItem;
-import com.proit.app.dict.api.model.dto.data.DictItemDto;
 import lombok.SneakyThrows;
 import org.geojson.FeatureCollection;
 import org.geojson.GeoJsonObject;
@@ -87,7 +87,7 @@ public class CommonDictDataConversionTest extends CommonDictDataServiceTest
 				.map(this::mappedDto)
 				.toList();
 
-		assertEquals(DictItemDto.class, actualDto.get(0).getData().get(TESTABLE_DICT_ID).getClass());
+		assertEquals(DictItemRemoteDto.class, actualDto.get(0).getData().get(TESTABLE_DICT_ID).getClass());
 	}
 
 	@SneakyThrows
@@ -114,8 +114,13 @@ public class CommonDictDataConversionTest extends CommonDictDataServiceTest
 	}
 
 	@SneakyThrows
-	private DictItemDto mappedDto(DictItem dictItem)
+	private DictItemRemoteDto mappedDto(DictItem dictItem)
 	{
-		return objectMapper.readValue(objectMapper.writeValueAsString(itemConverter.convert(dictItem)), DictItemDto.class);
+		var config = DictItemConverter.Configuration
+				.builder()
+				.targetClass(DictItemRemoteDto.class)
+				.build();
+
+		return objectMapper.readValue(objectMapper.writeValueAsString(itemConverter.convert(dictItem, config)), DictItemRemoteDto.class);
 	}
 }

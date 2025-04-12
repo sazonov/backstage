@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import com.proit.bpm.model.dto.KillProcessRequest;
 import com.proit.bpm.model.dto.MigrateProcessRequest;
 import com.proit.bpm.model.dto.StartProcessRequest;
 import com.proit.bpm.model.dto.StopProcessRequest;
-import com.proit.bpm.service.ProcessService;
+import com.proit.bpm.service.process.ProcessService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

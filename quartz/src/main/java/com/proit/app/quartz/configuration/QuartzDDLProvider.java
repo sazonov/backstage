@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -30,14 +30,13 @@ import javax.sql.DataSource;
 @Component
 @Order(QuartzDDLProvider.PRECEDENCE)
 @ConditionalOnProperty(QuartzProperties.ACTIVATION_PROPERTY)
-// FIXME: 05.09.2023 Требуется убрать зависимость квартца от глобального модуля конфигов для бд
 public class QuartzDDLProvider extends AbstractDDLProvider
 {
 	static final int PRECEDENCE = DDLConfiguration.DDL_PRECEDENCE_SYSTEM + 50;
 
 	@Autowired
-	public QuartzDDLProvider(@Qualifier("ddlDataSource") DataSource dataSource)
+	public QuartzDDLProvider(@Qualifier("ddlDataSource") DataSource dataSource, QuartzProperties quartzProperties)
 	{
-		super("quartz", dataSource);
+		super("quartz", quartzProperties.getDdl(), dataSource);
 	}
 }

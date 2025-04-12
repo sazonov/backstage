@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -38,7 +38,12 @@ public class DataUtils
 
 	public static <T> Page<T> emptyPage(Pageable pageable)
 	{
-		return new PageImpl<>(Collections.emptyList(), pageable, 0);
+		return emptyPage(pageable, 0);
+	}
+
+	public static <T> Page<T> emptyPage(Pageable pageable, long totalElements)
+	{
+		return new PageImpl<>(Collections.emptyList(), pageable, totalElements);
 	}
 
 	public static <T> Slice<T> emptySlice()

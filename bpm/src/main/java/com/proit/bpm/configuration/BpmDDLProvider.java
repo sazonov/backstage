@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.proit.bpm.configuration;
 
 import com.proit.app.database.configuration.ddl.AbstractDDLProvider;
 import com.proit.app.database.configuration.ddl.DDLConfiguration;
+import com.proit.bpm.configuration.properties.BpmProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
@@ -32,8 +33,8 @@ public class BpmDDLProvider extends AbstractDDLProvider
 	public static final int PRECEDENCE = DDLConfiguration.DDL_PRECEDENCE_SYSTEM + 60;
 
 	@Autowired
-	public BpmDDLProvider(@Qualifier("noTimeoutDataSource") DataSource dataSource)
+	public BpmDDLProvider(@Qualifier("noTimeoutDataSource") DataSource dataSource, BpmProperties bpmProperties)
 	{
-		super("bpm", dataSource);
+		super("bpm", bpmProperties.getDdl(), dataSource);
 	}
 }

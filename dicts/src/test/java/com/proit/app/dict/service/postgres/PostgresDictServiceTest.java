@@ -79,6 +79,12 @@ public class PostgresDictServiceTest extends CommonDictServiceTest
 	}
 
 	@Test
+	void restoreDeletedDict()
+	{
+		restoreDeletedDict(POSTGRES_DICT_ID);
+	}
+
+	@Test
 	void update()
 	{
 		updateDict(POSTGRES_DICT_ID);

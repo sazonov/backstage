@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -17,18 +17,27 @@
 package com.proit.app.attachment.model.domain;
 
 import com.proit.app.database.model.UuidGeneratedEntity;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 import org.eclipse.persistence.annotations.Index;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Getter
 @Setter
+@SuperBuilder
+@NoArgsConstructor
 @Entity
+@Table(name = "attachment", schema = "#{@attachmentProperties.ddl.scheme}")
 public class Attachment extends UuidGeneratedEntity
 {
 	@Index(name = "ix_attachment_user_id")
@@ -36,10 +45,8 @@ public class Attachment extends UuidGeneratedEntity
 	private String userId;
 
 	@Column(nullable = false)
-	@Temporal(TemporalType.TIMESTAMP)
 	private LocalDateTime created;
 
-	@Temporal(TemporalType.TIMESTAMP)
 	private LocalDateTime updated;
 
 	@Column(name = "mime_type", nullable = false)
@@ -53,6 +60,7 @@ public class Attachment extends UuidGeneratedEntity
 
 	private String checksum;
 
+	@Builder.Default
 	@OneToMany(mappedBy = "attachment")
 	private List<AttachmentBinding> bindings = new ArrayList<>();
 }

@@ -1,25 +1,24 @@
 /*
+ *    Copyright 2019-2024 the original author or authors.
  *
- *  Copyright 2019-2023 the original author or authors.
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *        https://www.apache.org/licenses/LICENSE-2.0
  *
- *  https://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
  */
 
 package com.proit.app.dict.service.backend.postgres;
 
 import com.proit.app.dict.api.domain.DictFieldType;
 import com.proit.app.dict.configuration.properties.DictsProperties;
+import com.proit.app.dict.constant.ServiceFieldConstants;
 import com.proit.app.dict.domain.Dict;
 import com.proit.app.dict.domain.DictConstraint;
 import com.proit.app.dict.domain.DictField;
@@ -30,11 +29,10 @@ import com.proit.app.dict.exception.dict.constraint.ConstraintDeletedException;
 import com.proit.app.dict.exception.dict.field.FieldUpdatedException;
 import com.proit.app.dict.exception.dict.index.IndexCreatedException;
 import com.proit.app.dict.exception.dict.index.IndexDeletedException;
-import com.proit.app.dict.service.backend.DictSchemeBackend;
 import com.proit.app.dict.model.postgres.backend.PostgresWord;
 import com.proit.app.dict.service.backend.DictBackend;
+import com.proit.app.dict.service.backend.DictSchemeBackend;
 import com.proit.app.dict.service.backend.Engine;
-import com.proit.app.dict.constant.ServiceFieldConstants;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.EmptySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -97,7 +95,7 @@ public class PostgresDictSchemeBackend extends AbstractPostgresBackend implement
 	{
 		var parameterMap = new MapSqlParameterSource();
 		addParameter(parameterMap, "tableName", wordMap(dictId).get(dictId).getQuotedIfKeyword().toLowerCase());
-		addParameter(parameterMap, "schemaName", dictsProperties.getScheme());
+		addParameter(parameterMap, "schemaName", dictsProperties.getDdl().getScheme());
 
 		var existsSql = "select exists(select from pg_tables where tablename = :tableName and schemaname = :schemaName)";
 
@@ -183,10 +181,6 @@ public class PostgresDictSchemeBackend extends AbstractPostgresBackend implement
 		var actualDictEngine = actualDict.getEngine();
 		var updatedDictEngine = updatedDict.getEngine();
 
-		//fixme Костыль по добавлению полей, если при миграции справочника отсутствует одно из сервисных полей
-		//      Добавляем идентификаторы сервисных полей, т.к. они создались при вызове DictStorageMigrationService::createTargetSchema
-		//      для справочника, который дополнился сервисными полями в методе DictService::buildSchema.
-		//fixme в рамках задачи BACKSTAGE-57 необходимо, чтобы при добавлении нового сервисного поля, оно появлялось в схеме dict.fields каждого из стораджей.
 		if (actualDictEngine != null && !actualDictEngine.getName().equals(updatedDictEngine.getName()))
 		{
 			ServiceFieldConstants.getServiceSchemaFieldsWithoutIds()
@@ -374,7 +368,7 @@ public class PostgresDictSchemeBackend extends AbstractPostgresBackend implement
 		{
 			case INTEGER -> "bigint";
 			case DECIMAL -> "numeric";
-			case STRING, DICT, ENUM, ATTACHMENT, GEO_JSON -> "text"; //TODO: рассмотреть varchar с max ограничением символов на уровне движка БД
+			case STRING, DICT, ENUM, ATTACHMENT, GEO_JSON -> "text";
 			case BOOLEAN -> "boolean";
 			case DATE -> "date";
 			case TIMESTAMP -> "timestamp";

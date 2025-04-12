@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import java.util.Map;
 @Setter
 @Struct(name = "task")
 @Entity
+@Table(name = "task", schema = "#{@bpmProperties.ddl.scheme}")
 @Converters({
 		@Converter(converterClass = TaskResultConverter.class, name = TaskResultConverter.NAME),
 		@Converter(converterClass = TaskActionListConverter.class, name = TaskActionListConverter.NAME),
@@ -69,14 +70,12 @@ public class Task extends UuidGeneratedEntity
 	@Array(databaseType = "text")
 	private List<String> userRoles = new ArrayList<>();
 
-	@Temporal(TemporalType.TIMESTAMP)
 	@Column(nullable = false)
 	private LocalDateTime created;
 
 	@Version
 	private Timestamp updated;
 
-	@Temporal(TemporalType.TIMESTAMP)
 	private LocalDateTime completed;
 
 	@Enumerated(EnumType.STRING)
@@ -104,9 +103,8 @@ public class Task extends UuidGeneratedEntity
 
 	@Index(name = "ix_task_work_item_id")
 	@Column(name = "work_item_id", nullable = false)
-	private Long workItemId;
+	private String workItemId;
 
-	@Temporal(TemporalType.TIMESTAMP)
 	private LocalDateTime deadline;
 
 	public void setProcess(Process process)

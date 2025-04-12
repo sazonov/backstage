@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,10 +16,10 @@
 
 package com.proit.app.attachment.endpoint;
 
-import com.proit.app.attachment.configuration.properties.AttachmentProperties;
-import com.proit.app.attachment.conversion.dto.AttachmentConverter;
 import com.proit.app.api.model.ApiResponse;
 import com.proit.app.api.model.OkResponse;
+import com.proit.app.attachment.configuration.properties.AttachmentProperties;
+import com.proit.app.attachment.conversion.dto.AttachmentConverter;
 import com.proit.app.attachment.model.dto.AttachmentDto;
 import com.proit.app.attachment.service.AttachmentService;
 import com.proit.app.attachment.utils.AttachmentUtils;

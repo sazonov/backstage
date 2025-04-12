@@ -1,47 +1,24 @@
 buildscript {
 	repositories {
-		maven { url 'https://nexus.proitr.ru/repository/central/' }
+		mavenCentral()
 		maven { url 'https://plugins.gradle.org/m2/' }
 	}
 
 	dependencies {
-		classpath "io.spring.gradle:propdeps-plugin:0.0.10.RELEASE"
 		classpath "org.springframework.boot:spring-boot-gradle-plugin:$springBootVersion"
 		classpath "com.proit:gradle-plugins:$proitGradlePluginsVersion"
-	}
-}
-
-plugins {
-	id "org.sonarqube" version "$sonarQubeVersion"
-}
-
-sonarqube {
-	properties {
-		property "sonar.host.url", "http://sonarqube.dnit/"
-		property "sonar.projectKey", "proit.app"
 	}
 }
 
 subprojects {
 	apply plugin: 'java'
 	apply plugin: 'idea'
-	apply plugin: 'proit-checkstyle'
 
 	group 'com.proit'
 	version "$appVersion"
 
 	repositories {
-		maven { url 'https://nexus.proitr.ru/repository/central/' }
-	}
-
-	wrapper {
-		gradleVersion = '8.4'
-		distributionType = Wrapper.DistributionType.BIN
-	}
-
-	idea.module {
-		// FIXME: Idea перестаёт корректно подсвечивать application.properties из-за пользовательского конфига (https://youtrack.jetbrains.com/issue/IDEA-182635).
-		excludeDirs += file('src/main/resources/config')
+		mavenCentral()
 	}
 
 	java {
@@ -52,4 +29,69 @@ subprojects {
 
 	compileJava.options.encoding = sourceEncoding
 	compileTestJava.options.encoding = sourceEncoding
+
+	pluginManager.withPlugin('maven-publish') {
+		if (pluginManager.hasPlugin('version-catalog')) {
+			return
+		}
+
+		if (project.extensions.findByName('PublishingExtension')) {
+			return
+		}
+
+		javadoc {
+			if (JavaVersion.current().isJava9Compatible()) {
+				options.addBooleanOption('html5', true)
+				options.encoding('UTF-8')
+			}
+		}
+
+		tasks.register('sourceJar', Jar) {
+			archiveClassifier = 'sources'
+			from sourceSets.main.allJava
+		}
+
+		tasks.register('javadocJar', Jar) {
+			archiveClassifier = 'javadoc'
+			from javadoc
+		}
+
+		publishing {
+			publications {
+				maven(MavenPublication) {
+					groupId = project.group
+					artifactId = project.name
+					version = project.version
+
+					from components.java
+					artifact sourceJar
+					artifact javadocJar
+
+					pom {
+						licenses {
+							license {
+								name = "The Apache License, Version 2.0"
+								url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+							}
+						}
+					}
+				}
+			}
+
+			repositories {
+				maven {
+					url nexusUrl
+					credentials {
+						username nexusLogin
+						password nexusPassword
+					}
+				}
+			}
+		}
+	}
+}
+
+wrapper {
+	gradleVersion = '8.13'
+	distributionType = Wrapper.DistributionType.BIN
 }

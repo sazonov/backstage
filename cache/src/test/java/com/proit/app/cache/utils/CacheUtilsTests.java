@@ -68,7 +68,6 @@ public class CacheUtilsTests
 	@Test
 	public void checkReadOnlyProxy()
 	{
-		// TODO: проверки для @Entity
 		var sourceItem = new CacheItem(UUID.randomUUID().toString());
 		var cachedItem = ReadOnlyObjectProxyFactory.createProxy(sourceItem, CacheItem.class);
 

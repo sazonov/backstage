@@ -1,19 +1,17 @@
 /*
+ *    Copyright 2019-2024 the original author or authors.
  *
- *  Copyright 2019-2023 the original author or authors.
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *        https://www.apache.org/licenses/LICENSE-2.0
  *
- *  https://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
  */
 
 package com.proit.app.dict.service.backend.postgres;
@@ -29,9 +27,9 @@ import com.proit.app.dict.exception.dict.enums.EnumDeletedException;
 import com.proit.app.dict.exception.dict.enums.EnumNotFoundException;
 import com.proit.app.dict.exception.dict.enums.EnumUpdatedException;
 import com.proit.app.dict.model.dict.DictColumnName;
-import com.proit.app.dict.service.backend.postgres.rowmapper.DictRowMapper;
 import com.proit.app.dict.service.backend.DictBackend;
 import com.proit.app.dict.service.backend.Engine;
+import com.proit.app.dict.service.backend.postgres.rowmapper.DictRowMapper;
 import com.proit.app.utils.JsonUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -56,12 +54,7 @@ public class PostgresDictBackend extends AbstractPostgresBackend implements Dict
 	{
 		Objects.requireNonNull(id, "dictId не может быть null.");
 
-		var sql = "select * from dict where id = :id";
-
-		var dict = jdbc.query(sql, new MapSqlParameterSource(DictColumnName.ID.getName(), id), new DictRowMapper())
-				.stream()
-				.findFirst()
-				.orElseThrow(() -> new DictNotFoundException(id));
+		var dict = getDict(id);
 
 		if (dict.getDeleted() != null)
 		{
@@ -85,8 +78,6 @@ public class PostgresDictBackend extends AbstractPostgresBackend implements Dict
 		return transactionWithResult(() -> savedDict(dict), dict.getId(), DictCreatedException::new);
 	}
 
-	//TODO: рассмотреть необходимость обновления, через сравнение актуального состояния с обновляемым
-	// сейчас обновляется вся строка (кроме id)
 	@Override
 	public Dict updateDict(Dict dict)
 	{
@@ -100,13 +91,13 @@ public class PostgresDictBackend extends AbstractPostgresBackend implements Dict
 	}
 
 	@Override
-	public void softDelete(Dict dict, LocalDateTime deleted)
+	public void softDelete(String id, LocalDateTime deleted)
 	{
+		var dict = getDict(id);
+
 		addTransactionData(dict, true);
 
-		var dictId = dict.getId();
-
-		transactionWithoutResult(() -> softDeleteDict(dictId, deleted), dictId, DictDeletedException::new);
+		transactionWithoutResult(() -> softDeleteDict(id, deleted), id, DictDeletedException::new);
 	}
 
 	@Override
@@ -139,6 +130,19 @@ public class PostgresDictBackend extends AbstractPostgresBackend implements Dict
 		addTransactionData(null, true);
 
 		transactionWithoutResult(() -> deleteEnum(dict), dict.getId(), enumId, EnumDeletedException::new);
+	}
+
+	/**
+	 * Метод получения {@link Dict} для {@link #softDelete} в обход валидации в {@link #getDictById}.
+	 */
+	private Dict getDict(String id)
+	{
+		var sql = "select * from dict where id = :id";
+
+		return jdbc.query(sql, new MapSqlParameterSource(DictColumnName.ID.getName(), id), new DictRowMapper())
+				.stream()
+				.findFirst()
+				.orElseThrow(() -> new DictNotFoundException(id));
 	}
 
 	private Dict savedDict(Dict dict)

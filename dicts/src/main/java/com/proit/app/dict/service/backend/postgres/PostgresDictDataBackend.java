@@ -1,19 +1,17 @@
 /*
+ *    Copyright 2019-2024 the original author or authors.
  *
- *  Copyright 2019-2023 the original author or authors.
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *        https://www.apache.org/licenses/LICENSE-2.0
  *
- *  https://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
  */
 
 package com.proit.app.dict.service.backend.postgres;
@@ -27,17 +25,17 @@ import com.proit.app.dict.exception.dictitem.DictItemUpdatedException;
 import com.proit.app.dict.model.dictitem.DictItemColumnName;
 import com.proit.app.dict.model.postgres.backend.PostgresDictFieldName;
 import com.proit.app.dict.model.postgres.backend.PostgresDictItem;
+import com.proit.app.dict.model.postgres.backend.PostgresPageable;
 import com.proit.app.dict.model.postgres.query.PostgresQueryContext;
+import com.proit.app.dict.service.backend.DictDataBackend;
+import com.proit.app.dict.service.backend.Engine;
 import com.proit.app.dict.service.backend.postgres.clause.PostgresDictDataInsertClause;
 import com.proit.app.dict.service.backend.postgres.clause.PostgresDictDataQueryClause;
 import com.proit.app.dict.service.backend.postgres.clause.PostgresDictDataUpdateClause;
 import com.proit.app.dict.service.query.PostgresTranslator;
-import com.proit.app.exception.ObjectNotFoundException;
-import com.proit.app.dict.model.postgres.backend.PostgresPageable;
-import com.proit.app.dict.service.backend.DictDataBackend;
-import com.proit.app.dict.service.backend.Engine;
 import com.proit.app.dict.service.query.QueryParser;
 import com.proit.app.dict.service.query.ast.QueryExpression;
+import com.proit.app.exception.ObjectNotFoundException;
 import com.proit.app.utils.DataUtils;
 import com.proit.app.utils.JsonUtils;
 import lombok.RequiredArgsConstructor;
@@ -115,7 +113,6 @@ public class PostgresDictDataBackend extends AbstractPostgresBackend implements 
 
 		var wordDictId = wordMap(dictId).get(dictId).getQuotedIfKeyword();
 
-		//TODO: провести рефакторинг билда sql
 		var sqlIds = "select " + (joinClauses.isEmpty() ? "" : "distinct ") + String.join(", ", selectClauses)
 				+ " from " + wordDictId + (joinClauses.isEmpty() ? "" : " " + String.join(" ", joinClauses))
 				+ (whereClauses.isEmpty() ? "" : " where " + String.join(" and ", whereClauses))
@@ -372,13 +369,13 @@ public class PostgresDictDataBackend extends AbstractPostgresBackend implements 
 		updateClause.addUpdateClause(DictItemColumnName.DELETION_REASON.getName(), oldItem.getDeletionReason(), postgresDictItem.getDeletionReason(), updateClauses);
 	}
 
-	private void completeFilterClauses(BidiMap<String, String> tableAliasesRelation, LinkedHashSet<String> selectClauses, LinkedHashSet<String> joinClauses,
+	private void completeFilterClauses(BidiMap<String, String> dictAliasesRelation, LinkedHashSet<String> selectClauses, LinkedHashSet<String> joinClauses,
 	                                   LinkedHashSet<String> whereClauses, LinkedHashSet<String> orderByClauses,
 	                                   PostgresQueryContext queryContext, List<PostgresDictFieldName> requiredFields, PostgresPageable postgresPageable, String dictId)
 	{
-		filterClause.addSelectClauses(tableAliasesRelation, selectClauses, requiredFields, queryContext, postgresPageable, dictId);
+		filterClause.addSelectClauses(dictAliasesRelation, selectClauses, requiredFields, queryContext, postgresPageable, dictId);
 		filterClause.addJoinClauses(joinClauses, requiredFields, queryContext, postgresPageable, dictId);
 		filterClause.addWhereClauses(whereClauses, queryContext);
-		filterClause.addOrderByClauses(orderByClauses, postgresPageable);
+		filterClause.addOrderByClauses(orderByClauses, postgresPageable, dictId);
 	}
 }

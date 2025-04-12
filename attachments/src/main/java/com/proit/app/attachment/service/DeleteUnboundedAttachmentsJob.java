@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@
 
 package com.proit.app.attachment.service;
 
+import com.proit.app.attachment.repository.AttachmentRepository;
 import com.proit.app.jobs.model.dto.other.JobResult;
+import com.proit.app.jobs.model.dto.param.EmptyJobParams;
 import com.proit.app.jobs.service.AbstractFixedDelayJob;
 import com.proit.app.jobs.service.JobDescription;
-import com.proit.app.jobs.model.dto.param.EmptyJobParams;
-import com.proit.app.attachment.repository.AttachmentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

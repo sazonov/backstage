@@ -209,6 +209,19 @@ public class CommonDictServiceTest extends CommonTest
 		assertThrows(DictDeletedException.class, () -> dictService.getById(expected.getId()));
 	}
 
+	protected void restoreDeletedDict(String dictId)
+	{
+		var dict = createNewDict(dictId);
+
+		dictService.delete(dict.getId(), true);
+
+		dictService.delete(dict.getId(), false);
+
+		var restoredDict = dictService.getById(dict.getId());
+
+		assertNull(restoredDict.getDeleted());
+	}
+
 	protected void createDictIndex(String dictId)
 	{
 		var expectedDict = createNewDict(dictId);

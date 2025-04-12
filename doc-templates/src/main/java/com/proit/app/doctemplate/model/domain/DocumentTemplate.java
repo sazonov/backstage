@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -17,7 +17,11 @@
 package com.proit.app.doctemplate.model.domain;
 
 import com.proit.app.database.model.UuidGeneratedEntity;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -25,10 +29,10 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "document_template")
+@Table(name = "document_template", schema = "#{@docTemplatesProperties.ddl.scheme}")
 public class DocumentTemplate extends UuidGeneratedEntity
 {
 	private String name;

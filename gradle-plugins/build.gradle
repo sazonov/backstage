@@ -1,0 +1,97 @@
+repositories {
+	mavenCentral()
+}
+
+apply plugin: "groovy"
+apply plugin: "maven-publish"
+apply plugin: "java-gradle-plugin"
+
+group 'com.proit'
+version appVersion
+
+dependencies {
+	implementation gradleApi()
+
+	implementation "com.google.guava:guava:$guavaVersion"
+	implementation "org.eclipse.persistence:eclipselink:$eclipseLinkVersion"
+}
+
+gradlePlugin {
+	automatedPublishing = false
+
+	plugins {
+		persistenceXml {
+			id = "proit-jpa-persistence-xml"
+			implementationClass = "com.proit.gradle.JpaPersistenceXmlPlugin"
+		}
+
+		weaving {
+			id = "proit-jpa-weaving"
+			implementationClass = "com.proit.gradle.JpaWeavingPlugin"
+		}
+
+		jpaModelGen {
+			id = "proit-jpa-modelgen"
+			implementationClass = "com.proit.gradle.JpaModelGenPlugin"
+		}
+
+		appVersion {
+			id = "proit-app-version"
+			implementationClass = "com.proit.gradle.AppVersionPlugin"
+		}
+
+		bpmnpack {
+			id = "proit-bpmn-pack"
+			implementationClass = "com.proit.gradle.BpmnPackPlugin"
+		}
+
+		checkstyle {
+			id = "proit-checkstyle"
+			implementationClass = "com.proit.gradle.CheckstylePlugin"
+		}
+	}
+}
+
+tasks.register('sourceJar', Jar) {
+	archiveClassifier = 'sources'
+	from sourceSets.main.allSource
+	from "$projectDir/build.gradle"
+}
+
+publishing {
+	publications {
+		maven(MavenPublication) {
+			groupId = project.group
+			artifactId = 'gradle-plugins'
+			version = project.version
+
+			from components.java
+			artifact sourceJar
+
+			pom {
+				licenses {
+					license {
+						name = "The Apache License, Version 2.0"
+						url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+					}
+				}
+			}
+		}
+	}
+
+	repositories {
+		maven {
+			url nexusUrl
+			credentials {
+				username nexusLogin
+				password nexusPassword
+			}
+		}
+	}
+}
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(sourceJavaVersion)
+	}
+}

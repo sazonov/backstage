@@ -27,46 +27,6 @@ dependencies {
 	annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
 
 	api project(":api")
+
 	api "org.springframework.cloud:spring-cloud-starter-openfeign:$springCloudVersion"
-}
-
-javadoc {
-	if (JavaVersion.current().isJava9Compatible()) {
-		options.addBooleanOption('html5', true)
-		options.encoding('UTF-8')
-	}
-}
-
-tasks.register('sourceJar', Jar) {
-	archiveClassifier = 'sources'
-	from sourceSets.main.allJava
-}
-
-tasks.register('javadocJar', Jar) {
-	archiveClassifier = 'javadoc'
-	from javadoc
-}
-
-publishing {
-	publications {
-		maven(MavenPublication) {
-			groupId = project.group
-			artifactId = project.name
-			version = project.version
-
-			from components.java
-			artifact sourceJar
-			artifact javadocJar
-		}
-	}
-
-	repositories {
-		maven {
-			url 'https://nexus.proitr.ru/repository/maven-proit/'
-			credentials {
-				username nexusLogin
-				password nexusPassword
-			}
-		}
-	}
 }

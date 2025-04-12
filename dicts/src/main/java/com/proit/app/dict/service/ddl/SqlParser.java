@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,15 +16,15 @@
 
 package com.proit.app.dict.service.ddl;
 
+import com.proit.app.dict.exception.DDLSyntaxException;
 import com.proit.app.dict.service.ddl.ast.*;
 import com.proit.app.dict.service.ddl.ast.expression.*;
-import com.proit.app.dict.service.ddl.ast.expression.table.operation.*;
-import com.proit.app.dict.service.ddl.ast.value.*;
-import com.proit.app.dict.exception.DDLSyntaxException;
 import com.proit.app.dict.service.ddl.ast.expression.table.AlterTable;
 import com.proit.app.dict.service.ddl.ast.expression.table.CreateIndexExpression;
 import com.proit.app.dict.service.ddl.ast.expression.table.CreateTable;
 import com.proit.app.dict.service.ddl.ast.expression.table.DeleteIndexExpression;
+import com.proit.app.dict.service.ddl.ast.expression.table.operation.*;
+import com.proit.app.dict.service.ddl.ast.value.*;
 import com.proit.app.dict.service.query.ast.Predicate;
 import org.jparsec.Parser;
 import org.jparsec.Parsers;
@@ -78,7 +78,6 @@ public class SqlParser
 
 	final Parser<Value<?>> COLUMN_VALUE = Terminals.Identifier.PARSER.map(Id::new).map(ColumnValue::new);
 
-	//fixme KGH-4492 костыль. Исправить, чтобы была возможность обрабатывать только ::json, игнорируя другие касты
 	final Parser<JsonValue> JSON_VALUE = Parsers.sequence(STRING_VALUE, term("::"), Terminals.Identifier.PARSER, (value, kw, targetType) -> new JsonValue(value.getValue()));
 
 	final Parser<Id> ID = Parsers.or(Terminals.Identifier.PARSER, Terminals.Identifier.PARSER.between(term("\""), term("\""))).map(Id::new);

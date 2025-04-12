@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package com.proit.app.jms.endpoint;
 
 import com.proit.app.api.model.ApiResponse;
 import com.proit.app.api.model.OkResponse;
-import com.proit.app.jms.configuration.conditional.ConditionalOnJms;
+import com.proit.app.jms.configuration.conditional.ConditionalOnEmbeddedBroker;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +35,7 @@ import java.util.Hashtable;
 @Tag(name = "jms-endpoint", description = "Методы для работы с JMS брокером сервиса.")
 @RestController
 @RequestMapping("/api/jms")
-@ConditionalOnJms
+@ConditionalOnEmbeddedBroker
 @RequiredArgsConstructor
 public class JMSEndpoint
 {

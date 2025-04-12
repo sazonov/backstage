@@ -38,7 +38,6 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-//TODO: добавить тест на валидацию поле референса
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class CommonDictValidationServiceTest extends CommonTest
 {

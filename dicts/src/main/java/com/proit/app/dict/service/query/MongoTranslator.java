@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.proit.app.dict.service.query;
 
 import com.google.common.collect.Sets;
+import com.proit.app.dict.constant.ServiceFieldConstants;
 import com.proit.app.dict.domain.Dict;
 import com.proit.app.dict.exception.dict.field.FieldNotFoundException;
 import com.proit.app.dict.model.mongo.query.MongoQueryContext;
@@ -24,7 +25,6 @@ import com.proit.app.dict.model.mongo.query.MongoQueryField;
 import com.proit.app.dict.service.query.ast.*;
 import com.proit.app.exception.AppException;
 import com.proit.app.model.other.exception.ApiStatusCodeImpl;
-import com.proit.app.dict.constant.ServiceFieldConstants;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.Decimal128;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -44,7 +44,6 @@ public class MongoTranslator implements Translator<MongoQueryContext>, Visitor<T
 	@Override
 	public TranslationResult<Object> visit(Constant constant, TranslationContext context)
 	{
-		//TODO: убрать после реализации валидации/маппинга QueryExpression для адаптеров
 		if (Constant.Type.DECIMAL.equals(constant.type))
 		{
 			return new TranslationResult<>(Decimal128.parse((String) constant.getValue()));
@@ -106,7 +105,6 @@ public class MongoTranslator implements Translator<MongoQueryContext>, Visitor<T
 		{
 			case OR -> queryContext = new MongoQueryContext(new Criteria().orOperator(left.getCriteria(), right.getCriteria()), participantDictIds);
 			case AND -> queryContext = new MongoQueryContext(new Criteria().andOperator(left.getCriteria(), right.getCriteria()), participantDictIds);
-			//fixme: исправить
 			case NOT -> throw new UnsupportedOperationException("Оператор '%s' не поддерживается в MongoDictDataBackend.".formatted(expression.type));
 
 			default -> throw new AppException(ApiStatusCodeImpl.ILLEGAL_INPUT, "Не поддерживаемый оператор '%s'".formatted(expression.type));

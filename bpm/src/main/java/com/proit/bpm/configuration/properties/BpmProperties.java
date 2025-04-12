@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.proit.bpm.configuration.properties;
 
+import com.proit.app.database.configuration.properties.DDLProperties;
 import com.proit.bpm.service.workflow.ClasspathWorkflowProvider;
 import com.proit.bpm.service.workflow.DatabaseWorkflowProvider;
 import lombok.Getter;
@@ -93,4 +94,9 @@ public class BpmProperties
 	 * Задаёт поведение по умолчанию для узлов терминирующего завершения процессов и подпроцессов.
 	 */
 	private TerminatingEndEventScope defaultTerminatingEndEventScope = TerminatingEndEventScope.PROCESS;
+
+	/**
+	 * Параметры для DDLProvider.
+	 */
+	private DDLProperties ddl = new DDLProperties();
 }

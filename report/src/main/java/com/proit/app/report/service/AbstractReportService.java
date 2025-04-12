@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -58,7 +58,6 @@ public abstract class AbstractReportService implements ReportService
 	@Override
 	public ReportTask generate(ReportType type, String userId)
 	{
-		// TODO: 25.10.2023 Заменить на более органичный способ получения пустого инстанса
 		var emptyFilter = JsonUtils.toObject(EMPTY_FILTER_JSON, type.getFilterType());
 
 		return generate(type, emptyFilter, userId);
@@ -89,7 +88,6 @@ public abstract class AbstractReportService implements ReportService
 	@Override
 	public ListenableFuture<byte[]> generateAsync(ReportType type)
 	{
-		// TODO: 25.10.2023 Заменить на более органичный способ получения пустого инстанса
 		var emptyFilter = JsonUtils.toObject(EMPTY_FILTER_JSON, type.getFilterType());
 
 		return generateAsync(type, emptyFilter);

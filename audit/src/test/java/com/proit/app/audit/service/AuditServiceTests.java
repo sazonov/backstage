@@ -3,7 +3,9 @@ package com.proit.app.audit.service;
 import com.proit.app.audit.AbstractTests;
 import com.proit.app.audit.model.other.AuditEventBuilder;
 import com.proit.app.audit.model.other.AuditFilter;
+import com.proit.app.audit.repository.AuditRepository;
 import com.proit.app.utils.TimeUtils;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -23,6 +25,9 @@ public class AuditServiceTests extends AbstractTests
 	@Autowired
 	private AuditService auditService;
 
+	@Autowired
+	private AuditRepository auditRepository;
+
 	@BeforeAll
 	void initTestData()
 	{
@@ -41,6 +46,12 @@ public class AuditServiceTests extends AbstractTests
 		var actual = auditService.getByFilter(AuditFilter.builder().build(), Pageable.unpaged());
 
 		assertEquals(7, actual.getTotalElements());
+	}
+
+	@AfterAll
+	void tearDown()
+	{
+		auditRepository.deleteAll();
 	}
 
 	@Test

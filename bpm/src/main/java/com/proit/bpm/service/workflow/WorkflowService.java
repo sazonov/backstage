@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -116,10 +116,20 @@ public class WorkflowService
 		}
 		else
 		{
-			return getActualWorkflowIds().stream().filter(it -> it.split("_")[0].equals(workflowId)).findFirst().orElseThrow(() -> {
-				throw new BpmException(String.format("workflow '%s' not found", workflowId));
-			});
+			return getActualWorkflowIds().stream().filter(it -> it.split("_")[0].equals(workflowId)).findFirst().orElseThrow(() ->
+				new BpmException(String.format("workflow '%s' not found", workflowId))
+			);
 		}
+	}
+
+	public Workflow getWorkflow(String workflowId)
+	{
+		if (!workflows.containsKey(workflowId))
+		{
+			workflowId = getActualWorkflowId(workflowId);
+		}
+
+		return workflows.get(workflowId);
 	}
 
 	public WorkflowScript getWorkflowScript(String workflowId, String scriptId)
@@ -169,7 +179,7 @@ public class WorkflowService
 		Optional<Version> maxVersion = deployedWorkflowRepository.findAllIds().stream()
 				.filter(it -> it.startsWith(workflowId)).map(it -> Version.parse(it.split("_")[1])).max(Version::compareTo);
 
-		Version targetVersion = version != null ? version : new Version(1, 0);
+		Version targetVersion = version != null ? version : Workflow.DEFAULT_VERSION;
 
 		if (maxVersion.isPresent())
 		{

@@ -57,6 +57,7 @@ import org.springframework.http.MediaType;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -273,7 +274,6 @@ public class CommonDictDataServiceTest extends CommonTest
 		assertNotNull(result.getContent().get(0));
 	}
 
-	//TODO: тест - с ambiguous состоянием указанных поле в сортировке
 	protected void getByFilterInnerDictSort()
 	{
 		final String integerField = createDictHierarchy();
@@ -340,6 +340,17 @@ public class CommonDictDataServiceTest extends CommonTest
 		assertTrue(actual);
 	}
 
+	protected void getByFilterWithMultipleSortDataField()
+	{
+		var result = dictDataService.getByFilter(TESTABLE_DICT_ID, List.of("*"), "integerField != null and doubleField != null and id != 'with_id'", PageRequest.of(0, 20, Sort.by(Sort.Direction.ASC, "integerField", "doubleField")))
+				.getContent();
+
+		var resultSortedCorrectly = Comparators.isInOrder(result, Comparator.comparing(dictItem -> (Long) ((DictItem) dictItem).getData().get("integerField"))
+				.thenComparing(dictItem -> (BigDecimal) ((DictItem) dictItem).getData().get("doubleField")));
+
+		assertTrue(resultSortedCorrectly);
+	}
+
 	protected void getByFilterWithServiceSelectField()
 	{
 		createDictHierarchy();
@@ -403,7 +414,6 @@ public class CommonDictDataServiceTest extends CommonTest
 		assertEquals(objectLocalDateTimeItem.getData().get("timestampField"), List.of(localDateTime));
 	}
 
-	//TODO: тест с выбором всех полей у refDict
 	protected void getByFilterWithDictReference()
 	{
 		var refId = dictDataService.create(buildDictDataItem(TESTABLE_DICT_ID, DATA_MAP)).getId();
@@ -439,7 +449,6 @@ public class CommonDictDataServiceTest extends CommonTest
 		assertEquals(result.get(0).getData().get(TESTABLE_DICT_ID), refId);
 	}
 
-	//TODO: тест с фильтрацией reference Dict по элементам массива
 	protected void getByFilterWithQueryReference()
 	{
 		var refDictDataMap = new HashMap<>(DATA_MAP);
@@ -729,7 +738,6 @@ public class CommonDictDataServiceTest extends CommonTest
 		assertFalse(idFieldResult);
 	}
 
-	//TODO: расширить тест когда Json указывается строкой
 	protected void createDictItemWithJson()
 	{
 		var dataMap = new HashMap<>(DATA_MAP);

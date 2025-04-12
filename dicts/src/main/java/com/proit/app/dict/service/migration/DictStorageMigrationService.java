@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -89,8 +89,6 @@ public class DictStorageMigrationService
 	{
 		var targetDictDataBackend = dictDataBackendProvider.getBackendByEngineName(targetEngineName);
 
-		//todo: после решения BACKSTAGE-44 уйти на использование getAll
-		//todo: после решения BACKSTAGE-45 уйти на использование createMany
 		dictDataBackendProvider.getBackendByEngineName(sourceEngineName)
 				.getByFilter(dict, List.of(new DictFieldName(null, "*")), new Empty(), Pageable.unpaged())
 				.getContent()

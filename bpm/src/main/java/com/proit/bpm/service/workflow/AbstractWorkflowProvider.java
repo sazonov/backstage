@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -20,27 +20,16 @@ import com.proit.bpm.exception.BpmException;
 import com.proit.bpm.model.ExportedWorkflow;
 import com.proit.bpm.model.Workflow;
 import com.proit.bpm.model.WorkflowScript;
-import org.springframework.data.util.Version;
+import com.proit.bpm.utils.DOMUtils;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public abstract class AbstractWorkflowProvider implements WorkflowProvider
 {
-	private static final Version DEFAULT_VERSION = Version.parse("1.0");
-
 	public List<ExportedWorkflow> exportWorkflows()
 	{
 		return getWorkflows().stream().map(this::exportWorkflow).collect(Collectors.toList());
@@ -50,17 +39,15 @@ public abstract class AbstractWorkflowProvider implements WorkflowProvider
 	{
 		try
 		{
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			DocumentBuilder builder = factory.newDocumentBuilder();
+			var document = DOMUtils.parseDocument(workflow.getDefinition());
+			var rootNamespace = DOMUtils.getRootNamespace(workflow);
 
-			org.w3c.dom.Document document = builder.parse(new ByteArrayInputStream(workflow.getDefinition().getBytes(StandardCharsets.UTF_8)));
-
-			Element processNode = (Element) document.getDocumentElement().getElementsByTagName("bpmn2:process").item(0);
-			Element processExtensions = (Element) processNode.getElementsByTagName("bpmn2:extensionElements").item(0);
+			Element processNode = DOMUtils.getChildrenElementByTagName(document.getDocumentElement(), rootNamespace + ":process").orElseThrow(() -> new RuntimeException("no process element in workflow definition"));
+			Element processExtensions = DOMUtils.getChildrenElementByTagName(processNode, rootNamespace + ":extensionElements").orElse(null);
 
 			if (processExtensions == null)
 			{
-				processExtensions = document.createElement("bpmn2:extensionElements");
+				processExtensions = document.createElement(rootNamespace + ":extensionElements");
 				processNode.appendChild(processExtensions);
 			}
 
@@ -76,15 +63,7 @@ public abstract class AbstractWorkflowProvider implements WorkflowProvider
 				finalProcessExtensions.appendChild(scriptElement);
 			});
 
-			ByteArrayOutputStream resultStream = new ByteArrayOutputStream();
-
-			Transformer transformer = TransformerFactory.newInstance().newTransformer();
-			StreamResult result = new StreamResult(resultStream);
-			DOMSource source = new DOMSource(document);
-
-			transformer.transform(source, result);
-
-			return new ExportedWorkflow(workflow.getId(), workflow.getVersion().toString(), resultStream.toString(StandardCharsets.UTF_8));
+			return new ExportedWorkflow(workflow.getId(), workflow.getVersion().toString(), DOMUtils.writeDocument(document));
 		}
 		catch (Exception e)
 		{
@@ -96,15 +75,11 @@ public abstract class AbstractWorkflowProvider implements WorkflowProvider
 	{
 		try
 		{
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			DocumentBuilder builder = factory.newDocumentBuilder();
+			var document = DOMUtils.parseDocument(workflow.getDefinition());
+			var rootNamespace = DOMUtils.getRootNamespace(workflow);
 
-			org.w3c.dom.Document document = builder.parse(new ByteArrayInputStream(workflow.getDefinition().getBytes(StandardCharsets.UTF_8)));
-
-			Element processNode = (Element) document.getDocumentElement().getElementsByTagName("bpmn2:process").item(0);
-			Element processExtensions = (Element) processNode.getElementsByTagName("bpmn2:extensionElements").item(0);
-
-			NodeList processScripts = processExtensions.getElementsByTagName("processScript");
+			Element processNode = (Element) document.getDocumentElement().getElementsByTagName(rootNamespace + ":process").item(0);
+			NodeList processScripts = processNode.getElementsByTagName("processScript");
 
 			for (int i = 0; i < processScripts.getLength(); i++)
 			{
@@ -117,13 +92,6 @@ public abstract class AbstractWorkflowProvider implements WorkflowProvider
 				script.setDefinition(((CDATASection) scriptNode.getFirstChild()).getData());
 
 				workflow.getScripts().put(script.getId(), script);
-			}
-
-			if (workflow.getVersion() == null)
-			{
-				var version = Version.parse(processNode.getAttribute("drools:version"));
-
-				workflow.setVersion(version.isLessThan(DEFAULT_VERSION) ? DEFAULT_VERSION : version);
 			}
 		}
 		catch (Exception e)

@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@
 
 package com.proit.app.jobs.endpoint;
 
+import com.proit.app.api.model.ApiResponse;
 import com.proit.app.jobs.model.dto.JobTrigger;
 import com.proit.app.jobs.model.dto.RescheduleJobRequest;
 import com.proit.app.jobs.model.dto.param.JobParams;
 import com.proit.app.jobs.service.JobManager;
-import com.proit.app.api.model.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

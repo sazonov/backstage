@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,36 +16,35 @@
 
 package com.proit.app.database.configuration.ddl;
 
+import com.proit.app.database.configuration.properties.DDLProperties;
 import com.proit.app.database.utils.DDLUtils;
 import lombok.Getter;
-import lombok.Setter;
-import org.springframework.beans.factory.BeanNameAware;
+import lombok.RequiredArgsConstructor;
 
 import javax.sql.DataSource;
 
 @Getter
-public abstract class AbstractDDLProvider implements DDLProvider, BeanNameAware
+@RequiredArgsConstructor
+public abstract class AbstractDDLProvider implements DDLProvider
 {
-	@Setter
-	private String beanName;
-
 	private final String appName;
+
+	private final DDLProperties properties;
 
 	private final DataSource dataSource;
 
-	public AbstractDDLProvider(String appName, DataSource dataSource)
+	public AbstractDDLProvider(String appName, String scheme, DataSource dataSource)
 	{
 		this.appName = appName;
 		this.dataSource = dataSource;
+		this.properties = new DDLProperties(true, scheme);
 	}
 
-	public String getName()
+	public void update()
 	{
-		return beanName;
-	}
-
-	public void update(String scheme)
-	{
-		DDLUtils.applyDDL(getAppName(), scheme, getDataSource());
+		if (properties.isEnabled())
+		{
+			DDLUtils.applyDDL(getAppName(), properties.getScheme(), getDataSource());
+		}
 	}
 }

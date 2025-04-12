@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package com.proit.app.jms.configuration.health;
 
-import com.proit.app.dict.service.health.AbstractHealthIndicator;
-import com.proit.app.jms.configuration.conditional.ConditionalOnJms;
+import com.proit.app.jms.configuration.conditional.ConditionalOnEmbeddedBroker;
+import com.proit.app.service.health.AbstractHealthIndicator;
 import lombok.Cleanup;
 import org.apache.activemq.broker.BrokerService;
 import org.apache.activemq.command.ActiveMQDestination;
@@ -32,7 +32,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Component
-@ConditionalOnJms
+@ConditionalOnEmbeddedBroker
 public class JmsBrokerHealthIndicator extends AbstractHealthIndicator
 {
 	public static final String DEFAULT_AMQ_PREFIX = "ActiveMQ.Statistics.Destination.";

@@ -1,12 +1,6 @@
 app:
-    api.swagger.enabled: false
-
     datasource:
       maximumPoolSize: 64
-
-    cache:
-        enabled: false
-
-    jms:
-        enabled: false
-        storeType: memory
+    audit:
+        ddl:
+            scheme: audit

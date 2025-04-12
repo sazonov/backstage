@@ -115,9 +115,9 @@ class JobManagerTest extends AbstractTests
 	}
 
 	@Test
-	void rescheduleJob_notExistedJob()
+	void rescheduleJob_notExistingJob()
 	{
-		var jobName = "testJobs.notExistedJob";
+		var jobName = "testJobs.notExistingJob";
 
 		AppException thrown = assertThrows(AppException.class, () -> jobManager.rescheduleJob(jobName, JobTriggerType.CRON.createTrigger(TestJobs.TEST_UPDATED_CRON)));
 
@@ -177,9 +177,9 @@ class JobManagerTest extends AbstractTests
 	}
 
 	@Test
-	void getParams_notExistedJob()
+	void getParams_notExistingJob()
 	{
-		var jobName = "testJobs.notExistedJob";
+		var jobName = "testJobs.notExistingJob";
 
 		AppException thrown = assertThrows(AppException.class, () -> jobManager.getParams(jobName));
 

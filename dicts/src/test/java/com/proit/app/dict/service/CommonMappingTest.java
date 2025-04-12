@@ -95,7 +95,6 @@ public class CommonMappingTest extends CommonTest
 		assertEquals("*", allFieldName.getFieldId());
 	}
 
-	//TODO: При реализации валидации переданных клиентом сервисных для адаптера полей, актуализировать тест.
 	protected void mapServiceDictFieldName()
 	{
 		var serviceField = ServiceFieldConstants._ID;
@@ -105,7 +104,6 @@ public class CommonMappingTest extends CommonTest
 		assertEquals(ServiceFieldConstants.ID, actual.getFieldId());
 	}
 
-	//TODO: При реализации валидации переданных клиентом сервисных для адаптера полей, актуализировать тест.
 	protected void mapInnerDictServiceDictFieldName()
 	{
 		var serviceField = TESTABLE_DICT_ID + "." + ServiceFieldConstants._ID;

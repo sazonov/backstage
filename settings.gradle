@@ -1,9 +1,10 @@
-rootProject.name = 'backstage'
+rootProject.name = 'components'
 
 include 'app'
 include 'bpm'
 include 'dicts-api'
 include 'bpm'
+include 'bpm-jbpm'
 include 'dicts'
 include 'dependencies'
 include 'doc-templates'
@@ -18,3 +19,5 @@ include 'jms'
 include 'database'
 include 'quartz'
 
+
+includeBuild 'gradle-plugins'

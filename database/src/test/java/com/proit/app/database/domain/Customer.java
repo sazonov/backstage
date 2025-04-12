@@ -14,17 +14,19 @@ import java.util.stream.Collectors;
 @Getter
 @Setter
 @Entity
+@Table(name = "customer", schema = "#{@postgresTestProperties.ddl.scheme}")
 public class Customer extends UuidGeneratedEntity
 {
 	@ManyToMany(fetch = FetchType.LAZY)
 	@JoinTable(name = "\"order\"",
+			schema = "#{@postgresTestProperties.ddl.scheme}",
 			joinColumns = @JoinColumn(name = "fk_customer"),
 			inverseJoinColumns = @JoinColumn(name = "fk_order"))
 	private Set<Product> products = new HashSet<>();
 
 	@ReadOnlyColumn
 	@ElementCollection
-	@CollectionTable(name = "\"order\"", joinColumns = @JoinColumn(name = "fk_customer"))
+	@CollectionTable(name = "\"order\"", schema = "${app.test.postgres.ddl.scheme}", joinColumns = @JoinColumn(name = "fk_customer"))
 	@Column(name = "fk_order")
 	private Set<String> productIds = new HashSet<>();
 

@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -42,7 +42,6 @@ public enum ApiStatusCodeImpl implements ApiStatusCode
 	ATTACHMENT_STORE_ERROR(107, "При обращении к хранилищу вложений произошла ошибка."),
 	ATTACHMENT_STORE_SYNC_ERROR(108, "Ошибка при синхронизации вложений между хранилищами."),
 
-	// TODO: потеряли логику присвоения кодов ниже.
 	DOCUMENT_TEMPLATE_GENERATE_ERROR(109, "Ошибка при создании печатной формы по шаблону."),
 
 	EMAIL_SEND_ERROR(200, "Ошибка отправки email сообщения."),

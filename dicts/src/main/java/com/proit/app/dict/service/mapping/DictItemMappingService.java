@@ -1,34 +1,33 @@
 /*
+ *    Copyright 2019-2024 the original author or authors.
  *
- *  Copyright 2019-2023 the original author or authors.
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *        https://www.apache.org/licenses/LICENSE-2.0
  *
- *  https://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
  */
 
 package com.proit.app.dict.service.mapping;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.proit.app.dict.api.domain.DictFieldType;
+import com.proit.app.dict.constant.ServiceFieldConstants;
 import com.proit.app.dict.domain.DictField;
 import com.proit.app.dict.domain.DictItem;
 import com.proit.app.dict.model.dictitem.DictDataItem;
 import com.proit.app.dict.service.DictService;
-import com.proit.app.dict.api.domain.DictFieldType;
 import com.proit.app.model.other.date.DateConstants;
 import com.proit.app.utils.StreamCollectors;
-import com.proit.app.dict.constant.ServiceFieldConstants;
 import lombok.RequiredArgsConstructor;
+import org.geojson.GeoJsonObject;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -135,6 +134,28 @@ public class DictItemMappingService
 			{
 				throw new RuntimeException("Некорректный формат json поля.");
 			}
+		}
+
+		if (field.getType() == DictFieldType.GEO_JSON)
+		{
+			if (o instanceof String)
+			{
+				return o;
+			}
+
+			if (o instanceof GeoJsonObject)
+			{
+				try
+				{
+					return objectMapper.writeValueAsString(o);
+				}
+				catch (JsonProcessingException e)
+				{
+					throw new RuntimeException("Некорректный формат GEO_JSON поля.");
+				}
+			}
+
+			throw new RuntimeException("Некорректный формат GEO_JSON поля.");
 		}
 
 		if (field.getType() != DictFieldType.TIMESTAMP && field.getType() != DictFieldType.DATE)

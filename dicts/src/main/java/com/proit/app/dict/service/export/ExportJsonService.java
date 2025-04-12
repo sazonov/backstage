@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -17,13 +17,13 @@
 package com.proit.app.dict.service.export;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.proit.app.dict.api.model.dto.ExportedDictDto;
 import com.proit.app.dict.conversion.dto.DictConverter;
 import com.proit.app.dict.conversion.dto.data.DictItemConverter;
 import com.proit.app.dict.domain.DictItem;
 import com.proit.app.dict.service.DictService;
 import com.proit.app.exception.AppException;
 import com.proit.app.model.other.exception.ApiStatusCodeImpl;
-import com.proit.app.dict.api.model.dto.ExportedDictDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -35,7 +35,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ExportJsonService implements ExportService
 {
-//TODO: при реализации экспорта/импорта необходима избавиться от конвертера на уровне сервисов
 	private final DictConverter dictConverter;
 	private final DictItemConverter dictItemConverter;
 

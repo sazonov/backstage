@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -18,13 +18,13 @@ package com.proit.app.dict.configuration.ddl;
 
 import com.proit.app.database.configuration.ddl.DDLConfiguration;
 import com.proit.app.dict.domain.VersionScheme;
-import com.proit.app.exception.ObjectNotFoundException;
 import com.proit.app.dict.exception.migration.MigrationFileReadException;
 import com.proit.app.dict.exception.migration.MigrationHasSameVersionException;
 import com.proit.app.dict.exception.migration.MigrationProcessException;
 import com.proit.app.dict.service.backend.VersionSchemeBackend;
 import com.proit.app.dict.service.migration.ClasspathMigrationService;
 import com.proit.app.dict.util.MigrationUtils;
+import com.proit.app.exception.ObjectNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -76,7 +76,6 @@ public class ClasspathMigrationDictsDDLProvider implements DictsDDLProvider, Bea
 		return beanName;
 	}
 
-	//TODO: провести декомпозицию и рефакторинг метода
 	@Override
 	public void update()
 	{
@@ -88,6 +87,13 @@ public class ClasspathMigrationDictsDDLProvider implements DictsDDLProvider, Bea
 
 			for (Resource resource : resolver.getResources("classpath:" + MIGRATIONS_PATH))
 			{
+				if (!resource.exists())
+				{
+					log.warn("Директория с миграциями отсутствует.");
+
+					return;
+				}
+
 				var resourceConnection = resource.getURL().openConnection();
 
 				if (resourceConnection instanceof JarURLConnection jarURLConnection)

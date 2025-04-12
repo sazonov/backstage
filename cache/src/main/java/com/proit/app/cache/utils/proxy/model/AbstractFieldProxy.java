@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -17,8 +17,10 @@
 package com.proit.app.cache.utils.proxy.model;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.beanutils.PropertyUtils;
 
+import java.beans.BeanInfo;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 
 @RequiredArgsConstructor
@@ -44,14 +46,24 @@ public abstract class AbstractFieldProxy
 	{
 		try
 		{
-			try
+			BeanInfo beanInfo = Introspector.getBeanInfo(source.getClass());
+
+			for (PropertyDescriptor descriptor : beanInfo.getPropertyDescriptors())
 			{
-				return PropertyUtils.getProperty(source, field.getName());
+				if (!field.getName().equals(descriptor.getName()))
+				{
+					continue;
+				}
+
+				var readMethod = descriptor.getReadMethod();
+
+				if (readMethod != null && readMethod.canAccess(source))
+				{
+					return readMethod.invoke(source);
+				}
 			}
-			catch (NoSuchMethodException e)
-			{
-				return field.get(source);
-			}
+
+			return field.get(source);
 		}
 		catch (Exception e)
 		{

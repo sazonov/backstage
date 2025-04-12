@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ public abstract class AbstractConverter<S, T> implements  Converter<S, T>
 	{
 		if (page.isEmpty())
 		{
-			return DataUtils.emptyPage();
+			return DataUtils.emptyPage(page.getPageable(), page.getTotalElements());
 		}
 
 		return new PageImpl<>(convert(page.getContent()), page.getPageable(), page.getTotalElements());
@@ -65,7 +65,7 @@ public abstract class AbstractConverter<S, T> implements  Converter<S, T>
 	{
 		if (slice.isEmpty())
 		{
-			return DataUtils.emptySlice();
+			return DataUtils.emptySlice(slice.getPageable());
 		}
 
 		var converted = convert(slice.getContent());

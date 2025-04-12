@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,13 +16,11 @@
 
 package com.proit.app.dict.api.model.dto.data;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -33,19 +31,15 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
-@Builder
+@Setter
 @Schema(description = "Запись в справочнике")
 public class DictItemDto
 {
 	private String id;
 
-	@Builder.Default
 	@Schema(description = "Пользовательские поля")
-	@JsonSerialize(using = DictDataJsonSerializer.class)
-	@JsonDeserialize(using = DictDataDeserializer.class)
 	private Map<String, Object> data = new HashMap<>();
 
-	@Builder.Default
 	@Schema(description = "История изменений записи")
 	private List<Map<String, Object>> history = new ArrayList<>();
 

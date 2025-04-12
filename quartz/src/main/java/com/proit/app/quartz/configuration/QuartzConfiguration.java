@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -60,9 +60,9 @@ public class QuartzConfiguration
 			properties.put("org.quartz.threadPool.class", "com.proit.app.quartz.configuration.ZeroSizeThreadPool");
 		}
 
-		if (StringUtils.isNotBlank(quartzProperties.getScheme()))
+		if (StringUtils.isNotBlank(quartzProperties.getDdl().getScheme()))
 		{
-			properties.put("org.quartz.jobStore.tablePrefix", "%s.qrtz_".formatted(quartzProperties.getScheme()));
+			properties.put("org.quartz.jobStore.tablePrefix", "%s.qrtz_".formatted(quartzProperties.getDdl().getScheme()));
 		}
 
 		if (quartzProperties.isClustered())

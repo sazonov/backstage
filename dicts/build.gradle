@@ -26,7 +26,6 @@ bootJar {
 dependencies {
 	annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
 
-	api project(":api")
 	api project(":dicts-api")
 	api project(":database")
 	api project(":attachments")
@@ -38,61 +37,17 @@ dependencies {
 
 	api "org.jparsec:jparsec:3.1"
 	api "org.apache.commons:commons-csv:1.9.0"
-	api "com.opencsv:opencsv:5.5"
+	api "com.opencsv:opencsv:5.8"
 	api "de.grundid.opendatalab:geojson-jackson:$geojsonVersion"
 
 	testImplementation "org.springframework.boot:spring-boot-starter-test"
 	testImplementation "org.springframework.boot:spring-boot-starter-data-mongodb"
 
-	testImplementation "com.zaxxer:HikariCP"
-
 	testImplementation "org.testcontainers:testcontainers:$testContainersVersion"
-	testImplementation "org.testcontainers:junit-jupiter:$testContainersVersion"
 	testImplementation "org.testcontainers:mongodb:$testContainersVersion"
 	testImplementation "org.testcontainers:postgresql:$testContainersVersion"
 }
 
 test {
 	useJUnitPlatform()
-}
-
-javadoc {
-	if (JavaVersion.current().isJava9Compatible()) {
-		options.addBooleanOption('html5', true)
-		options.encoding('UTF-8')
-	}
-}
-
-tasks.register('sourceJar', Jar) {
-	archiveClassifier = 'sources'
-	from sourceSets.main.allJava
-}
-
-tasks.register('javadocJar', Jar) {
-	archiveClassifier = 'javadoc'
-	from javadoc
-}
-
-publishing {
-	publications {
-		maven(MavenPublication) {
-			groupId = project.group
-			artifactId = project.name
-			version = project.version
-
-			from components.java
-			artifact sourceJar
-			artifact javadocJar
-		}
-	}
-
-	repositories {
-		maven {
-			url 'https://nexus.proitr.ru/repository/maven-proit/'
-			credentials {
-				username nexusLogin
-				password nexusPassword
-			}
-		}
-	}
 }

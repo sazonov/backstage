@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -86,7 +86,6 @@ public class BindingDictDataServiceAdvice implements DictDataServiceAdvice
 		}
 	}
 
-	//TODO: перевести мапу (doc) на DictDataItem
 	private void handleAllAttachments(Dict dict, Map<String, Object> doc, String id, Consumer4<Collection<String>, String, String, String> action)
 	{
 		getAttachmentDictFieldIds(dict)
@@ -129,7 +128,6 @@ public class BindingDictDataServiceAdvice implements DictDataServiceAdvice
 				.toList();
 	}
 
-	// FIXME: 14.09.2023 Скопировано из reactor.function.Consumer4. Переписать решение нормально
 	@FunctionalInterface
 	private interface Consumer4<A, B, C, D>
 	{

@@ -1,29 +1,28 @@
 /*
+ *    Copyright 2019-2024 the original author or authors.
  *
- *  Copyright 2019-2023 the original author or authors.
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *        https://www.apache.org/licenses/LICENSE-2.0
  *
- *  https://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
  */
 
 package com.proit.app.dict.service.backend.postgres.clause;
 
+import com.proit.app.dict.constant.ServiceFieldConstants;
 import com.proit.app.dict.domain.DictField;
 import com.proit.app.dict.model.postgres.backend.PostgresDictFieldName;
 import com.proit.app.dict.model.postgres.backend.PostgresOrder;
+import com.proit.app.dict.model.postgres.backend.PostgresPageable;
 import com.proit.app.dict.model.postgres.backend.PostgresWord;
 import com.proit.app.dict.model.postgres.query.PostgresQueryContext;
-import com.proit.app.dict.model.postgres.backend.PostgresPageable;
 import com.proit.app.dict.service.DictService;
 import com.proit.app.utils.ValidationUtils;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +41,7 @@ public class PostgresDictDataQueryClause
 	private static final String DICT_ALIAS_KEY = "t";
 	private static final String SELECT_CLAUSE = "%s.%s as \"%s__%s\"";
 	private static final String JOIN_CLAUSE = "left join %s on %s.%s = %s.%s";
+	private static final String ASCENDING_ID_ORDER_CLAUSE = "%s.%s asc";
 
 	private final DictService dictService;
 
@@ -131,7 +131,6 @@ public class PostgresDictDataQueryClause
 					.forEach(joinClauses::add);
 		}
 
-		//TODO: провалидировать refDictId's указанные в queryContext на наличие в Dict
 		queryContext.getParticipantDictIds()
 				.stream()
 				.map(PostgresWord::getOriginalWord)
@@ -149,11 +148,15 @@ public class PostgresDictDataQueryClause
 		}
 	}
 
-	public void addOrderByClauses(LinkedHashSet<String> orderByClauses, PostgresPageable postgresPageable)
+	public void addOrderByClauses(LinkedHashSet<String> orderByClauses, PostgresPageable postgresPageable, String dictId)
 	{
 		if (postgresPageable != null && postgresPageable.isPaged())
 		{
-			//TODO: провалидировать field's указанные в sort на наличие в dict/refDict
+			var ordersIncludeId = postgresPageable.getPostgresSort()
+					.getPostgresOrders()
+					.stream()
+					.anyMatch(it -> ServiceFieldConstants.ID.equals(it.getPostgresDictFieldName().getWordJoint()));
+
 			var orders = postgresPageable.getPostgresSort()
 					.getPostgresOrders()
 					.stream()
@@ -161,6 +164,11 @@ public class PostgresDictDataQueryClause
 					.toList();
 
 			orderByClauses.addAll(orders);
+
+			if (!ordersIncludeId)
+			{
+				orderByClauses.add(ASCENDING_ID_ORDER_CLAUSE.formatted(dictId, ServiceFieldConstants.ID));
+			}
 		}
 	}
 

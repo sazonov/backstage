@@ -4,14 +4,14 @@ import org.junit.ClassRule;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.boot.autoconfigure.jms.JmsAutoConfiguration;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.containers.PostgreSQLContainer;
 
-@SpringBootTest
+@WebMvcTest
 @ContextConfiguration(classes = TestApplication.class, initializers = {AbstractTests.Initializer.class})
 @ImportAutoConfiguration(classes = {JmsAutoConfiguration.class, JacksonAutoConfiguration.class})
 public abstract class AbstractTests

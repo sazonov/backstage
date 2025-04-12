@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import com.proit.app.dict.domain.Dict;
 import com.proit.app.exception.AppException;
 import com.proit.app.model.other.exception.ApiStatusCodeImpl;
 import com.proit.app.model.other.user.UserInfo;
-import com.proit.app.dict.service.user.PermissionService;
+import com.proit.app.service.user.PermissionService;
 import com.proit.app.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.proit.app.audit.configuration.properties;
 
+import com.proit.app.database.configuration.properties.DDLProperties;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -27,13 +28,10 @@ public class AuditProperties
 {
 	public static final String ACTIVATION_PROPERTY = "app.audit.enabled";
 
-	//todo убрать в рамках BACKSTAGE-51
-	public static final String DDL_ACTIVATION_PROPERTY = "app.audit.ddl.enabled";
-
 	private boolean enabled = true;
 
 	/**
-	 * Активирует DDLProvider для создания схемы вложений.
+	 * Параметры для DDLProvider.
 	 */
-	private boolean ddlEnabled = true;
+	private DDLProperties ddl = new DDLProperties();
 }

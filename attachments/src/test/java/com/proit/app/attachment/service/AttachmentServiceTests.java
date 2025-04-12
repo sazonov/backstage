@@ -1,9 +1,11 @@
 package com.proit.app.attachment.service;
 
 import com.proit.app.attachment.AbstractTests;
+import com.proit.app.attachment.model.domain.Attachment;
 import com.proit.app.exception.AppException;
 import com.proit.app.model.other.user.UserInfo;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.mutable.MutableObject;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -12,14 +14,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.Objects;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class AttachmentServiceTests extends AbstractTests
 {
+	@Autowired private TransactionTemplate transactionTemplate;
+
 	@Autowired private AttachmentService attachmentService;
 
 	@Value("classpath:attachment.png")
@@ -84,5 +90,29 @@ public class AttachmentServiceTests extends AbstractTests
 		attachmentStore.deleteAttachment(attachment);
 
 		assertFalse(attachmentStore.attachmentExists(attachment));
+	}
+
+	@Order(5)
+	@Test
+	public void addAttachmentWithRollback() throws Exception
+	{
+		var bytes = IOUtils.toByteArray(fileResource.getInputStream());
+		var rolledBackAttachmentId = UUID.randomUUID().toString();
+		MutableObject<Attachment> attachment = new MutableObject<>();
+
+		try
+		{
+			transactionTemplate.execute(status -> {
+				attachment.setValue(attachmentService.addAttachment(rolledBackAttachmentId, Objects.requireNonNull(fileResource.getFilename()), MediaType.IMAGE_PNG_VALUE, UserInfo.SYSTEM_USER_ID, bytes));
+
+				throw new RuntimeException("rolling back");
+			});
+		}
+		catch (Exception ignore)
+		{
+			// ignore
+		}
+
+		assertFalse(attachmentService.getAttachmentStore().attachmentExists(attachment.getValue()));
 	}
 }

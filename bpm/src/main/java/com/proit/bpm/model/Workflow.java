@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.proit.bpm.model;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.util.Version;
@@ -28,17 +29,28 @@ import java.util.Map;
 @Setter
 public class Workflow
 {
+	public static final Version DEFAULT_VERSION = new Version(1, 0);
+
 	private String id;
 
 	private String name;
 
-	private Version version;
+	private Version version = DEFAULT_VERSION;
 
 	private LocalDateTime created;
 
 	private String definition;
 
+	@Setter(AccessLevel.NONE)
+	private EngineType engineType;
+
 	Map<String, WorkflowScript> scripts = new HashMap<>();
+
+	public void setDefinition(String definition)
+	{
+		this.definition = definition;
+		this.engineType = EngineType.byDefinition(definition);
+	}
 
 	public String getFullId()
 	{

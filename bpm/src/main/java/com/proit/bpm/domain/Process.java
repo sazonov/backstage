@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.proit.bpm.domain;
 
 import com.proit.app.database.model.UuidGeneratedEntity;
 import com.proit.bpm.conversion.jpa.ProcessParametersConverter;
+import com.proit.bpm.model.EngineType;
 import lombok.Getter;
 import lombok.Setter;
 import org.eclipse.persistence.annotations.Convert;
@@ -32,19 +33,23 @@ import java.util.Map;
 @Getter
 @Setter
 @Entity
+@Table(name = "process", schema = "#{@bpmProperties.ddl.scheme}")
 @Converter(converterClass = ProcessParametersConverter.class, name = ProcessParametersConverter.NAME)
 public class Process extends UuidGeneratedEntity
 {
+	@Enumerated(EnumType.STRING)
+	@Column(name = "engine_type")
+	private EngineType engineType;
+
 	@Column(name = "session_id", nullable = false)
 	private Long sessionId;
 
 	@Column(name = "instance_id", nullable = false)
-	private Long instanceId;
+	private String instanceId;
 
 	@Column(name = "workflow_id", nullable = false)
 	private String workflowId;
 
-	@Temporal(TemporalType.TIMESTAMP)
 	@Column(nullable = false)
 	private LocalDateTime created;
 

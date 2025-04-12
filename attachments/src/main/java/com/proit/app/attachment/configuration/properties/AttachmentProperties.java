@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.proit.app.attachment.configuration.properties;
 
 import com.google.common.collect.Sets;
 import com.proit.app.attachment.model.dto.AttachmentDto;
+import com.proit.app.database.configuration.properties.DDLProperties;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -31,9 +32,6 @@ import java.util.Set;
 public class AttachmentProperties
 {
 	public static final String ACTIVATION_PROPERTY = "app.attachments.enabled";
-
-	//todo убрать в рамках BACKSTAGE-51
-	public static final String DDL_ACTIVATION_PROPERTY = "app.attachments.ddl.enabled";
 
 	public static final String IMAGE_BPM_VALUE = "image/bmp";
 	public static final String IMAGE_MS_BPM_VALUE = "image/x-ms-bmp";
@@ -83,9 +81,9 @@ public class AttachmentProperties
 	private boolean enabled;
 
 	/**
-	 * Активирует DDLProvider для создания схемы вложений.
+	 * Параметры для DDLProvider.
 	 */
-	private boolean ddlEnabled = true;
+	private DDLProperties ddl = new DDLProperties();
 
 	/**
 	 * Тип хранилища для вложений.

@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 
 package com.proit.app.audit.conversion.dto;
 
-import com.proit.app.audit.model.dto.AuditEvent;
-import com.proit.app.audit.model.domain.Audit;
 import com.proit.app.audit.configuration.conditional.ConditionalOnAudit;
+import com.proit.app.audit.model.domain.Audit;
+import com.proit.app.audit.model.dto.AuditEvent;
 import com.proit.app.conversion.dto.AbstractConverter;
 import org.springframework.stereotype.Component;
 

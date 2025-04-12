@@ -13,6 +13,7 @@ catalog {
 		version("springCloud", "$springCloudVersion")
 		version("springSocial", "$springSocialVersion")
 		version("jbpm", "$jbpmVersion")
+		version("camunda", "$camundaVersion")
 		version("groovy", "$groovyVersion")
 		version("kotlin", "$kotlinVersion")
 		version("nashorn", "$nashornVersion")
@@ -33,12 +34,21 @@ publishing {
 	publications {
 		maven(MavenPublication) {
 			from components.versionCatalog
+
+			pom {
+				licenses {
+					license {
+						name = "The Apache License, Version 2.0"
+						url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+					}
+				}
+			}
 		}
 	}
 
 	repositories {
 		maven {
-			url 'https://nexus.proitr.ru/repository/maven-proit/'
+			url nexusUrl
 			credentials {
 				username nexusLogin
 				password nexusPassword

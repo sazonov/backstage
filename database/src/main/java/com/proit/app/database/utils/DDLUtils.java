@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -21,22 +21,27 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.FlywayException;
-import org.flywaydb.core.internal.database.postgresql.PostgreSQLConfigurationExtension;
+import org.flywaydb.core.api.configuration.Configuration;
+import org.flywaydb.database.postgresql.PostgreSQLConfigurationExtension;
 
 import javax.sql.DataSource;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @UtilityClass
 public class DDLUtils
 {
-	public static void applyDDL(String application, String scheme, DataSource dataSource)
+	private static final String LOCATION_PATH_PREFIX = "/db/migration/";
+
+	public void applyDDL(String application, String scheme, DataSource dataSource)
 	{
 		applyDDL(application, scheme, dataSource, Collections.emptyMap());
 	}
 
-	public static void applyDDL(String application, String scheme, DataSource dataSource, Map<String, String> placeholders)
+	public void applyDDL(String application, String scheme, DataSource dataSource, Map<String, String> placeholders)
 	{
 		if (StringUtils.isBlank(application))
 		{
@@ -46,10 +51,10 @@ public class DDLUtils
 		// Находим миграционные файлы и применяем их.
 		var builder = Flyway.configure()
 				.table("schema_version_" + application)
-				.encoding("UTF-8")
+				.encoding(StandardCharsets.UTF_8)
 				.baselineOnMigrate(true)
 				.dataSource(dataSource)
-				.locations("/db/migration/" + application)
+				.locations(LOCATION_PATH_PREFIX + application)
 				.placeholders(placeholders);
 
 		if (StringUtils.isNotBlank(scheme))
@@ -59,26 +64,37 @@ public class DDLUtils
 
 		var flyway = builder.load();
 
-		var configurationExtension = flyway.getConfiguration().getPluginRegister().getPlugin(PostgreSQLConfigurationExtension.class);
-		configurationExtension.setTransactionalLock(false);
+		configurePostgresPlugin(flyway);
+		migrate(flyway);
+	}
 
+	private void migrate(Flyway flyway)
+	{
 		try
 		{
 			flyway.migrate();
 		}
-		catch (FlywayException fwe)
+		catch (FlywayException ex)
 		{
-			log.error("Произошла ошибка миграции. Попробуем еще раз после вызова repair.", fwe);
+			log.error("Произошла ошибка миграции. Попробуем еще раз после вызова repair.", ex);
 
 			try
 			{
 				flyway.repair();
 				flyway.migrate();
 			}
-			catch (FlywayException fweSec)
+			catch (FlywayException e)
 			{
-				throw new RuntimeException("failed to apply database migration", fweSec);
+				throw new RuntimeException("failed to apply database migration", e);
 			}
 		}
+	}
+
+	private void configurePostgresPlugin(Flyway flyway)
+	{
+		Optional.ofNullable(flyway.getConfiguration())
+				.map(Configuration::getPluginRegister)
+				.map(pluginRegister -> pluginRegister.getPlugin(PostgreSQLConfigurationExtension.class))
+				.ifPresent(plugin -> plugin.setTransactionalLock(false));
 	}
 }

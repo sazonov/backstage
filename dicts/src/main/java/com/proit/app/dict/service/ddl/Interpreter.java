@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -29,12 +29,12 @@ import com.proit.app.dict.service.DictDataService;
 import com.proit.app.dict.service.DictService;
 import com.proit.app.dict.service.ddl.ast.*;
 import com.proit.app.dict.service.ddl.ast.expression.*;
-import com.proit.app.dict.service.ddl.ast.expression.table.operation.*;
-import com.proit.app.dict.service.ddl.ast.value.*;
 import com.proit.app.dict.service.ddl.ast.expression.table.AlterTable;
 import com.proit.app.dict.service.ddl.ast.expression.table.CreateIndexExpression;
 import com.proit.app.dict.service.ddl.ast.expression.table.CreateTable;
 import com.proit.app.dict.service.ddl.ast.expression.table.DeleteIndexExpression;
+import com.proit.app.dict.service.ddl.ast.expression.table.operation.*;
+import com.proit.app.dict.service.ddl.ast.value.*;
 import com.proit.app.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -131,8 +131,6 @@ public class Interpreter
 				.map(it -> buildDictDataItem(dictId, it))
 				.toList();
 
-		//TODO: после перевода всех вызовов createMany на параметр DictDataItem вместо мапы
-		// убрать SecurityUtils.getCurrentUserId()
 		dictDataService.createMany(dictId, items, SecurityUtils.getCurrentUserId());
 	}
 

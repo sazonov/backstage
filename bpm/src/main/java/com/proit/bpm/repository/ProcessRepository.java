@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import java.util.Optional;
 
 public interface ProcessRepository extends CustomJpaRepository<Process, String>, JpaSpecificationExecutor<Process>
 {
-	Optional<Process> findByInstanceId(Long instanceId);
+	Optional<Process> findByInstanceId(String instanceId);
 
 	@Query(nativeQuery = true, value = "select * from process p where p.active = ?1 and p.parameters @> jsonb_build_object(?2, ?3)")
 	List<Process> findByParameters(Boolean isActive, String paramName1, String paramValue1);

@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.Map;
 
 public class TestJobs
@@ -41,7 +42,7 @@ public class TestJobs
 		@Override
 		protected JobResult execute()
 		{
-			return null;
+			return JobResult.ok();
 		}
 	}
 
@@ -58,7 +59,7 @@ public class TestJobs
 		@Override
 		protected JobResult execute()
 		{
-			return null;
+			return JobResult.ok();
 		}
 	}
 
@@ -75,7 +76,7 @@ public class TestJobs
 		@Override
 		protected JobResult execute()
 		{
-			return null;
+			return JobResult.ok();
 		}
 	}
 
@@ -91,7 +92,7 @@ public class TestJobs
 		@Override
 		protected JobResult execute()
 		{
-			return null;
+			return JobResult.ok();
 		}
 	}
 
@@ -101,7 +102,7 @@ public class TestJobs
 		@Override
 		protected JobResult execute()
 		{
-			return null;
+			return JobResult.ok();
 		}
 	}
 
@@ -111,7 +112,7 @@ public class TestJobs
 		@Override
 		protected JobResult execute()
 		{
-			return null;
+			return JobResult.ok();
 		}
 
 		@Override
@@ -127,8 +128,11 @@ public class TestJobs
 		@Override
 		protected JobResult execute(TestManualJobParams params)
 		{
+			var resultParams = new HashMap<String, Object>(1);
+			resultParams.put("result", params.testParam);
+
 			return JobResult.builder()
-					.properties(Map.of("result", params.testParam))
+					.properties(resultParams)
 					.build();
 		}
 

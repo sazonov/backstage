@@ -1,15 +1,10 @@
 app:
-    jpa.enabled: true
-    ddl.enabled: true
-    audit.enabled: false
-    jms.enabled: false
-    cache.enabled: false
     attachments:
         enabled: true
         store-type: directory
         directory:
             path: uploads
-    api.swagger.enabled: false
+
     report:
         enabled: true
         store-type: attachment

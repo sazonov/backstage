@@ -1,19 +1,17 @@
 /*
+ *    Copyright 2019-2024 the original author or authors.
  *
- *  Copyright 2019-2023 the original author or authors.
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *        https://www.apache.org/licenses/LICENSE-2.0
  *
- *  https://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
  */
 
 package com.proit.app.dict.service.validation;
@@ -47,7 +45,10 @@ import org.springframework.util.Assert;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -115,7 +116,6 @@ public class DictDataValidationService
 		return fieldNameMappingService.mapDictFieldName(field);
 	}
 
-	//TODO: после слияния KGH-4229, актуализировать без проброса userId
 	public void validateDictDataItem(DictDataItem dataItem, String userId)
 	{
 		var dataItemMap = dataItem.getDataItemMap();
@@ -175,7 +175,6 @@ public class DictDataValidationService
 		}
 	}
 
-	//TODO: провести декомпозицию метода
 	private void checkSingleElementCast(String dictId, DictField dictField, Object value, String userId)
 	{
 		try
@@ -310,7 +309,11 @@ public class DictDataValidationService
 					}
 				}
 				case GEO_JSON -> {
-					//TODO: реализовать персистентное хранение значений GEO_JSON как GeoJson обьектов (postgis)
+					if (value instanceof GeoJsonObject)
+					{
+						return;
+					}
+
 					if (value instanceof String s)
 					{
 						objectMapper.readValue(s, GeoJsonObject.class);

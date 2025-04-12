@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.proit.app.audit.model.domain.AuditProperties;
 import com.proit.app.audit.model.dto.AuditEvent;
 import com.proit.app.audit.model.other.AuditFilter;
 import com.proit.app.audit.repository.AuditRepository;
+import com.proit.app.database.configuration.properties.DDLProperties;
 import com.proit.app.database.utils.StreamUtils;
 import com.proit.app.utils.DateUtils;
 import lombok.RequiredArgsConstructor;
@@ -32,9 +33,9 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.ZoneId;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -45,6 +46,8 @@ public class JpaAuditStore implements AuditStore
 	private final NamedParameterJdbcTemplate jdbc;
 
 	private final AuditRepository auditRepository;
+
+	private final com.proit.app.audit.configuration.properties.AuditProperties auditConfigurationProperties;
 
 	@Transactional
 	public void write(AuditEvent event)
@@ -93,8 +96,15 @@ public class JpaAuditStore implements AuditStore
 			whereClauses.add("user_id = :userId");
 		}
 
-		var sql = "from audit "
-				+ (whereClauses.isEmpty() ? "" : "where " + String.join(" and ", whereClauses));
+		var fullTableName = Optional.of(auditConfigurationProperties.getDdl())
+				.map(DDLProperties::getScheme)
+				.map("%s.audit"::formatted)
+				.orElse("audit");
+
+		var sql = "from %s %s"
+				.formatted(
+						fullTableName,
+						whereClauses.isEmpty() ? "" : "where " + String.join(" and ", whereClauses));
 
 		var idsSql = "select id " + sql + " order by date desc" + (pageable != null && pageable.isPaged() ? " limit :limit offset :offset" : "");
 		var countSql = "select count(id) " + sql;

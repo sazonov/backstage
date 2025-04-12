@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,19 +16,19 @@
 
 package com.proit.app.dict.endpoint;
 
+import com.proit.app.api.model.ApiResponse;
+import com.proit.app.dict.api.domain.DictFieldType;
+import com.proit.app.dict.api.model.dto.DictDto;
+import com.proit.app.dict.api.model.dto.DictEnumDto;
+import com.proit.app.dict.api.model.dto.request.CreateDictEnumRequest;
+import com.proit.app.dict.api.model.dto.request.CreateDictRequest;
+import com.proit.app.dict.api.model.dto.request.DeleteDictRequest;
 import com.proit.app.dict.conversion.dto.DictConverter;
 import com.proit.app.dict.conversion.dto.DictEnumConverter;
 import com.proit.app.dict.conversion.dto.DictEnumRequestConverter;
 import com.proit.app.dict.conversion.dto.DictRequestConverter;
 import com.proit.app.dict.domain.DictEnum;
 import com.proit.app.dict.service.DictService;
-import com.proit.app.dict.api.domain.DictFieldType;
-import com.proit.app.api.model.ApiResponse;
-import com.proit.app.dict.api.model.dto.DictDto;
-import com.proit.app.dict.api.model.dto.DictEnumDto;
-import com.proit.app.dict.api.model.dto.request.CreateDictEnumRequest;
-import com.proit.app.dict.api.model.dto.request.CreateDictRequest;
-import com.proit.app.dict.api.model.dto.request.DeleteDictRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -74,7 +74,6 @@ public class DictEndpoint
 	@PostMapping("/create")
 	public ApiResponse<DictDto> create(@RequestBody @Valid CreateDictRequest request)
 	{
-		//fixme реализация для KGH-2695, зарефакторить в рамках KGH-2728
 		var dict = schemeRequestConverter.convert(request);
 
 		var sourceFields = new ArrayList<>(dict.getFields());
@@ -136,8 +135,6 @@ public class DictEndpoint
 	@PostMapping("/update")
 	public ApiResponse<DictDto> update(@RequestBody @Valid CreateDictRequest request)
 	{
-		//		TODO: dictId = отдельным параметром
-		//fixme реализация для KGH-2695, зарефакторить в рамках KGH-2728
 		var dict = schemeRequestConverter.convert(request);
 
 		var sourceFields = new ArrayList<>(dict.getFields());

@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@
 package com.proit.app.dict.conversion.dto;
 
 import com.proit.app.conversion.dto.AbstractConverter;
-import com.proit.app.dict.domain.DictEnum;
 import com.proit.app.dict.api.model.dto.request.CreateDictEnumRequest;
+import com.proit.app.dict.domain.DictEnum;
 import org.springframework.stereotype.Component;
 
 @Component

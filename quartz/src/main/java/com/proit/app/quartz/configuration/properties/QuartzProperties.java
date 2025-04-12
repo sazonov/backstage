@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.proit.app.quartz.configuration.properties;
 
+import com.proit.app.database.configuration.properties.DDLProperties;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -47,9 +48,9 @@ public class QuartzProperties
 	private String schedulerName = "BaseScheduler";
 
 	/**
-	 * Схема БД, в которой находятся таблицы.
+	 * Параметры для DDLProvider.
 	 */
-	private String scheme = "";
+	private DDLProperties ddl = new DDLProperties();
 
 	/**
 	 * Поддержка кластеризации. Если не активно, используются оптимизации, существенно ускоряющие создание новых задач.

@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -25,6 +25,24 @@ public class TaskUtils
 	public interface VoidTask
 	{
 		void execute();
+	}
+
+	public static Boolean testWithTryCount(int tryCount, long delay, Supplier<Boolean> predicate)
+	{
+		int c = 0;
+		boolean result = false;
+
+		while (c < tryCount && !(result = predicate.get()))
+		{
+			c++;
+
+			if (c < tryCount)
+			{
+				TimeUtils.sleep(delay);
+			}
+		}
+
+		return result;
 	}
 
 	public static void executeWithTryCount(int tryCount, long delay, VoidTask task) throws Exception

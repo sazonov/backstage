@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,26 +16,26 @@
 
 package com.proit.app.dict.service;
 
+import com.proit.app.database.model.Identity;
+import com.proit.app.database.utils.StreamUtils;
+import com.proit.app.dict.api.domain.DictFieldType;
 import com.proit.app.dict.configuration.backend.provider.DictDataBackendProvider;
-import com.proit.app.dict.domain.DictItem;
+import com.proit.app.dict.constant.ServiceFieldConstants;
 import com.proit.app.dict.domain.Dict;
 import com.proit.app.dict.domain.DictFieldName;
-import com.proit.app.dict.api.domain.DictFieldType;
-import com.proit.app.dict.service.lock.LockDictOperation;
-import com.proit.app.exception.AppException;
-import com.proit.app.exception.ObjectNotFoundException;
-import com.proit.app.model.other.exception.ApiStatusCodeImpl;
+import com.proit.app.dict.domain.DictItem;
 import com.proit.app.dict.model.dictitem.DictDataItem;
-import com.proit.app.database.model.Identity;
 import com.proit.app.dict.service.advice.DictDataServiceAdvice;
 import com.proit.app.dict.service.backend.DictDataBackend;
+import com.proit.app.dict.service.lock.LockDictOperation;
 import com.proit.app.dict.service.mapping.DictFieldNameMappingService;
 import com.proit.app.dict.service.mapping.DictItemMappingService;
 import com.proit.app.dict.service.query.QueryParser;
 import com.proit.app.dict.service.validation.DictDataValidationService;
+import com.proit.app.exception.AppException;
+import com.proit.app.exception.ObjectNotFoundException;
+import com.proit.app.model.other.exception.ApiStatusCodeImpl;
 import com.proit.app.utils.SecurityUtils;
-import com.proit.app.database.utils.StreamUtils;
-import com.proit.app.dict.constant.ServiceFieldConstants;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -67,8 +67,6 @@ public class DictDataService
 	@Getter
 	private final List<DictDataServiceAdvice> serviceAdviceList;
 
-	//TODO: Провести рефакторинг
-	// создать апи для getDictById с проверкой секьюрити и валидацией.
 	public DictItem getById(String dictId, String itemId)
 	{
 		return getById(dictId, itemId, SecurityUtils.getCurrentUserId());
@@ -123,7 +121,6 @@ public class DictDataService
 		return getByFilter(dictId, selectFields, filtersQuery, pageable, SecurityUtils.getCurrentUserId());
 	}
 
-	//TODO: реализовать валидацию filtersQuery и маппинг в QueryExpression с учетом сопоставления констант с типом DictField
 	@LockDictOperation("#dictId")
 	public Page<DictItem> getByFilter(String dictId, List<String> selectFields, String filtersQuery, Pageable pageable, String userId)
 	{
@@ -249,7 +246,6 @@ public class DictDataService
 		return result;
 	}
 
-	//TODO: перевести вызовы в тестах на вызовы с DictDataItem
 	@Deprecated(forRemoval = true)
 	public List<DictItem> createMany(String dictId, List<Map<String, Object>> dictDataList)
 	{

@@ -1,0 +1,11 @@
+app:
+    api.swagger.enabled: false
+
+    quartz.enabled: true
+
+    datasource:
+        maximumPoolSize: 16
+
+    bpm:
+        delete-inactive-processes-delay: 1s
+        auto-migrate-processes: true

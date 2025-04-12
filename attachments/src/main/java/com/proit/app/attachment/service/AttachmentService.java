@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -17,13 +17,14 @@
 package com.proit.app.attachment.service;
 
 import com.proit.app.attachment.configuration.properties.AttachmentProperties;
-import com.proit.app.exception.AppException;
-import com.proit.app.model.other.exception.ApiStatusCodeImpl;
 import com.proit.app.attachment.model.domain.Attachment;
 import com.proit.app.attachment.model.domain.AttachmentBinding;
 import com.proit.app.attachment.repository.AttachmentBindingRepository;
 import com.proit.app.attachment.repository.AttachmentRepository;
 import com.proit.app.attachment.service.store.AttachmentStore;
+import com.proit.app.exception.AppException;
+import com.proit.app.model.other.exception.ApiStatusCodeImpl;
+import com.proit.app.utils.transactional.TransactionalUtils;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -221,18 +222,19 @@ public class AttachmentService
 	{
 		serviceAdviceList.forEach(advice -> advice.handleAddAttachment(id, fileName, mimeType, userId, data));
 
-		var attachment = new Attachment();
-		attachment.setId(id);
-		attachment.setUserId(userId);
-		attachment.setCreated(LocalDateTime.now());
-		attachment.setFileName(fileName);
-		attachment.setMimeType(mimeType);
-		attachment.setSize(data.length);
-		attachment.setChecksum(calculateChecksum(data));
-
-		attachment = attachmentRepository.save(attachment);
+		var attachment = attachmentRepository.save(Attachment.builder()
+				.id(id)
+				.userId(userId)
+				.created(LocalDateTime.now())
+				.fileName(fileName)
+				.mimeType(mimeType)
+				.size(data.length)
+				.checksum(calculateChecksum(data))
+				.build());
 
 		attachmentStore.saveAttachment(attachment, data);
+
+		TransactionalUtils.doOnRollback(() -> attachmentStore.deleteAttachment(attachment));
 
 		return attachment;
 	}

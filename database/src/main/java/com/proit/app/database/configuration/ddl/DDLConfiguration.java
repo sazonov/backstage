@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -17,20 +17,19 @@
 package com.proit.app.database.configuration.ddl;
 
 import com.proit.app.database.configuration.properties.DDLProperties;
+import com.proit.app.utils.MapUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 
 import javax.annotation.PostConstruct;
-import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
-@ConditionalOnProperty(value = DDLProperties.ACTIVATION_PROPERTY, matchIfMissing = true)
 @EnableConfigurationProperties(DDLProperties.class)
 public class DDLConfiguration
 {
@@ -44,22 +43,15 @@ public class DDLConfiguration
 	 */
 	public static final int DDL_PRECEDENCE_APP = 1000;
 
-	private final DDLProperties ddlProperties;
-
-	private final List<DDLProvider> ddlProviders;
+	private final Map<String, DDLProvider> ddlProviders;
 
 	@PostConstruct
 	public void initialize()
 	{
-		ddlProviders.sort(AnnotationAwareOrderComparator.INSTANCE);
-
-		ddlProviders.forEach(provider -> {
-			if (!(provider instanceof SystemDDLProvider) || !ddlProperties.isSkipSystemDDL())
-			{
-				log.info("Applying DDL with '{}'...", provider.getName());
-
-				provider.update(ddlProperties.getScheme());
-			}
-		});
+		ddlProviders.values()
+				.stream()
+				.sorted(AnnotationAwareOrderComparator.INSTANCE)
+				.peek(provider -> log.info("Applying DDL with '{}'...", MapUtils.getKeyByValue(ddlProviders, provider)))
+				.forEach(DDLProvider::update);
 	}
 }

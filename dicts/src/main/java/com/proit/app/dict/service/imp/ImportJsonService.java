@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.proit.app.dict.service.imp;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.proit.app.dict.api.domain.DictFieldType;
 import com.proit.app.dict.constant.ServiceFieldConstants;
 import com.proit.app.dict.domain.DictField;
 import com.proit.app.dict.domain.DictFieldName;
@@ -25,7 +26,6 @@ import com.proit.app.dict.model.dictitem.DictDataItem;
 import com.proit.app.dict.service.DictDataService;
 import com.proit.app.dict.service.DictPermissionService;
 import com.proit.app.dict.service.DictService;
-import com.proit.app.dict.api.domain.DictFieldType;
 import com.proit.app.utils.SecurityUtils;
 import com.proit.app.utils.StreamCollectors;
 import lombok.RequiredArgsConstructor;
@@ -36,8 +36,6 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
-//TODO: перевести импорт на вызов методов DictDataService
-// с параметром DictDataItem вместо мапы
 @Slf4j
 @Service
 @RequiredArgsConstructor

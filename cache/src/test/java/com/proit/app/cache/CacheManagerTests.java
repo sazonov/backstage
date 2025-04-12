@@ -68,6 +68,31 @@ class CacheManagerTests extends AbstractTests
 	}
 
 	@Test
+	public void tti()
+	{
+		var cacheName = "ttiCache";
+		var ttl = 1000;
+		var tti = 3000;
+		var itemId = "1";
+
+		var cache = cacheManager.getCache(cacheName);
+
+		assertNotNull(cache);
+
+		cache.put(itemId, new Object());
+
+		assertNotNull(cache.get(itemId));
+
+		TimeUtils.sleep(ttl + tti / 5);
+
+		assertNotNull(cache.get(itemId));
+
+		TimeUtils.sleep(tti);
+
+		assertNull(cache.get(itemId));
+	}
+
+	@Test
 	void heap()
 	{
 		var cacheName = "objects";

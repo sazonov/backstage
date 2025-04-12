@@ -31,6 +31,6 @@ class EhCacheTests extends AbstractTests
 		var config = EhCacheConfigParser.parse();
 
 		assertTrue(config.isPresent());
-		assertEquals(config.get().getCaches().size(), 3);
+		assertEquals(config.get().getCaches().size(), 4);
 	}
 }

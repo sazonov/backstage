@@ -1,0 +1,2 @@
+insert into test (id, date, updated, completed, testInt, testInt8, nullableString, arrayIds, string, arrayOfString)
+values ('36068d34-cb5b-4284-82eb-699e2de377b5', '2024-02-20T10:00:00', '2024-02-20T10:00:00', null, 686, 163, null, ['590b5aa6-e59d-4819-ad10-2ca28aba0817'], 'test', ['590b5aa6-e59d-4819-ad10-2ca28aba0817']);

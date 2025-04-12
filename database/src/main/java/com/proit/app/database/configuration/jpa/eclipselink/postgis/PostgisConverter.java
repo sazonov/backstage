@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import org.postgis.PGgeometry;
 import java.lang.reflect.Field;
 import java.sql.SQLException;
 
-public class PostgisConverter implements Converter
+class PostgisConverter implements Converter
 {
 	@Override
 	@SuppressWarnings("unchecked")
@@ -64,7 +64,7 @@ public class PostgisConverter implements Converter
 		if (dataValue instanceof PGgeometry)
 		{
 			final org.postgis.Geometry geometry = ((PGgeometry) dataValue).getGeometry();
-			return Wkt.newDecoder(Wkt.Dialect.POSTGIS_EWKT_1).decode(geometry.toString());
+			return Wkt.newDecoder(Dialect.POSTGIS_EWKT_1).decode(geometry.toString());
 		}
 		else if (dataValue instanceof String)
 		{
@@ -84,7 +84,7 @@ public class PostgisConverter implements Converter
 			else
 			{
 				//Assume a WKT format
-				return Wkt.newDecoder(Wkt.Dialect.POSTGIS_EWKT_1).decode(wk);
+				return Wkt.newDecoder(Dialect.POSTGIS_EWKT_1).decode(wk);
 			}
 		}
 		else
@@ -120,8 +120,6 @@ public class PostgisConverter implements Converter
 			final Field javaField = getJavaField(mapping, field);
 			final Class<?> javaFieldType = javaField.getType();
 
-			//TODO: Dervive the SRS from an annotation
-			//TODO: Dervive the M from an annotation
 			if (Point.class == javaFieldType)
 			{
 				field.setColumnDefinition("geometry(POINT,-1)");

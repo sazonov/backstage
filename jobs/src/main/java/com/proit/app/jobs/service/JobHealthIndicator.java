@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package com.proit.app.jobs.service;
 
 import com.proit.app.jobs.model.dto.other.JobResult;
-import com.proit.app.dict.service.health.SimpleHealthIndicatorComponent;
+import com.proit.app.service.health.SimpleHealthIndicatorComponent;
 import lombok.Getter;
 import org.springframework.scheduling.support.SimpleTriggerContext;
 
@@ -26,12 +26,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+@Getter
 public class JobHealthIndicator extends SimpleHealthIndicatorComponent implements JobEventListener
 {
 	private Date lastExecutionTime;
 	private Date lastCompletionTime;
-
-	@Getter
 	private Date nextExecutionTime;
 
 	public JobHealthIndicator(AbstractJob<?> job)

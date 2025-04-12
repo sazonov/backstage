@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -55,7 +55,6 @@ public class GeneratorLocator
 	{
 		return Optional.ofNullable(reportType)
 				.map(ReportType::getGeneratorType)
-				// TODO: 25.10.2023 Рассмотреть вариант отказа от локатора в пользу извлечения напрямую из контекста
 				.map(clazz -> (ReportGenerator<T>) generatorByReportTypeName.get(clazz))
 				.orElseThrow(() -> new ReportGeneratorNotFoundException("Не найден генератор для типа отчета %s.".formatted(reportType)));
 	}

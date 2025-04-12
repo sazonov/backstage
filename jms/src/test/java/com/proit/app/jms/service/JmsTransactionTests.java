@@ -16,8 +16,8 @@
 
 package com.proit.app.jms.service;
 
-import com.proit.app.utils.TimeUtils;
 import com.proit.app.jms.AbstractTests;
+import com.proit.app.utils.TimeUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;

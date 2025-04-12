@@ -25,75 +25,32 @@ dependencies {
 	api "org.springframework.boot:spring-boot-starter-actuator"
 	api "org.springframework.boot:spring-boot-starter"
 	api "org.springframework.boot:spring-boot-starter-aop"
-	api "org.springframework.boot:spring-boot-starter-web"
 	api "org.springframework.boot:spring-boot-starter-validation"
 	api "org.springframework.boot:spring-boot-starter-security"
 
 	compileOnly "org.springframework.boot:spring-boot-starter-data-redis"
 
-	api "org.freemarker:freemarker"
-
+	api "com.fasterxml.jackson.core:jackson-databind"
 	api "com.fasterxml.jackson.core:jackson-annotations"
-
 	api "com.google.guava:guava:$guavaVersion"
 	api "org.apache.commons:commons-lang3"
 	api "commons-io:commons-io:$commonsIOVersion"
 	api "commons-codec:commons-codec:$commonsCodecVersion"
-	api "commons-beanutils:commons-beanutils:$commonsBeanUtilsVersion"
 
-	// Интеграция с systemd
-	api "com.github.jpmsilva.jsystemd:jsystemd-spring-boot-starter:2.0.1"
+	implementation "org.codehaus.janino:janino:$janinoVersion"
+	implementation "net.logstash.logback:logstash-logback-encoder:6.6"
 
+	compileOnly "org.freemarker:freemarker"
+	compileOnly "org.apache.httpcomponents:httpclient"
+
+	testImplementation "org.springframework.data:spring-data-commons"
 	testImplementation "org.springframework.boot:spring-boot-starter-test"
-	testImplementation "org.springframework.boot:spring-boot-starter-aop"
-	testImplementation "org.springframework.boot:spring-boot-starter-actuator"
-	testImplementation "org.springframework.boot:spring-boot-starter-validation"
-	testImplementation "org.springframework.boot:spring-boot-starter-web"
 
-	testImplementation "org.junit.jupiter:junit-jupiter:5.8.1"
+	testImplementation "org.junit.jupiter:junit-jupiter:$jupiterVersion"
+
+	testImplementation "org.apache.httpcomponents:httpclient"
 }
 
 test {
 	useJUnitPlatform()
-}
-
-javadoc {
-	if (JavaVersion.current().isJava9Compatible()) {
-		options.addBooleanOption('html5', true)
-		options.encoding('UTF-8')
-	}
-}
-
-tasks.register('sourceJar', Jar) {
-	archiveClassifier = 'sources'
-	from sourceSets.main.allJava
-}
-
-tasks.register('javadocJar', Jar) {
-	archiveClassifier = 'javadoc'
-	from javadoc
-}
-
-publishing {
-	publications {
-		maven(MavenPublication) {
-			groupId = project.group
-			artifactId = project.name
-			version = project.version
-
-			from components.java
-			artifact sourceJar
-			artifact javadocJar
-		}
-	}
-
-	repositories {
-		maven {
-			url 'https://nexus.proitr.ru/repository/maven-proit/'
-			credentials {
-				username nexusLogin
-				password nexusPassword
-			}
-		}
-	}
 }

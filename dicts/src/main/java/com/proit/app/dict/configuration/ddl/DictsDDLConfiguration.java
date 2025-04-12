@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package com.proit.app.dict.configuration.ddl;
 
 import com.proit.app.dict.configuration.properties.DictsProperties;
-import com.proit.app.database.configuration.properties.DDLProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -32,8 +31,8 @@ import java.util.List;
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
-@ConditionalOnProperty(value = DDLProperties.ACTIVATION_PROPERTY, matchIfMissing = true)
-@EnableConfigurationProperties({DDLProperties.class, DictsProperties.class})
+@ConditionalOnProperty(value = DictsProperties.DDL_ACTIVATION_PROPERTY, matchIfMissing = true)
+@EnableConfigurationProperties(DictsProperties.class)
 @DependsOn({"dictsStorageDDLConfiguration", "dictLockInitializer"})
 public class DictsDDLConfiguration
 {

@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -29,8 +29,8 @@ import com.proit.app.dict.exception.dict.enums.EnumNotFoundException;
 import com.proit.app.dict.exception.dict.field.FieldNotFoundException;
 import com.proit.app.dict.exception.dict.index.IndexAlreadyExistsException;
 import com.proit.app.dict.exception.dict.index.IndexNotFoundException;
-import com.proit.app.dict.service.backend.DictSchemeBackend;
 import com.proit.app.dict.service.backend.DictBackend;
+import com.proit.app.dict.service.backend.DictSchemeBackend;
 import com.proit.app.dict.service.lock.DictLockService;
 import com.proit.app.dict.service.lock.LockDictOperation;
 import com.proit.app.dict.service.lock.LockDictSchemaModifyOperation;
@@ -91,21 +91,18 @@ public class DictService
 
 		schemeBackend(dict).createDictScheme(created);
 
-		var savedDict =  dictBackend.saveDict(created);
+		var savedDict = dictBackend.saveDict(created);
 
 		dictLockService.addLock(savedDict.getId());
 
 		return savedDict;
 	}
 
-	//TODO: рассмотреть необходимость обновления схемы для DictConstraint/DictIndex
-	// сейчас обновляется схема только для DictField и DictEnum, последний только в монго.
 	@LockDictSchemaModifyOperation("#dictId")
 	public Dict update(String dictId, Dict dict)
 	{
 		var actualDict = getById(dictId);
 
-		//TODO: разработать обновление engine через api
 		if (dict.getEngine() == null)
 		{
 			dict.setEngine(actualDict.getEngine());
@@ -150,7 +147,7 @@ public class DictService
 	@LockDictSchemaModifyOperation("#id")
 	public void delete(String id, boolean deleted)
 	{
-		dictBackend.softDelete(getById(id), deleted ? LocalDateTime.now() : null);
+		dictBackend.softDelete(id, deleted ? LocalDateTime.now() : null);
 	}
 
 	@LockDictOperation("#id")

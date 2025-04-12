@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.proit.app.doctemplate.configuration;
 
 import com.proit.app.database.configuration.ddl.AbstractDDLProvider;
 import com.proit.app.database.configuration.ddl.DDLConfiguration;
+import com.proit.app.doctemplate.configuration.properties.DocTemplatesProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
@@ -32,8 +33,9 @@ public class DocTemplatesDDLProvider extends AbstractDDLProvider
 	public static final int PRECEDENCE = DDLConfiguration.DDL_PRECEDENCE_SYSTEM + 61;
 
 	@Autowired
-	public DocTemplatesDDLProvider(@Qualifier("ddlDataSource") DataSource dataSource)
+	public DocTemplatesDDLProvider(@Qualifier("ddlDataSource") DataSource dataSource,
+	                               DocTemplatesProperties docTemplatesProperties)
 	{
-		super("doc_templates", dataSource);
+		super("doc_templates", docTemplatesProperties.getDdl(), dataSource);
 	}
 }

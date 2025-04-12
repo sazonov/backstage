@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<included>
+	<include resource="logback/defaults.xml"/>
+	<include resource="logback/console-appender.xml"/>
+	<include resource="logback/rolling-file-appender.xml"/>
+
+	<root level="INFO">
+		<appender-ref ref="CONSOLE" />
+		<appender-ref ref="FILE" />
+	</root>
+
+	<logger name="ch.qos.logback" level="ERROR"/>
+</included>

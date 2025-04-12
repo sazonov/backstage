@@ -278,6 +278,12 @@ public class MongoDictDataServiceTest extends CommonDictDataServiceTest
 	}
 
 	@Test
+	void getByFilter_dictMultiplySortDataField()
+	{
+		getByFilterWithMultipleSortDataField();
+	}
+
+	@Test
 	void getByFilter_withServiceSelectField()
 	{
 		getByFilterWithServiceSelectField();

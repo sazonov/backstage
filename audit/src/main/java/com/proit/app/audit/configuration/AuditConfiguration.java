@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -17,14 +17,14 @@
 package com.proit.app.audit.configuration;
 
 import com.proit.app.audit.configuration.conditional.ConditionalOnAudit;
-import com.proit.app.jms.configuration.conditional.ConditionalOnJms;
-import com.proit.app.database.configuration.conditional.ConditionalOnJpa;
+import com.proit.app.audit.configuration.properties.AuditProperties;
 import com.proit.app.audit.repository.AuditRepository;
 import com.proit.app.audit.service.AuditStore;
 import com.proit.app.audit.service.JmsAuditStore;
 import com.proit.app.audit.service.JpaAuditStore;
 import com.proit.app.audit.service.LogAuditStore;
-import com.proit.app.audit.configuration.properties.AuditProperties;
+import com.proit.app.database.configuration.conditional.ConditionalOnJpa;
+import com.proit.app.jms.configuration.conditional.ConditionalOnJms;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -34,7 +34,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jms.core.JmsTemplate;
 
-@Configuration(proxyBeanMethods = false)
+@Configuration
 @EnableConfigurationProperties(AuditProperties.class)
 @ConditionalOnAudit
 @RequiredArgsConstructor
@@ -43,16 +43,18 @@ public class AuditConfiguration
 	@Bean
 	@Primary
 	@ConditionalOnJms
-	public AuditStore jmsAuditWriter(NamedParameterJdbcTemplate jdbcTemplate, AuditRepository auditRepository, JmsTemplate jmsTemplate)
+	public AuditStore jmsAuditWriter(NamedParameterJdbcTemplate jdbcTemplate, AuditRepository auditRepository,
+	                                 JmsTemplate jmsTemplate, AuditProperties auditProperties)
 	{
-		return new JmsAuditStore(jmsTemplate, jpaAuditWriter(jdbcTemplate, auditRepository));
+		return new JmsAuditStore(jmsTemplate, jpaAuditWriter(jdbcTemplate, auditRepository, auditProperties));
 	}
 
 	@Bean
 	@ConditionalOnJpa
-	public AuditStore jpaAuditWriter(NamedParameterJdbcTemplate jdbcTemplate, AuditRepository auditRepository)
+	public AuditStore jpaAuditWriter(NamedParameterJdbcTemplate jdbcTemplate, AuditRepository auditRepository,
+	                                 AuditProperties auditProperties)
 	{
-		return new JpaAuditStore(jdbcTemplate, auditRepository);
+		return new JpaAuditStore(jdbcTemplate, auditRepository, auditProperties);
 	}
 
 	@Bean

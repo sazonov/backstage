@@ -1,5 +1,5 @@
 /*
- *    Copyright 2019-2023 the original author or authors.
+ *    Copyright 2019-2024 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -61,13 +61,13 @@ public abstract class AbstractJob<T extends JobParams> implements Runnable
 		}
 	}
 
-	public final void run()
+	public final void run(T params)
 	{
 		Optional.ofNullable(getEventListener()).ifPresent(it -> it.beforeExecute(this));
 
 		try
 		{
-			var result = execute();
+			var result = execute(params);
 
 			Optional.ofNullable(getEventListener()).ifPresent(it -> it.afterExecute(this, result));
 		}
@@ -79,6 +79,11 @@ public abstract class AbstractJob<T extends JobParams> implements Runnable
 		}
 	}
 
+	public final void run()
+	{
+		run(defaultParams);
+	}
+
 	/**
 	 * Весь код задачи должен быть реализован в этой процедуре,
 	 * если не предполагается использование параметров.
@@ -87,7 +92,7 @@ public abstract class AbstractJob<T extends JobParams> implements Runnable
 	 */
 	protected JobResult execute()
 	{
-		return execute(defaultParams);
+		return JobResult.failed();
 	}
 
 	/**
@@ -99,7 +104,7 @@ public abstract class AbstractJob<T extends JobParams> implements Runnable
 	 */
 	protected JobResult execute(T params)
 	{
-		return JobResult.failed();
+		return execute();
 	}
 
 	/**
