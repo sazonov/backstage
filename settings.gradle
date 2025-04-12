@@ -19,5 +19,4 @@ include 'jms'
 include 'database'
 include 'quartz'
 
-
 includeBuild 'gradle-plugins'
