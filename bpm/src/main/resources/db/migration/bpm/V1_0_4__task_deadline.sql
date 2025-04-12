@@ -1,1 +1,0 @@
-alter table task add column deadline timestamp;

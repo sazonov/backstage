@@ -1,1 +1,0 @@
-alter table process add column version timestamp default current_timestamp;
