@@ -1,1 +1,1 @@
-Ноые версии фреймворка доступны в репозитории https://github.com/backstage-framework
+Новые версии фреймворка доступны в репозитории https://github.com/backstage-framework
